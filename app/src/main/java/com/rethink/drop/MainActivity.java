@@ -87,7 +87,9 @@ public class MainActivity
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-        databaseReference = FirebaseDatabase.getInstance().getReference();
+        databaseReference = FirebaseDatabase.getInstance()
+                                            .getReference()
+                                            .child("listings");
         drawerLayout = (DrawerLayout) findViewById(R.id.nav_drawer);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         fab = (FloatingActionButton) findViewById(R.id.fab);
