@@ -357,7 +357,9 @@ public class MainActivity
                     databaseReference.child(listingKey)
                                      .removeValue();
                 }
-                getSupportFragmentManager().popBackStackImmediate();
+                while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
+                    getSupportFragmentManager().popBackStackImmediate();
+                }
                 break;
         }
         return super.onOptionsItemSelected(item);
