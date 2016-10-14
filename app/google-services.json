@@ -1,0 +1,50 @@
+{
+  "project_info": {
+    "project_number": "940764424057",
+    "firebase_url": "https://drop-143619.firebaseio.com",
+    "project_id": "drop-143619",
+    "storage_bucket": "drop-143619.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:940764424057:android:3f1fbcdca873f3de",
+        "android_client_info": {
+          "package_name": "com.rethink.drop"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "940764424057-iaih3ndkpu5eahqssv5fh78d2jtol4eb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rethink.drop",
+            "certificate_hash": "D7D9D2DF2D054AE849A501FBB3E20F2A8C300C28"
+          }
+        },
+        {
+          "client_id": "940764424057-t9nlgpdpo57o1i850egno7q4s5okness.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCd869UpHQ_Et5BlppfD1vCGKKPsyVEewk"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

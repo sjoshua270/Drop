@@ -1,0 +1,19 @@
+<resources>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyCd869UpHQ_Et5BlppfD1vCGKKPsyVEewk</string>
+    <string name="app_name">Drop</string>
+    <string name="hint_title">Title</string>
+    <string name="hint_description">Description</string>
+    <string name="delete">Delete</string>
+    <string name="image_description">Listing Image</string>
+    <string name="failed_to_upload">Failed to save listing. Please try again later</string>
+    <string name="title_cannot_be_empty">Please enter a title before saving</string>
+    <string name="uploading">Uploading…</string>
+    <string name="unexpected_error">An unexpected error has occurred</string>
+
+    <string name="nav_local">Local listings</string>
+
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+
+    <string name="full_image">Full screen image</string>
+</resources>

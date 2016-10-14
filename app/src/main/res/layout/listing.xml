@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/item_image"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:contentDescription="@string/image_description"
+        android:visibility="invisible"/>
+
+    <TextView
+        android:id="@+id/item_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/item_image"
+        android:layout_toRightOf="@id/item_image"
+        android:padding="@dimen/listing_padding"
+        android:text="@string/hint_title"
+        android:textSize="@dimen/listing_title_size"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/item_desc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/item_title"
+        android:layout_toEndOf="@id/item_image"
+        android:layout_toRightOf="@id/item_image"
+        android:padding="@dimen/listing_padding"
+        android:text="@string/hint_description"
+        android:textSize="@dimen/listing_desc_size"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/item_timestamp_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:paddingEnd="@dimen/item_timestamp_padding"
+            android:paddingLeft="@dimen/item_timestamp_padding"
+            android:paddingRight="@dimen/item_timestamp_padding"
+            android:paddingStart="@dimen/item_timestamp_padding"
+            android:textSize="@dimen/item_timestamp_size"/>
+
+        <TextView
+            android:id="@+id/item_timestamp_day"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="@dimen/item_timestamp_padding"
+            android:paddingEnd="@dimen/item_timestamp_padding"
+            android:paddingLeft="@dimen/item_timestamp_padding"
+            android:paddingRight="@dimen/item_timestamp_padding"
+            android:paddingStart="@dimen/item_timestamp_padding"
+            android:textSize="@dimen/item_timestamp_size"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentBottom="true"
+        android:background="#b7b7b7"/>
+
+</RelativeLayout>
