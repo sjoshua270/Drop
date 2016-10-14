@@ -449,6 +449,7 @@ public class MainActivity
     protected void onPause() {
         super.onPause();
         stopLocationUpdates();
+        DataManager.detachListeners();
     }
 
     @Override

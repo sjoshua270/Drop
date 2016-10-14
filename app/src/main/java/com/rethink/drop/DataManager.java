@@ -23,9 +23,9 @@ public class DataManager {
     public static HashMap<String, Bitmap> imageBitmaps;
     public static HashMap<String, Listing> listings;
     public static HashMap<String, Boolean> loadedListings;
+    private static DataListener dataListener;
+    private static DatabaseReference listingsRef;
     private FirebaseStorage firebaseStorage;
-    private DataListener dataListener;
-    private DatabaseReference listingsRef;
     private float degreesPerMile = 0.01449275362f;
 
     DataManager() {
@@ -43,7 +43,7 @@ public class DataManager {
         listingsRef.addChildEventListener(dataListener);
     }
 
-    public void detachListeners() {
+    static void detachListeners() {
         listingsRef.removeEventListener(dataListener);
     }
 
