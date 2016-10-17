@@ -112,6 +112,7 @@ public class ListingFragment
     protected void setImageView() {
         if (imageBitmap != null) {
             imageView.setImageBitmap(imageBitmap);
+            imageView.setPadding(0, 0, 0, 0);
         }
     }
 
