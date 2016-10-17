@@ -13,6 +13,8 @@ import com.rethink.drop.models.Listing;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static com.rethink.drop.adapters.ListingsAdapter.NOT_DOWNLOADED;
+import static com.rethink.drop.adapters.ListingsAdapter.NO_IMAGE;
 import static com.rethink.drop.fragments.LocalFragment.listingsAdapter;
 
 public class DataManager {
@@ -20,7 +22,7 @@ public class DataManager {
     public static ArrayList<String> keys;
     public static HashMap<String, Bitmap> imageBitmaps;
     public static HashMap<String, Listing> listings;
-    public static HashMap<String, Boolean> imageDownloaded;
+    public static HashMap<String, Integer> imageStatus;
     private static DataListener dataListener;
     private static DatabaseReference listingsRef;
     private float degreesPerMile = 0.01449275362f;
@@ -29,7 +31,7 @@ public class DataManager {
         keys = new ArrayList<>();
         imageBitmaps = new HashMap<>();
         listings = new HashMap<>();
-        imageDownloaded = new HashMap<>();
+        imageStatus = new HashMap<>();
         listingsRef = FirebaseDatabase.getInstance()
                                       .getReference()
                                       .child("listings");
@@ -49,6 +51,7 @@ public class DataManager {
             Listing listing = dataSnapshot.getValue(Listing.class);
             keys.add(key);
             listings.put(key, listing);
+            imageStatus.put(key, listing.getImageURL().equals("") ? NO_IMAGE : NOT_DOWNLOADED);
             listingsAdapter.notifyDataSetChanged();
         }
 
@@ -60,7 +63,7 @@ public class DataManager {
             if (!prevImageURL.equals(listing.getImageURL())) {
                 // Delete previous image to save space
                 FirebaseStorage.getInstance().getReferenceFromUrl(prevImageURL).delete();
-                imageDownloaded.put(key, null);
+                imageStatus.put(key, NOT_DOWNLOADED);
             }
             listings.put(key, listing);
             listingsAdapter.notifyDataSetChanged();

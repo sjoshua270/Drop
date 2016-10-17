@@ -2,6 +2,7 @@ package com.rethink.drop.adapters;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -25,9 +26,12 @@ import java.util.Locale;
 
 public class ListingsAdapter
         extends RecyclerView.Adapter<ListingsAdapter.ListingHolder> {
+    public static final int NO_IMAGE = 0;
+    public static final int NOT_DOWNLOADED = 1;
+    private static final int DOWNLOADED = 2;
     private ArrayList<String> keys;
     private FirebaseStorage firebaseStorage;
-    private HashMap<String, Boolean> imageDownloaded;
+    private HashMap<String, Integer> imageStatus;
     private HashMap<String, Boolean> imageDisplayed;
     private HashMap<String, Bitmap> imageBitmaps;
     private HashMap<String, Listing> listings;
@@ -35,11 +39,11 @@ public class ListingsAdapter
     public ListingsAdapter(ArrayList<String> keys,
                            HashMap<String, Listing> listings,
                            HashMap<String, Bitmap> imageBitmaps,
-                           HashMap<String, Boolean> imageDownloaded) {
+                           HashMap<String, Integer> imageStatus) {
         this.keys = keys;
         this.listings = listings;
         this.imageBitmaps = imageBitmaps;
-        this.imageDownloaded = imageDownloaded;
+        this.imageStatus = imageStatus;
         imageDisplayed = new HashMap<>();
         firebaseStorage = FirebaseStorage.getInstance();
     }
@@ -56,7 +60,7 @@ public class ListingsAdapter
         final String key = keys.get(position);
         final Listing listing = listings.get(key);
 
-        if (imageDownloaded.get(key) == null) {
+        if (imageStatus.get(key) == NOT_DOWNLOADED) {
             getPhoto(key, listing);
         }
 
@@ -72,9 +76,8 @@ public class ListingsAdapter
         sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
         holder.timeStampTime.setText(sdf.format(listing.getTimestamp()));
 
-        if (imageBitmaps.get(key) != null) {
-            setImageView(holder.imageView, key);
-        }
+        setImageView(holder.imageView, key);
+
         ViewCompat.setTransitionName(holder.imageView, "image_" + key);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -87,28 +90,29 @@ public class ListingsAdapter
     }
 
     private void getPhoto(final String key, Listing listing) {
-        if (listing.getImageURL() != null) {
-            imageDownloaded.put(key, false);
-            if (!listing.getImageURL().equals("")) {
-                firebaseStorage.getReferenceFromUrl(listing.getImageURL())
-                               .getBytes(4 * (1024 * 1024))
-                               .addOnSuccessListener(new OnSuccessListener<byte[]>() {
-                                   @Override
-                                   public void onSuccess(final byte[] bytes) {
-                                       Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                                       int dimens = Math.min(bmp.getWidth(), bmp.getHeight());
-                                       imageBitmaps.put(key, Bitmap.createBitmap(bmp, 0, 0, dimens, dimens));
-                                       imageDownloaded.put(key, true);
-                                       ListingsAdapter.this.notifyDataSetChanged();
-                                   }
-                               });
-            }
+        if (!listing.getImageURL().equals("")) {
+            firebaseStorage.getReferenceFromUrl(listing.getImageURL())
+                           .getBytes(4 * (1024 * 1024))
+                           .addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                               @Override
+                               public void onSuccess(final byte[] bytes) {
+                                   Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                                   int dimens = Math.min(bmp.getWidth(), bmp.getHeight());
+                                   imageBitmaps.put(key, Bitmap.createBitmap(bmp, 0, 0, dimens, dimens));
+                                   imageStatus.put(key, DOWNLOADED);
+                                   ListingsAdapter.this.notifyDataSetChanged();
+                               }
+                           });
+        } else {
+            imageStatus.put(key, NO_IMAGE);
         }
+
     }
 
 
     private void setImageView(final ImageView imageView, String key) {
-        if (imageDownloaded.get(key)) {
+        if (imageStatus.get(key) == DOWNLOADED) {
+            imageView.setPadding(0, 0, 0, 0);
             imageView.setImageBitmap(imageBitmaps.get(key));
             if (imageDisplayed.get(key) == null) {
                 final Animation imageIn = AnimationUtils.loadAnimation(imageView.getContext(), R.anim.slide_fade_in);
@@ -130,9 +134,22 @@ public class ListingsAdapter
                 });
                 imageView.startAnimation(imageIn);
                 imageDisplayed.put(key, true);
-            } else {
-                imageView.setVisibility(View.VISIBLE);
             }
+        } else {
+            int padding = (int) imageView.getContext()
+                                         .getResources()
+                                         .getDimension(
+                                                 R.dimen.item_image_padding);
+            imageView.setPadding(
+                    padding,
+                    padding,
+                    padding,
+                    padding);
+            imageView.setImageDrawable(
+                    ContextCompat.getDrawable(
+                            imageView.getContext(),
+                            R.drawable.ic_photo_camera_white_24px));
+            imageView.setVisibility(View.VISIBLE);
         }
     }
 
@@ -143,7 +160,6 @@ public class ListingsAdapter
 
     static class ListingHolder
             extends RecyclerView.ViewHolder {
-        final ImageView imagePlaceholder;
         final ImageView imageView;
         final TextView title;
         final TextView desc;
@@ -152,7 +168,6 @@ public class ListingsAdapter
 
         ListingHolder(View itemView) {
             super(itemView);
-            imagePlaceholder = (ImageView) itemView.findViewById(R.id.item_image_placeholder);
             imageView = (ImageView) itemView.findViewById(R.id.item_image);
             title = (TextView) itemView.findViewById(R.id.item_title);
             desc = (TextView) itemView.findViewById(R.id.item_desc);
