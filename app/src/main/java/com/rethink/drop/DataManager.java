@@ -52,7 +52,7 @@ public class DataManager {
             keys.add(key);
             listings.put(key, listing);
             imageStatus.put(key, listing.getImageURL().equals("") ? NO_IMAGE : NOT_DOWNLOADED);
-            listingsAdapter.notifyDataSetChanged();
+            listingsAdapter.notifyItemInserted(keys.indexOf(key));
         }
 
         @Override
@@ -66,7 +66,7 @@ public class DataManager {
                 imageStatus.put(key, NOT_DOWNLOADED);
             }
             listings.put(key, listing);
-            listingsAdapter.notifyDataSetChanged();
+            listingsAdapter.notifyItemChanged(keys.indexOf(key));
         }
 
         @Override
@@ -76,10 +76,10 @@ public class DataManager {
             if (imageURL != null && !imageURL.equals("")) {
                 FirebaseStorage.getInstance().getReferenceFromUrl(listings.get(key).getImageURL()).delete();
             }
-            keys.remove(key);
             listings.remove(key);
             imageBitmaps.remove(key);
-            listingsAdapter.notifyDataSetChanged();
+            listingsAdapter.notifyItemRemoved(keys.indexOf(key));
+            keys.remove(key);
         }
 
         @Override

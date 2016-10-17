@@ -1,5 +1,6 @@
 package com.rethink.drop.adapters;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v4.content.ContextCompat;
@@ -29,6 +30,7 @@ public class ListingsAdapter
     public static final int NO_IMAGE = 0;
     public static final int NOT_DOWNLOADED = 1;
     private static final int DOWNLOADED = 2;
+    private static final int DISPLAYED = 3;
     private ArrayList<String> keys;
     private FirebaseStorage firebaseStorage;
     private HashMap<String, Integer> imageStatus;
@@ -60,9 +62,7 @@ public class ListingsAdapter
         final String key = keys.get(position);
         final Listing listing = listings.get(key);
 
-        if (imageStatus.get(key) == NOT_DOWNLOADED) {
-            getPhoto(key, listing);
-        }
+        getPhoto(key, listing);
 
         holder.title.setText(listing.getTitle());
         ViewCompat.setTransitionName(holder.title, "title_" + key);
@@ -90,7 +90,7 @@ public class ListingsAdapter
     }
 
     private void getPhoto(final String key, Listing listing) {
-        if (!listing.getImageURL().equals("")) {
+        if (imageStatus.get(key) == NOT_DOWNLOADED) {
             firebaseStorage.getReferenceFromUrl(listing.getImageURL())
                            .getBytes(4 * (1024 * 1024))
                            .addOnSuccessListener(new OnSuccessListener<byte[]>() {
@@ -100,26 +100,28 @@ public class ListingsAdapter
                                    int dimens = Math.min(bmp.getWidth(), bmp.getHeight());
                                    imageBitmaps.put(key, Bitmap.createBitmap(bmp, 0, 0, dimens, dimens));
                                    imageStatus.put(key, DOWNLOADED);
-                                   ListingsAdapter.this.notifyDataSetChanged();
+                                   ListingsAdapter.this.notifyItemChanged(keys.indexOf(key));
                                }
                            });
-        } else {
-            imageStatus.put(key, NO_IMAGE);
         }
-
     }
 
 
-    private void setImageView(final ImageView imageView, String key) {
-        if (imageStatus.get(key) == DOWNLOADED) {
-            imageView.setPadding(0, 0, 0, 0);
-            imageView.setImageBitmap(imageBitmaps.get(key));
-            if (imageDisplayed.get(key) == null) {
+    private void setImageView(final ImageView imageView, final String key) {
+        switch (imageStatus.get(key)) {
+            case NO_IMAGE:
+                setImagePlaceholder(imageView);
+                break;
+            case NOT_DOWNLOADED:
+                setImagePlaceholder(imageView);
+                break;
+            case DOWNLOADED:
                 final Animation imageIn = AnimationUtils.loadAnimation(imageView.getContext(), R.anim.slide_fade_in);
                 imageIn.setAnimationListener(new Animation.AnimationListener() {
                     @Override
                     public void onAnimationStart(Animation animation) {
-                        imageView.setVisibility(View.VISIBLE);
+                        imageView.setPadding(0, 0, 0, 0);
+                        imageView.setImageBitmap(imageBitmaps.get(key));
                     }
 
                     @Override
@@ -133,24 +135,26 @@ public class ListingsAdapter
                     }
                 });
                 imageView.startAnimation(imageIn);
-                imageDisplayed.put(key, true);
-            }
-        } else {
-            int padding = (int) imageView.getContext()
-                                         .getResources()
-                                         .getDimension(
-                                                 R.dimen.item_image_padding);
-            imageView.setPadding(
-                    padding,
-                    padding,
-                    padding,
-                    padding);
-            imageView.setImageDrawable(
-                    ContextCompat.getDrawable(
-                            imageView.getContext(),
-                            R.drawable.ic_photo_camera_white_24px));
-            imageView.setVisibility(View.VISIBLE);
+                imageStatus.put(key, DISPLAYED);
+                break;
+            case DISPLAYED:
+                imageView.setPadding(0, 0, 0, 0);
+                imageView.setImageBitmap(imageBitmaps.get(key));
+                break;
         }
+    }
+
+    private void setImagePlaceholder(ImageView imageView) {
+        Context context = imageView.getContext();
+        int padding = (int) context.getResources()
+                                   .getDimension(R.dimen.item_image_padding);
+        int color = ContextCompat.getColor(context, R.color.primary);
+        imageView.setPadding(padding, padding, padding, padding);
+        imageView.setBackgroundColor(color);
+        imageView.setImageDrawable(
+                ContextCompat.getDrawable(
+                        imageView.getContext(),
+                        R.drawable.ic_photo_camera_white_24px));
     }
 
     @Override
