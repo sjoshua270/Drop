@@ -47,6 +47,7 @@ public class EditFragment
         implements OnMapReadyCallback {
 
     private static final int GALLERY_REQUEST = 1;
+    private boolean imageChanged;
     private CoordinatorLayout cLayout;
     private DatabaseReference ref;
     private FirebaseUser user;
@@ -56,6 +57,7 @@ public class EditFragment
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        imageChanged = false;
         user = FirebaseAuth
                 .getInstance()
                 .getCurrentUser();
@@ -122,6 +124,7 @@ public class EditFragment
                     // Crop image to square
                     imageBitmap = Bitmap.createBitmap(imageBitmap, imageStartX, imageStartY, imageMinDimen, imageMinDimen);
                     // Scale image down
+                    imageChanged = true;
                     this.imageBitmap = Bitmap.createScaledBitmap(imageBitmap, 1024, 1024, false);
                     setImageView();
                 } catch (IOException e) {
@@ -158,7 +161,7 @@ public class EditFragment
                                                              .child(user.getUid())
                                                              .child(key)
                                                              .child(filename);
-            if (imageBitmap != null) {
+            if (imageBitmap != null && imageChanged) {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
                 UploadTask uploadTask = imageReference.putBytes(stream.toByteArray());
@@ -224,12 +227,16 @@ public class EditFragment
                               }
                           });
             } else {
+                String imageURL = "";
+                if (listing != null && listing.getImageURL() != null) {
+                    imageURL = listing.getImageURL();
+                }
                 ref.setValue(
                         new Listing(
                                 user.getUid(),
                                 Calendar.getInstance()
                                         .getTimeInMillis(),
-                                "",
+                                imageURL,
                                 inputTitle.getText()
                                           .toString(),
                                 inputDesc.getText()
