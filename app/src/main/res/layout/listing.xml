@@ -7,7 +7,6 @@
         android:id="@+id/item_image"
         android:layout_width="@dimen/item_image_dimen"
         android:layout_height="@dimen/item_image_dimen"
-        android:background="@color/primary"
         android:contentDescription="@string/image_description"/>
 
     <TextView
