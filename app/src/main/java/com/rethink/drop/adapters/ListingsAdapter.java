@@ -143,6 +143,7 @@ public class ListingsAdapter
 
     static class ListingHolder
             extends RecyclerView.ViewHolder {
+        final ImageView imagePlaceholder;
         final ImageView imageView;
         final TextView title;
         final TextView desc;
@@ -151,6 +152,7 @@ public class ListingsAdapter
 
         ListingHolder(View itemView) {
             super(itemView);
+            imagePlaceholder = (ImageView) itemView.findViewById(R.id.item_image_placeholder);
             imageView = (ImageView) itemView.findViewById(R.id.item_image);
             title = (TextView) itemView.findViewById(R.id.item_title);
             desc = (TextView) itemView.findViewById(R.id.item_desc);
