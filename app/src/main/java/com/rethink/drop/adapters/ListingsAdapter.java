@@ -1,6 +1,7 @@
 package com.rethink.drop.adapters;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -11,6 +12,8 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FirebaseStorage;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.models.Listing;
@@ -23,20 +26,22 @@ import java.util.Locale;
 public class ListingsAdapter
         extends RecyclerView.Adapter<ListingsAdapter.ListingHolder> {
     private ArrayList<String> keys;
-    private HashMap<String, Boolean> loadedListings;
-    private HashMap<String, Boolean> loadedImages;
+    private FirebaseStorage firebaseStorage;
+    private HashMap<String, Boolean> imageDownloaded;
+    private HashMap<String, Boolean> imageDisplayed;
     private HashMap<String, Bitmap> imageBitmaps;
     private HashMap<String, Listing> listings;
 
     public ListingsAdapter(ArrayList<String> keys,
                            HashMap<String, Listing> listings,
                            HashMap<String, Bitmap> imageBitmaps,
-                           HashMap<String, Boolean> loadedListings) {
+                           HashMap<String, Boolean> imageDownloaded) {
         this.keys = keys;
         this.listings = listings;
         this.imageBitmaps = imageBitmaps;
-        this.loadedListings = loadedListings;
-        loadedImages = new HashMap<>();
+        this.imageDownloaded = imageDownloaded;
+        imageDisplayed = new HashMap<>();
+        firebaseStorage = FirebaseStorage.getInstance();
     }
 
     @Override
@@ -50,6 +55,10 @@ public class ListingsAdapter
     public void onBindViewHolder(final ListingHolder holder, final int position) {
         final String key = keys.get(position);
         final Listing listing = listings.get(key);
+
+        if (imageDownloaded.get(key) == null) {
+            getPhoto(key, listing);
+        }
 
         holder.title.setText(listing.getTitle());
         ViewCompat.setTransitionName(holder.title, "title_" + key);
@@ -77,11 +86,31 @@ public class ListingsAdapter
         });
     }
 
+    private void getPhoto(final String key, Listing listing) {
+        if (listing.getImageURL() != null) {
+            imageDownloaded.put(key, false);
+            if (!listing.getImageURL().equals("")) {
+                firebaseStorage.getReferenceFromUrl(listing.getImageURL())
+                               .getBytes(4 * (1024 * 1024))
+                               .addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                                   @Override
+                                   public void onSuccess(final byte[] bytes) {
+                                       Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                                       int dimens = Math.min(bmp.getWidth(), bmp.getHeight());
+                                       imageBitmaps.put(key, Bitmap.createBitmap(bmp, 0, 0, dimens, dimens));
+                                       imageDownloaded.put(key, true);
+                                       ListingsAdapter.this.notifyDataSetChanged();
+                                   }
+                               });
+            }
+        }
+    }
+
 
     private void setImageView(final ImageView imageView, String key) {
-        if (loadedListings.get(key)) {
+        if (imageDownloaded.get(key)) {
             imageView.setImageBitmap(imageBitmaps.get(key));
-            if (loadedImages.get(key) == null) {
+            if (imageDisplayed.get(key) == null) {
                 final Animation imageIn = AnimationUtils.loadAnimation(imageView.getContext(), R.anim.slide_fade_in);
                 imageIn.setAnimationListener(new Animation.AnimationListener() {
                     @Override
@@ -100,7 +129,7 @@ public class ListingsAdapter
                     }
                 });
                 imageView.startAnimation(imageIn);
-                loadedImages.put(key, true);
+                imageDisplayed.put(key, true);
             } else {
                 imageView.setVisibility(View.VISIBLE);
             }

@@ -13,9 +13,9 @@ import com.rethink.drop.R;
 import com.rethink.drop.adapters.ListingsAdapter;
 
 import static com.rethink.drop.DataManager.imageBitmaps;
+import static com.rethink.drop.DataManager.imageDownloaded;
 import static com.rethink.drop.DataManager.keys;
 import static com.rethink.drop.DataManager.listings;
-import static com.rethink.drop.DataManager.loadedListings;
 
 
 public class LocalFragment
@@ -34,7 +34,7 @@ public class LocalFragment
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        listingsAdapter = new ListingsAdapter(keys, listings, imageBitmaps, loadedListings);
+        listingsAdapter = new ListingsAdapter(keys, listings, imageBitmaps, imageDownloaded);
     }
 
     @Nullable
