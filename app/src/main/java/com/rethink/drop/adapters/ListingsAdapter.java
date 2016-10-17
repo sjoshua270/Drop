@@ -117,11 +117,10 @@ public class ListingsAdapter
                 break;
             case DOWNLOADED:
                 final Animation imageIn = AnimationUtils.loadAnimation(imageView.getContext(), R.anim.slide_fade_in);
+                final Animation imageOut = AnimationUtils.loadAnimation(imageView.getContext(), R.anim.shrink_fade_out);
                 imageIn.setAnimationListener(new Animation.AnimationListener() {
                     @Override
                     public void onAnimationStart(Animation animation) {
-                        imageView.setPadding(0, 0, 0, 0);
-                        imageView.setImageBitmap(imageBitmaps.get(key));
                     }
 
                     @Override
@@ -134,7 +133,25 @@ public class ListingsAdapter
 
                     }
                 });
-                imageView.startAnimation(imageIn);
+                imageOut.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        imageView.setPadding(0, 0, 0, 0);
+                        imageView.setImageBitmap(imageBitmaps.get(key));
+                        imageView.startAnimation(imageIn);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+                imageView.startAnimation(imageOut);
                 imageStatus.put(key, DISPLAYED);
                 break;
             case DISPLAYED:
