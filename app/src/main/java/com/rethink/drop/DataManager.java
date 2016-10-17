@@ -1,9 +1,7 @@
 package com.rethink.drop;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -22,23 +20,19 @@ public class DataManager {
     public static ArrayList<String> keys;
     public static HashMap<String, Bitmap> imageBitmaps;
     public static HashMap<String, Listing> listings;
-    public static HashMap<String, Boolean> loadedListings;
+    public static HashMap<String, Boolean> imageDownloaded;
     private static DataListener dataListener;
     private static DatabaseReference listingsRef;
-    private FirebaseStorage firebaseStorage;
     private float degreesPerMile = 0.01449275362f;
 
     DataManager() {
         keys = new ArrayList<>();
         imageBitmaps = new HashMap<>();
         listings = new HashMap<>();
-        loadedListings = new HashMap<>();
-        firebaseStorage = FirebaseStorage.getInstance();
+        imageDownloaded = new HashMap<>();
         listingsRef = FirebaseDatabase.getInstance()
                                       .getReference()
                                       .child("listings");
-        listingsRef.orderByChild("timestamp")
-                   .limitToFirst(100);
         dataListener = new DataListener();
         listingsRef.addChildEventListener(dataListener);
     }
@@ -55,23 +49,6 @@ public class DataManager {
             Listing listing = dataSnapshot.getValue(Listing.class);
             keys.add(key);
             listings.put(key, listing);
-            if (listing.getImageURL() != null) {
-                loadedListings.put(key, false);
-                if (!listing.getImageURL().equals("")) {
-                    firebaseStorage.getReferenceFromUrl(listing.getImageURL())
-                                   .getBytes(4 * (1024 * 1024))
-                                   .addOnSuccessListener(new OnSuccessListener<byte[]>() {
-                                       @Override
-                                       public void onSuccess(final byte[] bytes) {
-                                           Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                                           int dimens = Math.min(bmp.getWidth(), bmp.getHeight());
-                                           imageBitmaps.put(key, Bitmap.createBitmap(bmp, 0, 0, dimens, dimens));
-                                           loadedListings.put(key, true);
-                                           listingsAdapter.notifyDataSetChanged();
-                                       }
-                                   });
-                }
-            }
             listingsAdapter.notifyDataSetChanged();
         }
 
@@ -79,21 +56,13 @@ public class DataManager {
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
             final String key = dataSnapshot.getKey();
             Listing listing = dataSnapshot.getValue(Listing.class);
-            listings.put(key, listing);
-            if (!listing.getImageURL().equals("")) {
-                final long ONE_KILOBYTE = 1024;
-                firebaseStorage.getReferenceFromUrl(listing.getImageURL())
-                               .getBytes(512 * ONE_KILOBYTE)
-                               .addOnSuccessListener(new OnSuccessListener<byte[]>() {
-                                   @Override
-                                   public void onSuccess(final byte[] bytes) {
-                                       Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                                       int dimens = Math.min(bmp.getWidth(), bmp.getHeight());
-                                       imageBitmaps.put(key, Bitmap.createBitmap(bmp, 0, 0, dimens, dimens));
-                                       listingsAdapter.notifyDataSetChanged();
-                                   }
-                               });
+            String prevImageURL = listings.get(key).getImageURL();
+            if (!prevImageURL.equals(listing.getImageURL())) {
+                // Delete previous image to save space
+                FirebaseStorage.getInstance().getReferenceFromUrl(prevImageURL).delete();
+                imageDownloaded.put(key, null);
             }
+            listings.put(key, listing);
             listingsAdapter.notifyDataSetChanged();
         }
 
@@ -102,7 +71,7 @@ public class DataManager {
             final String key = dataSnapshot.getKey();
             String imageURL = listings.get(key).getImageURL();
             if (imageURL != null && !imageURL.equals("")) {
-                firebaseStorage.getReferenceFromUrl(listings.get(key).getImageURL()).delete();
+                FirebaseStorage.getInstance().getReferenceFromUrl(listings.get(key).getImageURL()).delete();
             }
             keys.remove(key);
             listings.remove(key);
