@@ -34,7 +34,6 @@ public class ListingsAdapter
     private ArrayList<String> keys;
     private FirebaseStorage firebaseStorage;
     private HashMap<String, Integer> imageStatus;
-    private HashMap<String, Boolean> imageDisplayed;
     private HashMap<String, Bitmap> imageBitmaps;
     private HashMap<String, Listing> listings;
 
@@ -46,7 +45,6 @@ public class ListingsAdapter
         this.listings = listings;
         this.imageBitmaps = imageBitmaps;
         this.imageStatus = imageStatus;
-        imageDisplayed = new HashMap<>();
         firebaseStorage = FirebaseStorage.getInstance();
     }
 
