@@ -25,6 +25,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
+import static com.rethink.drop.Utilities.distanceInKilometers;
+import static com.rethink.drop.Utilities.distanceInMiles;
+import static com.rethink.drop.Utilities.getDistanceString;
+import static com.rethink.drop.Utilities.useMetric;
+
 public class ListingsAdapter
         extends RecyclerView.Adapter<ListingsAdapter.ListingHolder> {
     public static final int NO_IMAGE = 0;
@@ -68,6 +73,23 @@ public class ListingsAdapter
         holder.desc.setText(listing.getDescription());
         ViewCompat.setTransitionName(holder.desc, "desc_" + key);
 
+        double distance;
+        if (useMetric(Locale.getDefault())) {
+            distance = distanceInKilometers(
+                    MainActivity.userLocation.latitude, listing.getLatitude(),
+                    MainActivity.userLocation.longitude, listing.getLongitude(),
+                    0.0, 0.0);
+        } else {
+            distance = distanceInMiles(
+                    MainActivity.userLocation.latitude, listing.getLatitude(),
+                    MainActivity.userLocation.longitude, listing.getLongitude(),
+                    0.0, 0.0);
+        }
+        distance = Math.round(distance * 100);
+        distance /= 100;
+        String formatString = getDistanceString(Locale.getDefault());
+        holder.dist.setText(String.format(formatString, String.valueOf(distance)));
+
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
         holder.timeStampDay.setText(sdf.format(listing.getTimestamp()));
 
@@ -103,7 +125,6 @@ public class ListingsAdapter
                            });
         }
     }
-
 
     private void setImageView(final ImageView imageView, final String key) {
         switch (imageStatus.get(key)) {
@@ -182,6 +203,7 @@ public class ListingsAdapter
         final ImageView imageView;
         final TextView title;
         final TextView desc;
+        final TextView dist;
         final TextView timeStampTime;
         final TextView timeStampDay;
 
@@ -190,6 +212,7 @@ public class ListingsAdapter
             imageView = (ImageView) itemView.findViewById(R.id.item_image);
             title = (TextView) itemView.findViewById(R.id.item_title);
             desc = (TextView) itemView.findViewById(R.id.item_desc);
+            dist = (TextView) itemView.findViewById(R.id.item_distance);
             timeStampTime = (TextView) itemView.findViewById(R.id.item_timestamp_time);
             timeStampDay = (TextView) itemView.findViewById(R.id.item_timestamp_day);
         }
