@@ -9,6 +9,8 @@ import android.support.v4.view.ViewCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -46,7 +48,7 @@ public class ImageFragment
         return v;
     }
 
-    private void getPhoto(String key) {
+    private void getPhoto(final String key) {
         Listing listing = listings.get(key);
         FirebaseStorage.getInstance().getReferenceFromUrl(listing.getImageURL())
                        .getBytes(4 * (1024 * 1024))
@@ -54,10 +56,18 @@ public class ImageFragment
                            @Override
                            public void onSuccess(final byte[] bytes) {
                                Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                               imageView.setImageBitmap(bmp);
+                               setImageView(imageView, bmp);
                            }
                        });
     }
+
+    private void setImageView(final ImageView imageView, final Bitmap image) {
+        final Animation imageIn = AnimationUtils.loadAnimation(imageView.getContext(), R.anim.grow_fade_in);
+        imageView.setPadding(0, 0, 0, 0);
+        imageView.setImageBitmap(image);
+        imageView.startAnimation(imageIn);
+    }
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
