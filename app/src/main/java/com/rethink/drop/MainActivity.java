@@ -446,10 +446,16 @@ public class MainActivity
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        dataManager.attachListeners();
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         stopLocationUpdates();
-        DataManager.detachListeners();
+        dataManager.detachListeners();
     }
 
     @Override

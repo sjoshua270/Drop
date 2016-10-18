@@ -36,10 +36,13 @@ public class DataManager {
                                       .getReference()
                                       .child("listings");
         dataListener = new DataListener();
+    }
+
+    void attachListeners() {
         listingsRef.addChildEventListener(dataListener);
     }
 
-    static void detachListeners() {
+    void detachListeners() {
         listingsRef.removeEventListener(dataListener);
     }
 
