@@ -52,6 +52,7 @@ import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ViewFragment;
 import com.rethink.drop.models.Listing;
 
+import static com.rethink.drop.DataManager.listings;
 import static com.rethink.drop.models.Listing.KEY;
 
 public class MainActivity
@@ -59,6 +60,7 @@ public class MainActivity
         implements OnConnectionFailedListener,
                    ConnectionCallbacks,
                    LocationListener {
+    public final static float latDegreesPerMile = 0.01449275362f;
     public static LatLng userLocation;
     private static GoogleApiClient googleApiClient;
     private final int RC_SIGN_IN = 1;
@@ -89,7 +91,8 @@ public class MainActivity
                 .build();
         databaseReference = FirebaseDatabase.getInstance()
                                             .getReference()
-                                            .child("listings");
+                                            .child("listings")
+                                            .child(String.valueOf((int) (userLocation.latitude / latDegreesPerMile)));
         drawerLayout = (DrawerLayout) findViewById(R.id.nav_drawer);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -208,7 +211,7 @@ public class MainActivity
             showFab();
         } else if (currClass.equals(ViewFragment.class)) {
             String key = currFragment.getArguments().getString(KEY);
-            Listing listing = DataManager.listings.get(key);
+            Listing listing = listings.get(key);
             FirebaseUser user = firebaseAuth.getCurrentUser();
 
             if (user != null && user.getUid().equals(listing.getUserID())) {
@@ -354,8 +357,10 @@ public class MainActivity
                         .getArguments()
                         .getString("KEY");
                 if (listingKey != null) {
-                    databaseReference.child(listingKey)
-                                     .removeValue();
+                    databaseReference
+                            .child(String.valueOf((int) (listings.get(listingKey).getLatitude() / latDegreesPerMile)))
+                            .child(listingKey)
+                            .removeValue();
                 }
                 while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
                     getSupportFragmentManager().popBackStackImmediate();
@@ -428,13 +433,22 @@ public class MainActivity
                 == PackageManager.PERMISSION_GRANTED) {
             userLocation = new LatLng(location.getLatitude(),
                     location.getLongitude());
-
+            updateDBRef();
         }
     }
 
+    private void updateDBRef() {
+        dataManager.detachListeners(databaseReference);
+        databaseReference = databaseReference.getParent()
+                                             .child(String.valueOf((int) (userLocation.latitude / latDegreesPerMile)));
+        dataManager.attachListeners(databaseReference);
+    }
+
     private void stopLocationUpdates() {
-        LocationServices.FusedLocationApi.removeLocationUpdates
-                (googleApiClient, this);
+        if (googleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates
+                    (googleApiClient, this);
+        }
     }
 
     @Override
@@ -448,14 +462,14 @@ public class MainActivity
     @Override
     protected void onResume() {
         super.onResume();
-        dataManager.attachListeners();
+        dataManager.attachListeners(databaseReference);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         stopLocationUpdates();
-        dataManager.detachListeners();
+        dataManager.detachListeners(databaseReference);
     }
 
     @Override

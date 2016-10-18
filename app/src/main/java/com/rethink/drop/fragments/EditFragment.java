@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.Calendar;
 
 import static android.app.Activity.RESULT_OK;
+import static com.rethink.drop.MainActivity.latDegreesPerMile;
 import static com.rethink.drop.MainActivity.userLocation;
 
 public class EditFragment
@@ -150,6 +151,7 @@ public class EditFragment
                     .LENGTH_LONG)
                     .show();
         } else {
+            ref = ref.child(String.valueOf((int) (userLocation.latitude / latDegreesPerMile)));
             String key = getArguments().getString("KEY");
             if (key == null) {
                 key = ref.push()

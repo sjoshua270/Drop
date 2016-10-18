@@ -6,7 +6,6 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.rethink.drop.models.Listing;
 
@@ -24,25 +23,20 @@ public class DataManager {
     public static HashMap<String, Listing> listings;
     public static HashMap<String, Integer> imageStatus;
     private static DataListener dataListener;
-    private static DatabaseReference listingsRef;
-    private float degreesPerMile = 0.01449275362f;
 
     DataManager() {
         keys = new ArrayList<>();
         imageBitmaps = new HashMap<>();
         listings = new HashMap<>();
         imageStatus = new HashMap<>();
-        listingsRef = FirebaseDatabase.getInstance()
-                                      .getReference()
-                                      .child("listings");
         dataListener = new DataListener();
     }
 
-    void attachListeners() {
+    void attachListeners(DatabaseReference listingsRef) {
         listingsRef.addChildEventListener(dataListener);
     }
 
-    void detachListeners() {
+    void detachListeners(DatabaseReference listingsRef) {
         listingsRef.removeEventListener(dataListener);
     }
 
