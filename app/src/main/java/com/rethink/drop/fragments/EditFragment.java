@@ -125,7 +125,7 @@ public class EditFragment
                     float scaleY = 1024f / imageHeight;
                     float scaleX = 1024f / imageWidth;
                     float scale = Math.max(scaleX, scaleY);
-                    this.imageHighRes = Bitmap.createScaledBitmap(imageBitmap, (int) scale * imageHeight, (int) scale * imageWidth, false);
+                    this.imageHighRes = Bitmap.createScaledBitmap(imageBitmap, (int) scale * imageWidth, (int) scale * imageHeight, false);
 
                     // Get minimum dimension for squaring
                     int imageMinDimen = Math.min(imageHeight, imageWidth);
