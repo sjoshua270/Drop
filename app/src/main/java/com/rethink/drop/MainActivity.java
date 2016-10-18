@@ -67,6 +67,7 @@ public class MainActivity
     public static LatLng userLocation;
     private static GoogleApiClient googleApiClient;
     private final int RC_SIGN_IN = 1;
+    private final int LOCATION_REQUEST = 2;
     private ActionBar actionBar;
     private ActionBarDrawerToggle drawerToggle;
     private List<DatabaseReference> databaseReferences;
@@ -405,13 +406,13 @@ public class MainActivity
         ActivityCompat.requestPermissions(
                 this,
                 new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                0);
+                LOCATION_REQUEST);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[]
             permissions, @NonNull int[] grantResults) {
-        if (requestCode == 0) {
+        if (requestCode == LOCATION_REQUEST) {
             if (grantResults.length > 0) {
                 startLocationUpdates();
             }
