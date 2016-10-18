@@ -151,8 +151,19 @@ public class EditFragment
                     .LENGTH_LONG)
                     .show();
         } else {
-            ref = ref.child(String.valueOf((int) (userLocation.latitude / latDegreesPerMile)));
             String key = getArguments().getString("KEY");
+            /* If the listing exists, and the block Location is different than before,
+            remove the original listing from its block. This ensures no leftover listings
+            because of editing a listing in a different location than the original posting. */
+            if (key != null) {
+                int blockNumber = getBlockLocation(userLocation.latitude);
+                if (blockNumber != getBlockLocation(listing.getLatitude())) {
+                    ref.child(String.valueOf(getBlockLocation(listing.getLatitude())))
+                       .child(key)
+                       .removeValue();
+                }
+            }
+            ref = ref.child(String.valueOf(getBlockLocation(userLocation.latitude)));
             if (key == null) {
                 key = ref.push()
                          .getKey();
@@ -249,6 +260,10 @@ public class EditFragment
                              .popBackStackImmediate();
             }
         }
+    }
+
+    private int getBlockLocation(double latitude) {
+        return (int) (latitude / latDegreesPerMile);
     }
 
     private void updateMapPin() {
