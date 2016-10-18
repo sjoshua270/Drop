@@ -57,7 +57,7 @@ public class DataManager {
             final String key = dataSnapshot.getKey();
             Listing listing = dataSnapshot.getValue(Listing.class);
             String prevImageURL = listings.get(key).getImageURL();
-            if (!prevImageURL.equals(listing.getImageURL())) {
+            if (!prevImageURL.equals("") && !prevImageURL.equals(listing.getImageURL())) {
                 // Delete previous image to save space
                 FirebaseStorage.getInstance().getReferenceFromUrl(prevImageURL).delete();
                 imageStatus.put(key, NOT_DOWNLOADED);
