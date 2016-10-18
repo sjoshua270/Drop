@@ -2,14 +2,6 @@ package com.rethink.drop.models;
 
 public class Listing {
     public static final String KEY = "KEY";
-    public static final String USER = "USER";
-    public static final String TIME = "TIME";
-    public static final String IMAGE = "IMAGE";
-    public static final String TITLE = "TITLE";
-    public static final String DESC = "DESC";
-    public static final String LAT = "LAT";
-    public static final String LNG = "LNG";
-    public static final String BYTES = "BYTES";
     private String userID;
     private long timestamp;
     private String imageURL;
