@@ -159,11 +159,13 @@ public class EditFragment
                 int blockNumber = getBlockLocation(userLocation.latitude);
                 if (blockNumber != getBlockLocation(listing.getLatitude())) {
                     ref.child(String.valueOf(getBlockLocation(listing.getLatitude())))
+                       .child(String.valueOf(getBlockLocation(listing.getLongitude())))
                        .child(key)
                        .removeValue();
                 }
             }
-            ref = ref.child(String.valueOf(getBlockLocation(userLocation.latitude)));
+            ref = ref.child(String.valueOf(getBlockLocation(userLocation.latitude)))
+                     .child(String.valueOf(getBlockLocation(userLocation.longitude)));
             if (key == null) {
                 key = ref.push()
                          .getKey();
