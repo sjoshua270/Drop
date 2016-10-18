@@ -111,7 +111,7 @@ public class ListingsAdapter
 
     private void getPhoto(final String key, Listing listing) {
         if (imageStatus.get(key) == NOT_DOWNLOADED) {
-            firebaseStorage.getReferenceFromUrl(listing.getImageURL())
+            firebaseStorage.getReferenceFromUrl(listing.getIconURL())
                            .getBytes(4 * (1024 * 1024))
                            .addOnSuccessListener(new OnSuccessListener<byte[]>() {
                                @Override

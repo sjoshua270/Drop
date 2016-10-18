@@ -48,7 +48,7 @@ public class DataManager {
             Listing listing = dataSnapshot.getValue(Listing.class);
             keys.add(key);
             listings.put(key, listing);
-            imageStatus.put(key, listing.getImageURL().equals("") ? NO_IMAGE : NOT_DOWNLOADED);
+            imageStatus.put(key, listing.getIconURL().equals("") ? NO_IMAGE : NOT_DOWNLOADED);
             listingsAdapter.notifyItemInserted(keys.indexOf(key));
         }
 
@@ -56,8 +56,8 @@ public class DataManager {
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
             final String key = dataSnapshot.getKey();
             Listing listing = dataSnapshot.getValue(Listing.class);
-            String prevImageURL = listings.get(key).getImageURL();
-            if (!prevImageURL.equals("") && !prevImageURL.equals(listing.getImageURL())) {
+            String prevImageURL = listings.get(key).getIconURL();
+            if (!prevImageURL.equals("") && !prevImageURL.equals(listing.getIconURL())) {
                 // Delete previous image to save space
                 FirebaseStorage.getInstance().getReferenceFromUrl(prevImageURL).delete();
                 imageStatus.put(key, NOT_DOWNLOADED);
@@ -69,9 +69,9 @@ public class DataManager {
         @Override
         public void onChildRemoved(DataSnapshot dataSnapshot) {
             final String key = dataSnapshot.getKey();
-            String imageURL = listings.get(key).getImageURL();
+            String imageURL = listings.get(key).getIconURL();
             if (imageURL != null && !imageURL.equals("")) {
-                FirebaseStorage.getInstance().getReferenceFromUrl(listings.get(key).getImageURL()).delete();
+                FirebaseStorage.getInstance().getReferenceFromUrl(listings.get(key).getIconURL()).delete();
             }
             listings.remove(key);
             imageBitmaps.remove(key);
