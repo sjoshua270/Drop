@@ -3,19 +3,27 @@ package com.rethink.drop;
 import java.util.Locale;
 
 public class Utilities {
-    public static String getDistanceString(Locale locale) {
+    public static boolean useMetric(Locale locale) {
         String countryCode = locale.getCountry();
-        String imperial = "%1$s mi";
-        String metric = "%1$s km";
         switch (countryCode) {
             case "US":
-                return imperial; // USA
+                return false; // USA
             case "LR":
-                return imperial; // liberia
+                return false; // liberia
             case "MM":
-                return imperial; // burma
+                return false; // burma
             default:
-                return metric;
+                return true;
+        }
+    }
+
+    public static String getDistanceString(Locale locale) {
+        String imperial = "%1$s mi";
+        String metric = "%1$s km";
+        if (useMetric(locale)) {
+            return metric;
+        } else {
+            return imperial;
         }
     }
 
