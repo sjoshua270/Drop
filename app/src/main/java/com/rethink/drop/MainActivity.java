@@ -52,6 +52,9 @@ import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ViewFragment;
 import com.rethink.drop.models.Listing;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.rethink.drop.DataManager.listings;
 import static com.rethink.drop.models.Listing.KEY;
 
@@ -60,13 +63,13 @@ public class MainActivity
         implements OnConnectionFailedListener,
                    ConnectionCallbacks,
                    LocationListener {
-    public final static float latDegreesPerMile = 0.01449275362f;
+    public final static float degreesPerMile = 0.01449275362f;
     public static LatLng userLocation;
     private static GoogleApiClient googleApiClient;
     private final int RC_SIGN_IN = 1;
     private ActionBar actionBar;
     private ActionBarDrawerToggle drawerToggle;
-    private DatabaseReference databaseReference;
+    private List<DatabaseReference> databaseReferences;
     private DataManager dataManager;
     private DrawerLayout drawerLayout;
     private FirebaseAuth firebaseAuth;
@@ -89,10 +92,9 @@ public class MainActivity
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-        databaseReference = FirebaseDatabase.getInstance()
-                                            .getReference()
-                                            .child("listings")
-                                            .child(String.valueOf((int) (userLocation.latitude / latDegreesPerMile)));
+        databaseReferences = new ArrayList<>();
+        dataManager = new DataManager();
+        updateDBRef();
         drawerLayout = (DrawerLayout) findViewById(R.id.nav_drawer);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -108,7 +110,6 @@ public class MainActivity
         );
 
         localFragment = LocalFragment.newInstance();
-        dataManager = new DataManager();
         viewFragment = ViewFragment.newInstance(new ViewFragment());
         editFragment = EditFragment.newInstance(new EditFragment());
 
@@ -352,15 +353,19 @@ public class MainActivity
         }
         switch (item.getItemId()) {
             case R.id.delete_listing:
-                String listingKey = getSupportFragmentManager()
+                String key = getSupportFragmentManager()
                         .findFragmentById(R.id.main_fragment_container)
                         .getArguments()
                         .getString("KEY");
-                if (listingKey != null) {
-                    databaseReference
-                            .child(String.valueOf((int) (listings.get(listingKey).getLatitude() / latDegreesPerMile)))
-                            .child(listingKey)
-                            .removeValue();
+                if (key != null) {
+                    Listing listing = listings.get(key);
+                    FirebaseDatabase.getInstance()
+                                    .getReference()
+                                    .child("listings")
+                                    .child(String.valueOf((int) (listing.getLatitude() / degreesPerMile)))
+                                    .child(String.valueOf((int) (listing.getLongitude() / degreesPerMile)))
+                                    .child(key)
+                                    .removeValue();
                 }
                 while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
                     getSupportFragmentManager().popBackStackImmediate();
@@ -438,10 +443,29 @@ public class MainActivity
     }
 
     private void updateDBRef() {
-        dataManager.detachListeners(databaseReference);
-        databaseReference = databaseReference.getParent()
-                                             .child(String.valueOf((int) (userLocation.latitude / latDegreesPerMile)));
-        dataManager.attachListeners(databaseReference);
+        for (DatabaseReference databaseReference : databaseReferences) {
+            dataManager.detachListeners(databaseReference);
+        }
+        databaseReferences.clear();
+        for (int i = -2; i <= 2; i += 1) {
+            for (int j = -2; j <= 2; j += 1) {
+                databaseReferences.add(FirebaseDatabase.getInstance()
+                                                       .getReference()
+                                                       .child("listings")
+                                                       .child(String.valueOf((int) (userLocation.latitude / degreesPerMile) + i))
+                                                       .child(String.valueOf((int) (userLocation.longitude / degreesPerMile) + j))
+                );
+            }
+        }
+        for (DatabaseReference databaseReference : databaseReferences) {
+            dataManager.attachListeners(databaseReference);
+        }
+    }
+
+    private void detachAllListeners() {
+        for (DatabaseReference databaseReference : databaseReferences) {
+            dataManager.detachListeners(databaseReference);
+        }
     }
 
     private void stopLocationUpdates() {
@@ -462,14 +486,14 @@ public class MainActivity
     @Override
     protected void onResume() {
         super.onResume();
-        dataManager.attachListeners(databaseReference);
+        updateDBRef();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         stopLocationUpdates();
-        dataManager.detachListeners(databaseReference);
+        detachAllListeners();
     }
 
     @Override
