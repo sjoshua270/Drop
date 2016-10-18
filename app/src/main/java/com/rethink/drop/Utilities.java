@@ -48,4 +48,14 @@ public class Utilities {
 
         return Math.sqrt(distance);
     }
+
+    public static double distanceInMiles(double lat1, double lat2, double lon1,
+                                         double lon2, double el1, double el2) {
+        return 0.000621371 * distance(lat1, lat2, lon1, lon2, el1, el2);
+    }
+
+    public static double distanceInKilometers(double lat1, double lat2, double lon1,
+                                              double lon2, double el1, double el2) {
+        return distance(lat1, lat2, lon1, lon2, el1, el2) / 1000;
+    }
 }
