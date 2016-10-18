@@ -29,7 +29,8 @@ public class ListingFragment
         extends Fragment
         implements OnMapReadyCallback {
 
-    protected Bitmap imageBitmap;
+    protected Bitmap imageIcon;
+    protected Bitmap imageHighRes;
     protected ImageView imageView;
     protected Listing listing;
     protected MapView mapView;
@@ -63,7 +64,7 @@ public class ListingFragment
         if (args != null) {
             String key = args.getString(KEY);
             listing = DataManager.listings.get(key);
-            imageBitmap = DataManager.imageBitmaps.get(key);
+            imageIcon = DataManager.imageBitmaps.get(key);
         }
     }
 
@@ -110,8 +111,8 @@ public class ListingFragment
     }
 
     protected void setImageView() {
-        if (imageBitmap != null) {
-            imageView.setImageBitmap(imageBitmap);
+        if (imageIcon != null) {
+            imageView.setImageBitmap(imageIcon);
             imageView.setPadding(0, 0, 0, 0);
         }
     }

@@ -76,7 +76,7 @@ public class EditFragment
         title.setVisibility(View.GONE);
         desc.setVisibility(View.GONE);
 
-        if (imageBitmap == null) {
+        if (imageIcon == null) {
             imageView.setImageResource(R.drawable.ic_photo_camera_white_24px);
             float scale = getResources().getDisplayMetrics().density;
             int dpAsPixels = (int) (40 * scale + 0.5f);
@@ -120,13 +120,20 @@ public class EditFragment
                     } else {
                         imageStartY = (imageHeight - imageWidth) / 2;
                     }
+
+                    // Downscale the image to an appropriate size for storage
+                    float scaleY = 1024f / imageHeight;
+                    float scaleX = 1024f / imageWidth;
+                    float scale = Math.max(scaleX, scaleY);
+                    this.imageHighRes = Bitmap.createScaledBitmap(imageBitmap, (int) scale * imageHeight, (int) scale * imageWidth, false);
+
                     // Get minimum dimension for squaring
                     int imageMinDimen = Math.min(imageHeight, imageWidth);
                     // Crop image to square
                     imageBitmap = Bitmap.createBitmap(imageBitmap, imageStartX, imageStartY, imageMinDimen, imageMinDimen);
                     // Scale image down
                     imageChanged = true;
-                    this.imageBitmap = Bitmap.createScaledBitmap(imageBitmap, 1024, 1024, false);
+                    this.imageIcon = Bitmap.createScaledBitmap(imageBitmap, 256, 256, false);
                     setImageView();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -171,87 +178,16 @@ public class EditFragment
                          .getKey();
             }
             ref = ref.child(key);
-            StorageReference imageReference = FirebaseStorage.getInstance()
-                                                             .getReferenceFromUrl("gs://drop-143619.appspot.com")
-                                                             .child(user.getUid())
-                                                             .child(key)
-                                                             .child(filename);
-            if (imageBitmap != null && imageChanged) {
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                UploadTask uploadTask = imageReference.putBytes(stream.toByteArray());
-
-                // Prepare a progress bar
-                final ProgressDialog progressDialog = new ProgressDialog
-                        (getActivity());
-                progressDialog.setMax(100);
-                progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                progressDialog.setTitle(R.string.uploading);
-                progressDialog.setCancelable(false);
-                progressDialog.show();
-
-                uploadTask.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                        float progress = 100f * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount();
-                        progressDialog.setProgress((int) progress);
-                    }
-                });
-                uploadTask.addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception exception) {
-                        Snackbar.make(
-                                cLayout,
-                                R.string.failed_to_upload,
-                                Snackbar.LENGTH_LONG
-                        ).show();
-                    }
-                })
-                          .addOnSuccessListener(new OnSuccessListener<UploadTask
-                                  .TaskSnapshot>() {
-                              @Override
-                              public void onSuccess(UploadTask.TaskSnapshot
-                                                            taskSnapshot) {
-                                  // taskSnapshot.getMetadata() contains file
-                                  // metadata such as size, content-type, and
-                                  // download IMAGE.
-                                  Uri downloadUrl = taskSnapshot.getDownloadUrl();
-
-                                  if (downloadUrl != null) {
-                                      ref.setValue(
-                                              new Listing(
-                                                      user.getUid(),
-                                                      Calendar.getInstance()
-                                                              .getTimeInMillis(),
-                                                      downloadUrl.toString(),
-                                                      inputTitle.getText()
-                                                                .toString(),
-                                                      inputDesc.getText()
-                                                               .toString(),
-                                                      userLocation.latitude,
-                                                      userLocation.longitude));
-                                  } else {
-                                      Snackbar.make(cLayout, R.string
-                                              .unexpected_error, Snackbar
-                                              .LENGTH_LONG)
-                                              .show();
-                                  }
-                                  getActivity().getSupportFragmentManager()
-                                               .popBackStackImmediate();
-                                  progressDialog.cancel();
-                              }
-                          });
+            if (imageIcon != null && imageChanged) {
+                uploadIcon(key, filename);
             } else {
-                String imageURL = "";
-                if (listing != null && listing.getImageURL() != null) {
-                    imageURL = listing.getImageURL();
-                }
                 ref.setValue(
                         new Listing(
                                 user.getUid(),
                                 Calendar.getInstance()
                                         .getTimeInMillis(),
-                                imageURL,
+                                listing.getIconURL(),
+                                listing.getImageURL(),
                                 inputTitle.getText()
                                           .toString(),
                                 inputDesc.getText()
@@ -262,6 +198,84 @@ public class EditFragment
                              .popBackStackImmediate();
             }
         }
+    }
+
+    private void uploadIcon(final String key, final String filename) {
+        StorageReference iconReference = FirebaseStorage.getInstance()
+                                                        .getReferenceFromUrl("gs://drop-143619.appspot.com")
+                                                        .child(user.getUid())
+                                                        .child(key)
+                                                        .child(filename + "_icon");
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        imageIcon.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        UploadTask uploadIcon = iconReference.putBytes(stream.toByteArray());
+        uploadIcon.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Uri iconUrl = taskSnapshot.getDownloadUrl();
+                if (iconUrl != null) {
+                    uploadImage(key, filename, iconUrl.toString());
+                } else {
+                    Snackbar.make(cLayout, R.string.unexpected_error, Snackbar.LENGTH_LONG).show();
+                }
+            }
+        });
+
+    }
+
+    private void uploadImage(String key, String filename, final String iconURL) {
+        final StorageReference imageReference = FirebaseStorage.getInstance()
+                                                               .getReferenceFromUrl("gs://drop-143619.appspot.com")
+                                                               .child(user.getUid())
+                                                               .child(key)
+                                                               .child(filename);
+
+        // Prepare a progress bar
+        final ProgressDialog progressDialog = new ProgressDialog
+                (getActivity());
+        progressDialog.setMax(100);
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progressDialog.setTitle(R.string.uploading);
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        imageHighRes.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        imageReference.putBytes(stream.toByteArray())
+                      .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                          @Override
+                          public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                              float progress = 100f * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount();
+                              progressDialog.setProgress((int) progress);
+                          }
+                      })
+                      .addOnFailureListener(new OnFailureListener() {
+                          @Override
+                          public void onFailure(@NonNull Exception e) {
+                              Snackbar.make(cLayout, R.string.failed_to_upload, Snackbar.LENGTH_LONG).show();
+                          }
+                      })
+                      .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                          @Override
+                          public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                              Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                              if (downloadUrl != null) {
+                                  ref.setValue(new Listing(
+                                          user.getUid(),
+                                          Calendar.getInstance().getTimeInMillis(),
+                                          iconURL,
+                                          downloadUrl.toString(),
+                                          inputTitle.getText().toString(),
+                                          inputDesc.getText().toString(),
+                                          userLocation.latitude,
+                                          userLocation.longitude));
+                                  progressDialog.cancel();
+                                  getActivity().getSupportFragmentManager().popBackStackImmediate();
+                              } else {
+                                  Snackbar.make(cLayout, R.string.unexpected_error, Snackbar.LENGTH_LONG).show();
+                              }
+                          }
+                      });
     }
 
     private int getBlockLocation(double latitude) {

@@ -25,7 +25,7 @@ public class ViewFragment
         super.onCreateView(inflater, container, savedInstanceState);
         inputTitle.setVisibility(View.GONE);
         inputDesc.setVisibility(View.GONE);
-        if (imageBitmap == null) {
+        if (imageIcon == null) {
             imageView.setVisibility(View.GONE);
         }
         imageView.setOnClickListener(new View.OnClickListener() {
