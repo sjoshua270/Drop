@@ -358,14 +358,7 @@ public class MainActivity
                         .getArguments()
                         .getString("KEY");
                 if (key != null) {
-                    Listing listing = listings.get(key);
-                    FirebaseDatabase.getInstance()
-                                    .getReference()
-                                    .child("listings")
-                                    .child(String.valueOf((int) (listing.getLatitude() / degreesPerMile)))
-                                    .child(String.valueOf((int) (listing.getLongitude() / degreesPerMile)))
-                                    .child(key)
-                                    .removeValue();
+                    getReference(key).removeValue();
                 }
                 while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
                     getSupportFragmentManager().popBackStackImmediate();
@@ -374,6 +367,16 @@ public class MainActivity
         }
         return super.onOptionsItemSelected(item);
 
+    }
+
+    public DatabaseReference getReference(String key) {
+        Listing listing = listings.get(key);
+        return FirebaseDatabase.getInstance()
+                               .getReference()
+                               .child("listings")
+                               .child(String.valueOf((int) (listing.getLatitude() / degreesPerMile)))
+                               .child(String.valueOf((int) (listing.getLongitude() / degreesPerMile)))
+                               .child(key);
     }
 
     @Override
