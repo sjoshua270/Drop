@@ -40,7 +40,7 @@ import java.io.IOException;
 import java.util.Calendar;
 
 import static android.app.Activity.RESULT_OK;
-import static com.rethink.drop.MainActivity.latDegreesPerMile;
+import static com.rethink.drop.MainActivity.degreesPerMile;
 import static com.rethink.drop.MainActivity.userLocation;
 
 public class EditFragment
@@ -265,7 +265,7 @@ public class EditFragment
     }
 
     private int getBlockLocation(double latitude) {
-        return (int) (latitude / latDegreesPerMile);
+        return (int) (latitude / degreesPerMile);
     }
 
     private void updateMapPin() {
