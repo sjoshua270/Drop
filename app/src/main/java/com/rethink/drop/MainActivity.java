@@ -147,12 +147,19 @@ public class MainActivity
             public void onBackStackChanged() {
                 currFragment = getSupportFragmentManager().findFragmentById(R.id.main_fragment_container);
                 if (currFragment != null) {
+                    syncUpNav();
                     updateFab();
                 } else {
                     finish();
                 }
             }
         });
+    }
+
+    private void syncUpNav() {
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager().getBackStackEntryCount() > 1);
+        }
     }
 
     private void updateFab() {
@@ -315,6 +322,9 @@ public class MainActivity
                     getSupportFragmentManager().popBackStackImmediate();
                 }
                 break;
+            case android.R.id.home:
+                getSupportFragmentManager().popBackStackImmediate();
+                return true;
         }
         return super.onOptionsItemSelected(item);
 
