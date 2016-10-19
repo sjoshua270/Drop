@@ -10,14 +10,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.transition.AutoTransition;
@@ -68,18 +64,14 @@ public class MainActivity
     private static GoogleApiClient googleApiClient;
     private final int RC_SIGN_IN = 1;
     private final int LOCATION_REQUEST = 2;
-    private ActionBar actionBar;
-    private ActionBarDrawerToggle drawerToggle;
     private List<DatabaseReference> databaseReferences;
     private DataManager dataManager;
-    private DrawerLayout drawerLayout;
     private FirebaseAuth firebaseAuth;
     private FloatingActionButton fab;
     private Fragment currFragment;
     private ListingFragment viewFragment;
     private ListingFragment editFragment;
     private LocalFragment localFragment;
-    private NavigationView navigationView;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -96,28 +88,15 @@ public class MainActivity
         databaseReferences = new ArrayList<>();
         dataManager = new DataManager();
         updateDBRef();
-        drawerLayout = (DrawerLayout) findViewById(R.id.nav_drawer);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         fab = (FloatingActionButton) findViewById(R.id.fab);
         firebaseAuth = FirebaseAuth.getInstance();
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
-
-        drawerToggle = new ActionBarDrawerToggle(
-                this,
-                drawerLayout,
-                toolbar,
-                R.string.drawer_open,
-                R.string.drawer_close
-        );
 
         localFragment = LocalFragment.newInstance();
         viewFragment = ViewFragment.newInstance(new ViewFragment());
         editFragment = EditFragment.newInstance(new EditFragment());
 
-        setupNavDrawer();
         setSupportActionBar(toolbar);
-        actionBar = getSupportActionBar();
-        shouldDisplayHomeUp();
         switchFragments(localFragment);
         setFabListener(fab);
         setBackStackListener();
@@ -126,26 +105,11 @@ public class MainActivity
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        drawerToggle.syncState();
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        drawerToggle.onConfigurationChanged(newConfig);
-    }
-
-    private void setupNavDrawer() {
-        drawerLayout.addDrawerListener(drawerToggle);
-        navigationView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (v.getId()) {
-                    case R.id.nav_local:
-                        switchFragments(localFragment);
-                }
-            }
-        });
     }
 
     private void setFabListener(FloatingActionButton fab) {
@@ -177,23 +141,12 @@ public class MainActivity
         });
     }
 
-    private void shouldDisplayHomeUp() {
-        //Enable Up button only  if there are entries in the back stack
-        boolean canBack = getSupportFragmentManager().getBackStackEntryCount() > 0;
-        if (canBack) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        } else {
-            drawerToggle.syncState();
-        }
-    }
-
     private void setBackStackListener() {
         getSupportFragmentManager().addOnBackStackChangedListener(new OnBackStackChangedListener() {
             @Override
             public void onBackStackChanged() {
                 currFragment = getSupportFragmentManager().findFragmentById(R.id.main_fragment_container);
                 if (currFragment != null) {
-                    shouldDisplayHomeUp();
                     updateFab();
                 } else {
                     finish();
@@ -349,9 +302,6 @@ public class MainActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (drawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
         switch (item.getItemId()) {
             case R.id.delete_listing:
                 String key = getSupportFragmentManager()
