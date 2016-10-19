@@ -195,7 +195,7 @@ public class ListingsAdapter
 
     @Override
     public int getItemCount() {
-        return listings.size();
+        return keys.size();
     }
 
     static class ListingHolder
