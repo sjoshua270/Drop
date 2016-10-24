@@ -341,6 +341,9 @@ public class MainActivity
     @Override
     protected void onResume() {
         super.onResume();
+        if (googleApiClient.isConnected()) {
+            startLocationUpdates();
+        }
         updateDBRef();
     }
 
