@@ -40,6 +40,7 @@ import static com.rethink.drop.FragmentJuggler.CURRENT;
 import static com.rethink.drop.FragmentJuggler.EDIT;
 import static com.rethink.drop.FragmentJuggler.LOCAL;
 import static com.rethink.drop.FragmentJuggler.VIEW;
+import static com.rethink.drop.models.Listing.KEY;
 
 public class MainActivity
         extends AppCompatActivity
@@ -51,6 +52,10 @@ public class MainActivity
     private static GoogleApiClient googleApiClient;
     private final int RC_SIGN_IN = 1;
     private final int LOCATION_REQUEST = 2;
+    private final String STATE_FRAGMENT = "state_fragment";
+    private final String STATE_KEY = "state_fragment";
+    private final String STATE_LAT = "state_latitude";
+    private final String STATE_LON = "state_longitude";
     private List<DatabaseReference> databaseReferences;
     private DataManager dataManager;
     private FirebaseAuth firebaseAuth;
@@ -88,6 +93,25 @@ public class MainActivity
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         setFabListener((FloatingActionButton) findViewById(R.id.fab));
         setBackStackListener();
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        fragmentJuggler.openFragment(
+                savedInstanceState.getInt(STATE_FRAGMENT),
+                savedInstanceState.getString(STATE_KEY));
+        userLocation = new LatLng(savedInstanceState.getDouble(STATE_LAT),
+                savedInstanceState.getDouble(STATE_LON));
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt(STATE_FRAGMENT, CURRENT);
+        outState.putString(STATE_KEY, fragmentJuggler.getCurrentFragment().getArguments().getString(KEY));
+        outState.putDouble(STATE_LAT, userLocation.latitude);
+        outState.putDouble(STATE_LON, userLocation.longitude);
+        super.onSaveInstanceState(outState);
     }
 
     private void setFabListener(FloatingActionButton fab) {
