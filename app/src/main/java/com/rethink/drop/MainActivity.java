@@ -2,7 +2,6 @@ package com.rethink.drop;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -89,16 +88,6 @@ public class MainActivity
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         setFabListener((FloatingActionButton) findViewById(R.id.fab));
         setBackStackListener();
-    }
-
-    @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
     }
 
     private void setFabListener(FloatingActionButton fab) {
