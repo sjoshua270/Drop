@@ -21,10 +21,12 @@ import com.rethink.drop.R;
 import com.rethink.drop.models.Listing;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Locale;
 
+import static com.rethink.drop.DataManager.imageBitmaps;
+import static com.rethink.drop.DataManager.imageStatus;
+import static com.rethink.drop.DataManager.keys;
+import static com.rethink.drop.DataManager.listings;
 import static com.rethink.drop.Utilities.distanceInKilometers;
 import static com.rethink.drop.Utilities.distanceInMiles;
 import static com.rethink.drop.Utilities.getDistanceString;
@@ -36,20 +38,9 @@ public class ListingsAdapter
     public static final int NOT_DOWNLOADED = 1;
     private static final int DOWNLOADED = 2;
     private static final int DISPLAYED = 3;
-    private ArrayList<String> keys;
     private FirebaseStorage firebaseStorage;
-    private HashMap<String, Integer> imageStatus;
-    private HashMap<String, Bitmap> imageBitmaps;
-    private HashMap<String, Listing> listings;
 
-    public ListingsAdapter(ArrayList<String> keys,
-                           HashMap<String, Listing> listings,
-                           HashMap<String, Bitmap> imageBitmaps,
-                           HashMap<String, Integer> imageStatus) {
-        this.keys = keys;
-        this.listings = listings;
-        this.imageBitmaps = imageBitmaps;
-        this.imageStatus = imageStatus;
+    public ListingsAdapter() {
         firebaseStorage = FirebaseStorage.getInstance();
     }
 
