@@ -51,6 +51,13 @@ public class ViewFragment
         return fragmentView;
     }
 
+    public View[] getViews() {
+        return new View[]{
+                imageView,
+                title,
+                desc};
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         super.onMapReady(googleMap);
