@@ -82,7 +82,6 @@ public class MainActivity
 
         dataManager = new DataManager();
         databaseReferences = new ArrayList<>();
-        updateDBRef();
 
         fab = new FabManager(
                 this,
