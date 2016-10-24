@@ -203,8 +203,8 @@ public class EditFragment
                                 user.getUid(),
                                 Calendar.getInstance()
                                         .getTimeInMillis(),
-                                listing.getIconURL(),
-                                listing.getImageURL(),
+                                listing != null ? listing.getIconURL() : "",
+                                listing != null ? listing.getImageURL() : "",
                                 inputTitle.getText()
                                           .toString(),
                                 inputDesc.getText()
