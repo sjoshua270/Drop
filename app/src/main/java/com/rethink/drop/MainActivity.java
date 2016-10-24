@@ -270,6 +270,11 @@ public class MainActivity
                 this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
+            Location loc = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+            if (loc != null) {
+                userLocation = new LatLng(loc.getLatitude(), loc.getLongitude());
+                updateDBRef();
+            }
             LocationRequest locationRequest = LocationRequest.create();
             locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             locationRequest.setInterval(5000);
