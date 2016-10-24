@@ -102,7 +102,7 @@ public class ListingsAdapter
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((MainActivity) holder.itemView.getContext()).viewListing(
+                ((MainActivity) holder.itemView.getContext()).openListing(
                         holder.itemView,
                         keys.get(holder.getAdapterPosition()));
             }
