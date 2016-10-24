@@ -307,6 +307,7 @@ public class MainActivity
             dataManager.detachListeners(databaseReference);
         }
         databaseReferences.clear();
+        dataManager.reset();
         for (int i = -2; i <= 2; i += 1) {
             for (int j = -2; j <= 2; j += 1) {
                 databaseReferences.add(FirebaseDatabase.getInstance()
