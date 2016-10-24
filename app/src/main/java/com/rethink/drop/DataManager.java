@@ -40,6 +40,14 @@ public class DataManager {
         listingsRef.removeEventListener(dataListener);
     }
 
+    void reset() {
+        keys = new ArrayList<>();
+        imageBitmaps = new HashMap<>();
+        listings = new HashMap<>();
+        imageStatus = new HashMap<>();
+        listingsAdapter.notifyDataSetChanged();
+    }
+
     private class DataListener
             implements ChildEventListener {
         @Override
