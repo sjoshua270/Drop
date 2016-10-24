@@ -299,7 +299,7 @@ public class EditFragment
         return (int) (latitude / degreesPerMile);
     }
 
-    private void updateMapPin() {
+    public void updateMapPin() {
         googleMap.clear();
         googleMap.addMarker(new MarkerOptions()
                 .position(userLocation)

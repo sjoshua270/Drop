@@ -275,6 +275,11 @@ public class MainActivity
                 == PackageManager.PERMISSION_GRANTED) {
             userLocation = new LatLng(location.getLatitude(),
                     location.getLongitude());
+            try {
+                ((EditFragment) fragmentJuggler.getCurrentFragment()).updateMapPin();
+            } catch (ClassCastException ignored) {
+            }
+
             updateDBRef();
         }
     }
