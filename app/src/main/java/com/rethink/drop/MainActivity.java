@@ -4,30 +4,17 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.transition.AutoTransition;
-import android.transition.ChangeBounds;
-import android.transition.ChangeTransform;
-import android.transition.Fade;
-import android.transition.TransitionSet;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.common.ConnectionResult;
@@ -39,11 +26,9 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.rethink.drop.fragments.EditFragment;
-import com.rethink.drop.fragments.ListingFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ViewFragment;
 import com.rethink.drop.models.Listing;
@@ -52,7 +37,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.rethink.drop.DataManager.listings;
-import static com.rethink.drop.models.Listing.KEY;
+import static com.rethink.drop.FragmentJuggler.CURRENT;
+import static com.rethink.drop.FragmentJuggler.EDIT;
+import static com.rethink.drop.FragmentJuggler.LOCAL;
+import static com.rethink.drop.FragmentJuggler.VIEW;
 
 public class MainActivity
         extends AppCompatActivity
@@ -67,11 +55,8 @@ public class MainActivity
     private List<DatabaseReference> databaseReferences;
     private DataManager dataManager;
     private FirebaseAuth firebaseAuth;
-    private FloatingActionButton fab;
-    private Fragment currFragment;
-    private ListingFragment viewFragment;
-    private ListingFragment editFragment;
-    private LocalFragment localFragment;
+    private FabManager fab;
+    private FragmentJuggler fragmentJuggler;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -79,26 +64,30 @@ public class MainActivity
         setContentView(R.layout.activity_main);
 
         userLocation = new LatLng(0.0, 0.0);
-
         googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-        databaseReferences = new ArrayList<>();
-        dataManager = new DataManager();
-        updateDBRef();
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        fab = (FloatingActionButton) findViewById(R.id.fab);
         firebaseAuth = FirebaseAuth.getInstance();
 
-        localFragment = LocalFragment.newInstance();
-        viewFragment = ViewFragment.newInstance(new ViewFragment());
-        editFragment = EditFragment.newInstance(new EditFragment());
+        fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
+        if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+            fragmentJuggler.openFragment(LOCAL, null);
+        }
 
-        setSupportActionBar(toolbar);
-        switchFragments(localFragment);
-        setFabListener(fab);
+        dataManager = new DataManager();
+        databaseReferences = new ArrayList<>();
+        updateDBRef();
+
+        fab = new FabManager(
+                this,
+                firebaseAuth,
+                (FloatingActionButton) findViewById(R.id.fab),
+                fragmentJuggler);
+
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        setFabListener((FloatingActionButton) findViewById(R.id.fab));
         setBackStackListener();
     }
 
@@ -116,10 +105,9 @@ public class MainActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (currFragment.getClass().equals(LocalFragment.class)) {
+                if (CURRENT == LOCAL) {
                     if (firebaseAuth.getCurrentUser() != null) {
-                        editFragment = EditFragment.newInstance(new EditFragment());
-                        switchFragments(editFragment);
+                        fragmentJuggler.openFragment(EDIT, null);
                     } else {
                         startActivityForResult(
                                 // Get an instance of AuthUI based on the default app
@@ -132,10 +120,10 @@ public class MainActivity
                                       .build(),
                                 RC_SIGN_IN);
                     }
-                } else if (currFragment.getClass().equals(EditFragment.class)) {
-                    ((EditFragment) currFragment).publishListing();
-                } else if (currFragment.getClass().equals(ViewFragment.class)) {
-                    viewToEditListing();
+                } else if (CURRENT == EDIT) {
+                    ((EditFragment) fragmentJuggler.getCurrentFragment()).publishListing();
+                } else if (CURRENT == VIEW) {
+                    fragmentJuggler.viewToEditListing();
                 }
             }
         });
@@ -145,10 +133,21 @@ public class MainActivity
         getSupportFragmentManager().addOnBackStackChangedListener(new OnBackStackChangedListener() {
             @Override
             public void onBackStackChanged() {
-                currFragment = getSupportFragmentManager().findFragmentById(R.id.main_fragment_container);
-                if (currFragment != null) {
+                if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                    Class currClass = getSupportFragmentManager()
+                            .findFragmentById(R.id.main_fragment_container)
+                            .getClass();
+                    if (currClass.equals(LocalFragment.class)) {
+                        CURRENT = LOCAL;
+                    }
+                    if (currClass.equals(ViewFragment.class)) {
+                        CURRENT = VIEW;
+                    }
+                    if (currClass.equals(EditFragment.class)) {
+                        CURRENT = EDIT;
+                    }
                     syncUpNav();
-                    updateFab();
+                    fab.update();
                 } else {
                     finish();
                 }
@@ -156,150 +155,24 @@ public class MainActivity
         });
     }
 
-    private void syncUpNav() {
+    void syncUpNav() {
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager().getBackStackEntryCount() > 1);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(
+                    getSupportFragmentManager().getBackStackEntryCount() > 1);
         }
     }
 
-    private void updateFab() {
-        hideFab();
-        Class currClass = currFragment.getClass();
-        if (currClass.equals(LocalFragment.class)) {
-            setFabDrawable(R.drawable.ic_add_white_24px);
-            showFab();
-        } else if (currClass.equals(EditFragment.class)) {
-            setFabDrawable(R.drawable.ic_send_white_24px);
-            showFab();
-        } else if (currClass.equals(ViewFragment.class)) {
-            String key = currFragment.getArguments().getString(KEY);
-            Listing listing = listings.get(key);
-            FirebaseUser user = firebaseAuth.getCurrentUser();
-
-            if (user != null && user.getUid().equals(listing.getUserID())) {
-                setFabDrawable(R.drawable.ic_mode_edit_white_24px);
-                showFab();
-            }
-        }
-    }
-
-    private void setFabDrawable(int drawableID) {
-        fab.setImageDrawable(ContextCompat.getDrawable(
-                MainActivity.this,
-                drawableID));
-    }
-
-    private void hideFab() {
-        Animation anim = AnimationUtils
-                .loadAnimation(MainActivity.this, R.anim.shrink_fade_out);
-        anim.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                fab.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-        });
-        fab.startAnimation(anim);
-    }
-
-    private void showFab() {
-        Animation anim = AnimationUtils
-                .loadAnimation(MainActivity.this, R.anim.grow_fade_in);
-        anim.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-                fab.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-        });
-        fab.startAnimation(anim);
-
+    public void openListing(View listingView, String key) {
+        fragmentJuggler.viewListing(listingView, key);
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
-                switchFragments(editFragment);
+                fragmentJuggler.openFragment(EDIT, null);
             }
         }
-    }
-
-    private void switchFragments(Fragment newFragment) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            newFragment.setEnterTransition(new AutoTransition());
-            newFragment.setExitTransition(new AutoTransition());
-        }
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.main_fragment_container,
-                        newFragment)
-                .addToBackStack(null)
-                .commit();
-        currFragment = newFragment;
-
-    }
-
-    private void viewToEditListing() {
-        String key = viewFragment.getArguments()
-                                 .getString(KEY);
-        editFragment = EditFragment.newInstance(
-                new EditFragment(),
-                key
-        );
-        transitionFragments(viewFragment, editFragment,
-                (ImageView) findViewById(R.id.listing_image),
-                (TextView) findViewById(R.id.listing_title),
-                (TextView) findViewById(R.id.listing_desc));
-        currFragment = editFragment;
-    }
-
-    public void viewListing(View listingView, String key) {
-        viewFragment = ViewFragment.newInstance(
-                new ViewFragment(),
-                key
-        );
-        transitionFragments(localFragment, viewFragment,
-                (ImageView) listingView.findViewById(R.id.item_image),
-                (TextView) listingView.findViewById(R.id.item_title),
-                (TextView) listingView.findViewById(R.id.item_desc));
-        currFragment = viewFragment;
-    }
-
-    private void transitionFragments(Fragment frag1, Fragment frag2, ImageView image, TextView title, TextView desc) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            frag2.setSharedElementEnterTransition(new ViewTransition());
-            frag2.setEnterTransition(new Fade());
-            frag1.setReturnTransition(new Fade());
-            frag1.setSharedElementReturnTransition(new ViewTransition());
-        }
-        getSupportFragmentManager()
-                .beginTransaction()
-                .addSharedElement(image, "image")
-                .addSharedElement(title, "title")
-                .addSharedElement(desc, "desc")
-                .replace(R.id.main_fragment_container,
-                        frag2)
-                .addToBackStack(null)
-                .commit();
     }
 
     @Override
@@ -465,17 +338,6 @@ public class MainActivity
         super.onStop();
         if (googleApiClient != null) {
             googleApiClient.disconnect();
-        }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public class ViewTransition
-            extends TransitionSet {
-        ViewTransition() {
-            setOrdering(ORDERING_TOGETHER);
-            addTransition(new ChangeBounds());
-            addTransition(new ChangeTransform());
-            addTransition(new Fade());
         }
     }
 }
