@@ -11,9 +11,13 @@ import android.transition.ChangeTransform;
 import android.transition.Fade;
 import android.transition.TransitionSet;
 import android.view.View;
+import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.rethink.drop.fragments.EditFragment;
 import com.rethink.drop.fragments.LocalFragment;
+import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.fragments.ViewFragment;
 
 import static com.rethink.drop.models.Listing.KEY;
@@ -23,6 +27,7 @@ class FragmentJuggler {
     static final int LOCAL = 0;
     static final int VIEW = 1;
     static final int EDIT = 2;
+    static final int PROF = 3;
     static int CURRENT;
     private FragmentManager fragmentManager;
 
@@ -40,6 +45,14 @@ class FragmentJuggler {
                 break;
             case EDIT:
                 switchFragments(EditFragment.newInstance(new EditFragment(), key));
+                break;
+            case PROF:
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                if (user != null) {
+                    switchFragments(ProfileFragment.newInstance(user.getUid()));
+                } else {
+                    Toast.makeText(getCurrentFragment().getContext(), "No userID", Toast.LENGTH_SHORT).show();
+                }
                 break;
         }
         CURRENT = fragmentID;
