@@ -1,5 +1,7 @@
 package com.rethink.drop;
 
+import android.graphics.Bitmap;
+
 import java.util.Locale;
 
 public class Utilities {
@@ -52,6 +54,7 @@ public class Utilities {
 
         double height = el1 - el2;
 
+        //noinspection SuspiciousNameCombination
         distance = Math.pow(distance, 2) + Math.pow(height, 2);
 
         return Math.sqrt(distance);
@@ -65,5 +68,36 @@ public class Utilities {
     public static double distanceInKilometers(double lat1, double lat2, double lon1,
                                               double lon2, double el1, double el2) {
         return distance(lat1, lat2, lon1, lon2, el1, el2) / 1000;
+    }
+
+    public static Bitmap compressImage(Bitmap original) {
+        int imageWidth = original.getWidth();
+        int imageHeight = original.getHeight();
+
+        // Downscale the image to an appropriate size for storage
+        float scaleY = 1024f / imageHeight;
+        float scaleX = 1024f / imageWidth;
+        float scale = Math.max(scaleX, scaleY);
+        return Bitmap.createScaledBitmap(original, (int) scale * imageWidth, (int) scale * imageHeight, false);
+    }
+
+    public static Bitmap generateIcon(Bitmap original) {
+        int imageWidth = original.getWidth();
+        int imageHeight = original.getHeight();
+
+        int imageStartX = 0;
+        int imageStartY = 0;
+        // Calculate starting X or Y
+        if (imageWidth > imageHeight) {
+            imageStartX = (imageWidth - imageHeight) / 2;
+        } else {
+            imageStartY = (imageHeight - imageWidth) / 2;
+        }
+        // Get minimum dimension for squaring
+        int imageMinDimen = Math.min(imageHeight, imageWidth);
+        // Crop image to square
+        original = Bitmap.createBitmap(original, imageStartX, imageStartY, imageMinDimen, imageMinDimen);
+        // Scale image down
+        return Bitmap.createScaledBitmap(original, 256, 256, false);
     }
 }

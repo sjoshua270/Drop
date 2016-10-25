@@ -36,6 +36,7 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.rethink.drop.R;
+import com.rethink.drop.Utilities;
 import com.rethink.drop.models.Listing;
 
 import java.io.ByteArrayOutputStream;
@@ -127,30 +128,9 @@ public class EditFragment
                 try {
                     Uri selectedImageUri = data.getData();
                     Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), selectedImageUri);
-                    int imageStartX = 0;
-                    int imageStartY = 0;
-                    int imageWidth = imageBitmap.getWidth();
-                    int imageHeight = imageBitmap.getHeight();
-                    // Calculate starting X or Y
-                    if (imageWidth > imageHeight) {
-                        imageStartX = (imageWidth - imageHeight) / 2;
-                    } else {
-                        imageStartY = (imageHeight - imageWidth) / 2;
-                    }
-
-                    // Downscale the image to an appropriate size for storage
-                    float scaleY = 1024f / imageHeight;
-                    float scaleX = 1024f / imageWidth;
-                    float scale = Math.max(scaleX, scaleY);
-                    this.imageHighRes = Bitmap.createScaledBitmap(imageBitmap, (int) scale * imageWidth, (int) scale * imageHeight, false);
-
-                    // Get minimum dimension for squaring
-                    int imageMinDimen = Math.min(imageHeight, imageWidth);
-                    // Crop image to square
-                    imageBitmap = Bitmap.createBitmap(imageBitmap, imageStartX, imageStartY, imageMinDimen, imageMinDimen);
-                    // Scale image down
+                    imageHighRes = Utilities.compressImage(imageBitmap);
+                    imageIcon = Utilities.generateIcon(imageBitmap);
                     imageChanged = true;
-                    this.imageIcon = Bitmap.createScaledBitmap(imageBitmap, 256, 256, false);
                     setImageView();
                 } catch (IOException e) {
                     e.printStackTrace();
