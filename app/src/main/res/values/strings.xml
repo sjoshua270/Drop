@@ -20,4 +20,5 @@
     <!--Profile Fragment-->
     <string name="profile">Profile</string>
     <string name="prof_img_desc">Profile Image</string>
+    <string name="prof_name">Public Name</string>
 </resources>
