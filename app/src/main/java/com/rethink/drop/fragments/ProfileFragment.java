@@ -106,6 +106,9 @@ public class ProfileFragment
         if (editing) {
             profName.setVisibility(View.GONE);
             profNameEdit.setVisibility(View.VISIBLE);
+            if (profile != null) {
+                profNameEdit.setText(profile.getName());
+            }
         }
     }
 
