@@ -1,9 +1,12 @@
 package com.rethink.drop.fragments;
 
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -23,15 +26,24 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.rethink.drop.R;
+import com.rethink.drop.Utilities;
 import com.rethink.drop.models.Profile;
+
+import java.io.IOException;
+
+import static android.app.Activity.RESULT_OK;
 
 public class ProfileFragment
         extends Fragment {
     public static final String USER_ID = "user_id";
+    private static final int GALLERY_REQUEST = 2;
+    private Bitmap imageHighRes;
+    private Bitmap imageIcon;
     private DatabaseReference ref;
     private TextView profName;
     private TextView profNameEdit;
     private Boolean editing;
+    private Boolean imageChanged;
     private ImageView profImage;
     private Profile profile;
 
@@ -70,6 +82,7 @@ public class ProfileFragment
             Toast.makeText(getContext(), "Fail", Toast.LENGTH_LONG).show();
         }
         editing = false;
+        imageChanged = false;
     }
 
     @Nullable
@@ -77,9 +90,40 @@ public class ProfileFragment
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_profile, container, false);
         profImage = (ImageView) v.findViewById(R.id.prof_img);
+        profImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getImage();
+            }
+        });
+
         profName = (TextView) v.findViewById(R.id.prof_name);
         profNameEdit = (TextView) v.findViewById(R.id.prof_name_edit);
         return v;
+    }
+
+    public void getImage() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), GALLERY_REQUEST);
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == GALLERY_REQUEST && resultCode == RESULT_OK) {
+            if (data != null) {
+                try {
+                    Uri selectedImageUri = data.getData();
+                    Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), selectedImageUri);
+                    imageHighRes = Utilities.compressImage(imageBitmap);
+                    imageIcon = Utilities.generateIcon(imageBitmap);
+                    imageChanged = true;
+                    setImageView(profImage, imageIcon);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     private void prepViews() {
