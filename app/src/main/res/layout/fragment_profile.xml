@@ -8,7 +8,10 @@
         android:id="@+id/prof_img"
         android:layout_width="@dimen/listing_image_dimen"
         android:layout_height="@dimen/listing_image_dimen"
-        android:contentDescription="@string/prof_img_desc"/>
+        android:background="@color/primary"
+        android:contentDescription="@string/prof_img_desc"
+        android:padding="@dimen/listing_padding"
+        android:src="@drawable/ic_photo_camera_white_24px"/>
 
     <TextView
         android:id="@+id/prof_name"
