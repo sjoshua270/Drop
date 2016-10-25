@@ -28,9 +28,11 @@ import com.rethink.drop.models.Profile;
 public class ProfileFragment
         extends Fragment {
     public static final String USER_ID = "user_id";
-    ImageView profImage;
-    TextView profName;
-    TextView profNameEdit;
+    private DatabaseReference ref;
+    private TextView profName;
+    private TextView profNameEdit;
+    private Boolean editing;
+    private ImageView profImage;
     private Profile profile;
 
     public static ProfileFragment newInstance(@Nullable String userID) {
@@ -47,14 +49,16 @@ public class ProfileFragment
         super.onCreate(savedInstanceState);
         String userID = getArguments().getString(USER_ID);
         if (userID != null) {
-            DatabaseReference ref = FirebaseDatabase.getInstance()
-                                                    .getReference()
-                                                    .child("profiles")
-                                                    .child(userID);
+            ref = FirebaseDatabase.getInstance()
+                                  .getReference()
+                                  .child("profiles")
+                                  .child(userID);
             ref.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     profile = dataSnapshot.getValue(Profile.class);
+                    editing = false;
+                    prepViews();
                 }
 
                 @Override
@@ -65,6 +69,7 @@ public class ProfileFragment
         } else {
             Toast.makeText(getContext(), "Fail", Toast.LENGTH_LONG).show();
         }
+        editing = false;
     }
 
     @Nullable
@@ -74,31 +79,61 @@ public class ProfileFragment
         profImage = (ImageView) v.findViewById(R.id.prof_img);
         profName = (TextView) v.findViewById(R.id.prof_name);
         profNameEdit = (TextView) v.findViewById(R.id.prof_name_edit);
-
-        if (profile != null) {
-            profNameEdit.setVisibility(View.GONE);
-            if (!profile.getIconURL().equals("")) {
-                FirebaseStorage.getInstance().getReferenceFromUrl(profile.getIconURL())
-                               .getBytes(1024 * 1024)
-                               .addOnSuccessListener(new OnSuccessListener<byte[]>() {
-                                   @Override
-                                   public void onSuccess(byte[] bytes) {
-                                       Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                                       setImageView(profImage, bmp);
-                                   }
-                               });
-            }
-            profName.setText(profile.getName());
-        } else {
-            profName.setVisibility(View.GONE);
-        }
-
         return v;
+    }
+
+    private void prepViews() {
+        if (!editing) {
+            if (profile != null) {
+                profNameEdit.setVisibility(View.GONE);
+                profName.setVisibility(View.VISIBLE);
+                profName.setText(profile.getName());
+                if (!profile.getIconURL().equals("")) {
+                    FirebaseStorage.getInstance().getReferenceFromUrl(profile.getIconURL())
+                                   .getBytes(1024 * 1024)
+                                   .addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                                       @Override
+                                       public void onSuccess(byte[] bytes) {
+                                           Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                                           setImageView(profImage, bmp);
+                                       }
+                                   });
+                }
+            } else {
+                editing = true;
+            }
+        }
+        if (editing) {
+            profName.setVisibility(View.GONE);
+            profNameEdit.setVisibility(View.VISIBLE);
+        }
     }
 
     private void setImageView(final ImageView imageView, final Bitmap image) {
         final Animation imageIn = AnimationUtils.loadAnimation(imageView.getContext(), R.anim.grow_fade_in);
         imageView.setImageBitmap(image);
         imageView.startAnimation(imageIn);
+    }
+
+    public void handleFabPress() {
+        if (editing) {
+            profile = new Profile(
+                    getArguments().getString(USER_ID),
+                    "",
+                    "",
+                    profNameEdit.getText().toString()
+            );
+            ref.setValue(profile);
+        }
+        toggleState();
+    }
+
+    public void toggleState() {
+        editing = !editing;
+        prepViews();
+    }
+
+    public boolean isEditing() {
+        return editing;
     }
 }
