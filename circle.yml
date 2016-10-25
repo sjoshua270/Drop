@@ -1,6 +1,10 @@
 machine:
     environment:
 
+dependencies:
+  override:
+    - chmod +x gradlew
+
 test:
   override:
     - ./gradlew assembleDebug
