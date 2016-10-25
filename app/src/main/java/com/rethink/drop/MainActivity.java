@@ -30,6 +30,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.rethink.drop.fragments.EditFragment;
 import com.rethink.drop.fragments.LocalFragment;
+import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.fragments.ViewFragment;
 import com.rethink.drop.models.Listing;
 
@@ -115,7 +116,7 @@ public class MainActivity
         super.onSaveInstanceState(outState);
     }
 
-    private void setFabListener(FloatingActionButton fab) {
+    private void setFabListener(final FloatingActionButton fab) {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -138,9 +139,17 @@ public class MainActivity
                     ((EditFragment) fragmentJuggler.getCurrentFragment()).publishListing();
                 } else if (CURRENT == VIEW) {
                     fragmentJuggler.viewToEditListing();
+                } else if (CURRENT == PROF) {
+                    ((ProfileFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
+                    syncUI();
                 }
             }
         });
+    }
+
+    private void syncUI() {
+        syncUpNav();
+        fab.update();
     }
 
     private void setBackStackListener() {
@@ -160,8 +169,10 @@ public class MainActivity
                     if (currClass.equals(EditFragment.class)) {
                         CURRENT = EDIT;
                     }
-                    syncUpNav();
-                    fab.update();
+                    if (currClass.equals(ProfileFragment.class)) {
+                        CURRENT = PROF;
+                    }
+                    syncUI();
                 } else {
                     finish();
                 }

@@ -9,12 +9,14 @@ import android.view.animation.AnimationUtils;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.models.Listing;
 
 import static com.rethink.drop.DataManager.listings;
 import static com.rethink.drop.FragmentJuggler.CURRENT;
 import static com.rethink.drop.FragmentJuggler.EDIT;
 import static com.rethink.drop.FragmentJuggler.LOCAL;
+import static com.rethink.drop.FragmentJuggler.PROF;
 import static com.rethink.drop.FragmentJuggler.VIEW;
 import static com.rethink.drop.models.Listing.KEY;
 
@@ -49,6 +51,13 @@ final class FabManager {
                 setDrawable(R.drawable.ic_mode_edit_white_24px);
                 show();
             }
+        } else if (CURRENT == PROF) {
+            if (((ProfileFragment) fragmentJuggler.getCurrentFragment()).isEditing()) {
+                setDrawable(R.drawable.ic_save_white_24dp);
+            } else {
+                setDrawable(R.drawable.ic_mode_edit_white_24px);
+            }
+            show();
         }
     }
 
