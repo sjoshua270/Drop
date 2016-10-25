@@ -290,14 +290,20 @@ public class MainActivity
                 this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            userLocation = new LatLng(location.getLatitude(),
-                    location.getLongitude());
-            try {
-                ((EditFragment) fragmentJuggler.getCurrentFragment()).updateMapPin();
-            } catch (ClassCastException ignored) {
-            }
+            // If the location has changed by more than half a mile
+            if (Math.abs(location.getLatitude() - userLocation.latitude) > degreesPerMile / 2 ||
+                    Math.abs(location.getLongitude() - userLocation.longitude) > degreesPerMile / 2) {
+                userLocation = new LatLng(
+                        location.getLatitude(),
+                        location.getLongitude());
 
-            updateDBRef();
+                try {
+                    ((EditFragment) fragmentJuggler.getCurrentFragment()).updateMapPin();
+                } catch (ClassCastException ignored) {
+                }
+
+                updateDBRef();
+            }
         }
     }
 
