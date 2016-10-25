@@ -39,7 +39,6 @@ import com.rethink.drop.R;
 import com.rethink.drop.Utilities;
 import com.rethink.drop.models.Listing;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Calendar;
 
@@ -198,14 +197,7 @@ public class EditFragment
     }
 
     private void uploadIcon(final String key, final String filename) {
-        StorageReference iconReference = FirebaseStorage.getInstance()
-                                                        .getReferenceFromUrl("gs://drop-143619.appspot.com")
-                                                        .child(user.getUid())
-                                                        .child(key)
-                                                        .child(filename + "_icon");
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        imageIcon.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-        UploadTask uploadIcon = iconReference.putBytes(stream.toByteArray());
+        UploadTask uploadIcon = Utilities.uploadImage(imageIcon, user.getUid() + key + filename + "_icon");
         uploadIcon.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -236,10 +228,8 @@ public class EditFragment
         progressDialog.setCancelable(false);
         progressDialog.show();
 
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        imageHighRes.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-        imageReference.putBytes(stream.toByteArray())
-                      .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+        UploadTask uploadImage = Utilities.uploadImage(imageHighRes, user.getUid() + key + filename);
+        uploadImage.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
                           @Override
                           public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
                               float progress = 100f * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount();

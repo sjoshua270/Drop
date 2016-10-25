@@ -2,6 +2,11 @@ package com.rethink.drop;
 
 import android.graphics.Bitmap;
 
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+import java.io.ByteArrayOutputStream;
 import java.util.Locale;
 
 public class Utilities {
@@ -99,5 +104,14 @@ public class Utilities {
         original = Bitmap.createBitmap(original, imageStartX, imageStartY, imageMinDimen, imageMinDimen);
         // Scale image down
         return Bitmap.createScaledBitmap(original, 256, 256, false);
+    }
+
+    public static UploadTask uploadImage(Bitmap bitmap, String path) {
+        StorageReference iconReference = FirebaseStorage.getInstance()
+                                                        .getReferenceFromUrl("gs://drop-143619.appspot.com")
+                                                        .child(path);
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        return iconReference.putBytes(stream.toByteArray());
     }
 }
