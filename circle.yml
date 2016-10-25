@@ -1,0 +1,6 @@
+machine:
+    environment:
+
+dependencies:
+  override:
+    - chmod +x gradlew
