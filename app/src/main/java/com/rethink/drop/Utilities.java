@@ -80,27 +80,25 @@ public class Utilities {
 
     // ===== Image Magic =====
 
-    public static Bitmap scaleDown(Bitmap realImage, float maxImageSize, boolean square) {
-        Bitmap toReturn;
+    public static Bitmap squareImage(Bitmap toReturn) {
+        int dimen = Math.min(toReturn.getWidth(), toReturn.getHeight());
+        return Bitmap.createBitmap(
+                toReturn,
+                (toReturn.getWidth() - dimen) / 2,
+                (toReturn.getHeight() - dimen) / 2,
+                dimen, dimen);
+    }
+
+    public static Bitmap scaleDown(Bitmap realImage, float maxImageSize) {
         float ratio = Math.min(
                 maxImageSize / realImage.getWidth(),
                 maxImageSize / realImage.getHeight());
         if (ratio < 1) {
             int width = Math.round(ratio * realImage.getWidth());
             int height = Math.round(ratio * realImage.getHeight());
-            toReturn = Bitmap.createScaledBitmap(realImage, width, height, false);
+            return Bitmap.createScaledBitmap(realImage, width, height, false);
         } else {
-            toReturn = realImage;
-        }
-        if (square) {
-            int dimen = Math.min(toReturn.getWidth(), toReturn.getHeight());
-            return Bitmap.createBitmap(
-                    toReturn,
-                    (toReturn.getWidth() - dimen) / 2,
-                    (toReturn.getHeight() - dimen) / 2,
-                    dimen, dimen);
-        } else {
-            return toReturn;
+            return realImage;
         }
     }
 
@@ -112,8 +110,8 @@ public class Utilities {
         progressDialog.setTitle(R.string.uploading);
         progressDialog.show();
 
-        Bitmap image = scaleDown(bitmap, 1024f, false);
-        Bitmap icon = scaleDown(bitmap, 256f, false);
+        Bitmap image = scaleDown(bitmap, 1024f);
+        Bitmap icon = scaleDown(bitmap, 256f);
 
         StorageReference imageReference = FirebaseStorage.getInstance()
                                                          .getReferenceFromUrl("gs://drop-143619.appspot.com")
