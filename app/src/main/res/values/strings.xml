@@ -16,4 +16,9 @@
     <string name="drawer_close">Close navigation drawer</string>
 
     <string name="full_image">Full screen image</string>
+
+    <!--Profile Fragment-->
+    <string name="profile">Profile</string>
+    <string name="prof_img_desc">Profile Image</string>
+    <string name="prof_name">Public Name</string>
 </resources>

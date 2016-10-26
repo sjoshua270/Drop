@@ -31,9 +31,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
-import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.rethink.drop.R;
 import com.rethink.drop.Utilities;
@@ -213,12 +211,6 @@ public class EditFragment
     }
 
     private void uploadImage(String key, String filename, final String iconURL) {
-        final StorageReference imageReference = FirebaseStorage.getInstance()
-                                                               .getReferenceFromUrl("gs://drop-143619.appspot.com")
-                                                               .child(user.getUid())
-                                                               .child(key)
-                                                               .child(filename);
-
         // Prepare a progress bar
         final ProgressDialog progressDialog = new ProgressDialog
                 (getActivity());

@@ -12,6 +12,7 @@ import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -29,6 +30,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.rethink.drop.fragments.EditFragment;
 import com.rethink.drop.fragments.LocalFragment;
+import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.fragments.ViewFragment;
 import com.rethink.drop.models.Listing;
 
@@ -39,6 +41,7 @@ import static com.rethink.drop.DataManager.listings;
 import static com.rethink.drop.FragmentJuggler.CURRENT;
 import static com.rethink.drop.FragmentJuggler.EDIT;
 import static com.rethink.drop.FragmentJuggler.LOCAL;
+import static com.rethink.drop.FragmentJuggler.PROF;
 import static com.rethink.drop.FragmentJuggler.VIEW;
 import static com.rethink.drop.models.Listing.KEY;
 
@@ -113,7 +116,7 @@ public class MainActivity
         super.onSaveInstanceState(outState);
     }
 
-    private void setFabListener(FloatingActionButton fab) {
+    private void setFabListener(final FloatingActionButton fab) {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -136,9 +139,16 @@ public class MainActivity
                     ((EditFragment) fragmentJuggler.getCurrentFragment()).publishListing();
                 } else if (CURRENT == VIEW) {
                     fragmentJuggler.viewToEditListing();
+                } else if (CURRENT == PROF) {
+                    ((ProfileFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
                 }
             }
         });
+    }
+
+    public void syncUI() {
+        syncUpNav();
+        fab.update();
     }
 
     private void setBackStackListener() {
@@ -158,8 +168,10 @@ public class MainActivity
                     if (currClass.equals(EditFragment.class)) {
                         CURRENT = EDIT;
                     }
-                    syncUpNav();
-                    fab.update();
+                    if (currClass.equals(ProfileFragment.class)) {
+                        CURRENT = PROF;
+                    }
+                    syncUI();
                 } else {
                     finish();
                 }
@@ -189,12 +201,17 @@ public class MainActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.open_profile:
+                fragmentJuggler.openFragment(PROF, null);
+                break;
             case R.id.delete_listing:
                 String key = getSupportFragmentManager()
                         .findFragmentById(R.id.main_fragment_container)
