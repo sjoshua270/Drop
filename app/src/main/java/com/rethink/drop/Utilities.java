@@ -75,6 +75,8 @@ public class Utilities {
         return distance(lat1, lat2, lon1, lon2, el1, el2) / 1000;
     }
 
+    // ===== Image Magic =====
+
     public static Bitmap scaleDown(Bitmap realImage, float maxImageSize, boolean filter) {
         float ratio = Math.min(
                 maxImageSize / realImage.getWidth(),
@@ -116,4 +118,6 @@ public class Utilities {
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
         return iconReference.putBytes(stream.toByteArray());
     }
+
+    // ===== End Image Magic =====
 }
