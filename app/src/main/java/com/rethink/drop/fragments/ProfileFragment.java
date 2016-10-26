@@ -173,6 +173,16 @@ public class ProfileFragment
         if (editing) {
             if (imageIcon != null && imageChanged) {
                 uploadImages();
+            } else if (profile != null && !profNameEdit.getText()
+                                                       .toString()
+                                                       .equals(profile.getName())) {
+                profile = new Profile(
+                        profile.getUserID(),
+                        profile.getIconURL(),
+                        profile.getImageURL(),
+                        profNameEdit.getText().toString());
+                ref.setValue(profile);
+                toggleState();
             }
         } else {
             toggleState();
