@@ -1,8 +1,11 @@
 package com.rethink.drop;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.graphics.Bitmap;
 
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
@@ -110,13 +113,49 @@ public class Utilities {
         return Bitmap.createScaledBitmap(original, 256, 256, false);
     }
 
-    public static UploadTask uploadImage(Bitmap bitmap, String path) {
-        StorageReference iconReference = FirebaseStorage.getInstance()
-                                                        .getReferenceFromUrl("gs://drop-143619.appspot.com")
-                                                        .child(path);
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-        return iconReference.putBytes(stream.toByteArray());
+    public static UploadTask uploadImage(Context context, Bitmap bitmap, String path) {
+        final ProgressDialog progressDialog = new ProgressDialog(context);
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progressDialog.setMax(100);
+        progressDialog.setCancelable(false);
+        progressDialog.setTitle(R.string.uploading);
+        progressDialog.show();
+
+        Bitmap image = scaleDown(bitmap, 1024f, false);
+        Bitmap icon = scaleDown(bitmap, 256f, false);
+
+        StorageReference imageReference = FirebaseStorage.getInstance()
+                                                         .getReferenceFromUrl("gs://drop-143619.appspot.com")
+                                                         .child(path);
+        final ByteArrayOutputStream imageStream = new ByteArrayOutputStream();
+        image.compress(Bitmap.CompressFormat.JPEG, 95, imageStream);
+        UploadTask uploadImage = imageReference.putBytes(imageStream.toByteArray());
+        uploadImage.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                float progress = 100f * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount();
+                progressDialog.setProgress(Math.round(progress));
+                if (progress == progressDialog.getMax()) {
+                    progressDialog.cancel();
+                }
+            }
+        });
+
+        final StorageReference iconReference = FirebaseStorage.getInstance()
+                                                              .getReferenceFromUrl("gs://drop-143619.appspot.com")
+                                                              .child(path + "_icon");
+        final ByteArrayOutputStream iconStream = new ByteArrayOutputStream();
+        icon.compress(Bitmap.CompressFormat.JPEG, 70, iconStream);
+        UploadTask uploadIcon = iconReference.putBytes(iconStream.toByteArray());
+        uploadIcon.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                float progress = 100f * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount();
+                progressDialog.setSecondaryProgress(Math.round(progress));
+            }
+        });
+
+        return uploadImage;
     }
 
     // ===== End Image Magic =====
