@@ -53,16 +53,10 @@ public class ImageFragment
                        .addOnSuccessListener(new OnSuccessListener<byte[]>() {
                            @Override
                            public void onSuccess(final byte[] bytes) {
-                               setImageView(imageView, BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
+                               imageView.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
                            }
                        });
     }
-
-    private void setImageView(final ImageView imageView, final Bitmap image) {
-        imageView.setPadding(0, 0, 0, 0);
-        imageView.setImageBitmap(image);
-    }
-
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
