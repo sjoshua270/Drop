@@ -9,28 +9,26 @@ import android.view.animation.AnimationUtils;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.rethink.drop.fragments.ListingFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.models.Listing;
 
 import static com.rethink.drop.DataManager.listings;
 import static com.rethink.drop.FragmentJuggler.CURRENT;
-import static com.rethink.drop.FragmentJuggler.EDIT;
+import static com.rethink.drop.FragmentJuggler.LISTING;
 import static com.rethink.drop.FragmentJuggler.LOCAL;
-import static com.rethink.drop.FragmentJuggler.PROF;
-import static com.rethink.drop.FragmentJuggler.VIEW;
+import static com.rethink.drop.FragmentJuggler.PROFILE;
 import static com.rethink.drop.models.Listing.KEY;
 
 final class FabManager {
 
     private Context context;
-    private FirebaseAuth firebaseAuth;
     private FloatingActionButton fab;
     private FragmentJuggler fragmentJuggler;
 
-    FabManager(Context context, FirebaseAuth firebaseAuth, FloatingActionButton fab, FragmentJuggler fragmentJuggler) {
+    FabManager(Context context, FloatingActionButton fab, FragmentJuggler fragmentJuggler) {
         this.context = context;
         this.fab = fab;
-        this.firebaseAuth = firebaseAuth;
         this.fragmentJuggler = fragmentJuggler;
     }
 
@@ -38,26 +36,28 @@ final class FabManager {
         hide();
         if (CURRENT == LOCAL) {
             setDrawable(R.drawable.ic_add_white_24px);
-            show();
-        } else if (CURRENT == EDIT) {
-            setDrawable(R.drawable.ic_send_white_24px);
-            show();
-        } else if (CURRENT == VIEW) {
+        } else if (CURRENT == LISTING) {
             String key = fragmentJuggler.getCurrentFragment().getArguments().getString(KEY);
-            Listing listing = listings.get(key);
-            FirebaseUser user = firebaseAuth.getCurrentUser();
-
-            if (user != null && user.getUid().equals(listing.getUserID())) {
-                setDrawable(R.drawable.ic_mode_edit_white_24px);
-                show();
+            if (key != null) {
+                if (((ListingFragment) fragmentJuggler.getCurrentFragment()).isEditing()) {
+                    setDrawable(R.drawable.ic_save_white_24dp);
+                } else {
+                    Listing listing = listings.get(key);
+                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                    if (user != null && user.getUid().equals(listing.getUserID())) {
+                        setDrawable(R.drawable.ic_mode_edit_white_24px);
+                    }
+                }
+            } else {
+                setDrawable(R.drawable.ic_send_white_24px);
             }
-        } else if (CURRENT == PROF) {
+            show();
+        } else if (CURRENT == PROFILE) {
             if (((ProfileFragment) fragmentJuggler.getCurrentFragment()).isEditing()) {
                 setDrawable(R.drawable.ic_save_white_24dp);
             } else {
                 setDrawable(R.drawable.ic_mode_edit_white_24px);
             }
-            show();
         }
     }
 
@@ -65,6 +65,7 @@ final class FabManager {
         fab.setImageDrawable(ContextCompat.getDrawable(
                 context,
                 drawableID));
+        show();
     }
 
     private void hide() {

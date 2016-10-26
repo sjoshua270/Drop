@@ -15,19 +15,15 @@ import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.rethink.drop.fragments.EditFragment;
+import com.rethink.drop.fragments.ListingFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
-import com.rethink.drop.fragments.ViewFragment;
-
-import static com.rethink.drop.models.Listing.KEY;
 
 class FragmentJuggler {
 
     static final int LOCAL = 0;
-    static final int VIEW = 1;
-    static final int EDIT = 2;
-    static final int PROF = 3;
+    static final int LISTING = 1;
+    static final int PROFILE = 2;
     static int CURRENT;
     private FragmentManager fragmentManager;
 
@@ -40,13 +36,10 @@ class FragmentJuggler {
             case LOCAL:
                 switchFragments(LocalFragment.newInstance());
                 break;
-            case VIEW:
-                switchFragments(ViewFragment.newInstance(new ViewFragment(), key));
+            case LISTING:
+                switchFragments(ListingFragment.newInstance(key));
                 break;
-            case EDIT:
-                switchFragments(EditFragment.newInstance(new EditFragment(), key));
-                break;
-            case PROF:
+            case PROFILE:
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 if (user != null) {
                     switchFragments(ProfileFragment.newInstance(user.getUid()));
@@ -73,27 +66,14 @@ class FragmentJuggler {
                        .commit();
     }
 
-
-    void viewToEditListing() {
-        String key = getCurrentFragment().getArguments().getString(KEY);
-        Fragment viewFragment = getCurrentFragment();
-        Fragment editFragment = EditFragment.newInstance(new EditFragment(), key);
-        View[] views = ((ViewFragment) viewFragment).getViews();
-        transitionFragments(viewFragment, editFragment, views);
-        CURRENT = EDIT;
-    }
-
     void viewListing(View listingView, String key) {
-        Fragment viewFragment = ViewFragment.newInstance(
-                new ViewFragment(),
-                key
-        );
-        transitionFragments(getCurrentFragment(), viewFragment,
+        Fragment listingFragment = ListingFragment.newInstance(key);
+        transitionFragments(getCurrentFragment(), listingFragment,
                 new View[]{
                         listingView.findViewById(R.id.item_image),
                         listingView.findViewById(R.id.item_title),
                         listingView.findViewById(R.id.item_desc)});
-        CURRENT = VIEW;
+        CURRENT = LISTING;
     }
 
     private void transitionFragments(Fragment frag1, Fragment frag2, View[] views) {

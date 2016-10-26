@@ -2,11 +2,15 @@ package com.rethink.drop;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
 import android.support.v7.app.AppCompatActivity;
@@ -28,21 +32,21 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.rethink.drop.fragments.EditFragment;
+import com.rethink.drop.fragments.ListingFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
-import com.rethink.drop.fragments.ViewFragment;
+import com.rethink.drop.interfaces.ImageHandler;
 import com.rethink.drop.models.Listing;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.rethink.drop.DataManager.listings;
 import static com.rethink.drop.FragmentJuggler.CURRENT;
-import static com.rethink.drop.FragmentJuggler.EDIT;
+import static com.rethink.drop.FragmentJuggler.LISTING;
 import static com.rethink.drop.FragmentJuggler.LOCAL;
-import static com.rethink.drop.FragmentJuggler.PROF;
-import static com.rethink.drop.FragmentJuggler.VIEW;
+import static com.rethink.drop.FragmentJuggler.PROFILE;
 import static com.rethink.drop.models.Listing.KEY;
 
 public class MainActivity
@@ -51,6 +55,7 @@ public class MainActivity
                    ConnectionCallbacks,
                    LocationListener {
     public final static float degreesPerMile = 0.01449275362f;
+    public static final int GALLERY_REQUEST = 3;
     public static LatLng userLocation;
     private static GoogleApiClient googleApiClient;
     private final int RC_SIGN_IN = 1;
@@ -61,7 +66,6 @@ public class MainActivity
     private final String STATE_LON = "state_longitude";
     private List<DatabaseReference> databaseReferences;
     private DataManager dataManager;
-    private FirebaseAuth firebaseAuth;
     private FabManager fab;
     private FragmentJuggler fragmentJuggler;
 
@@ -76,7 +80,6 @@ public class MainActivity
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-        firebaseAuth = FirebaseAuth.getInstance();
 
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
@@ -88,7 +91,6 @@ public class MainActivity
 
         fab = new FabManager(
                 this,
-                firebaseAuth,
                 (FloatingActionButton) findViewById(R.id.fab),
                 fragmentJuggler);
 
@@ -121,8 +123,8 @@ public class MainActivity
             @Override
             public void onClick(View view) {
                 if (CURRENT == LOCAL) {
-                    if (firebaseAuth.getCurrentUser() != null) {
-                        fragmentJuggler.openFragment(EDIT, null);
+                    if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                        fragmentJuggler.openFragment(LISTING, null);
                     } else {
                         startActivityForResult(
                                 // Get an instance of AuthUI based on the default app
@@ -135,11 +137,9 @@ public class MainActivity
                                       .build(),
                                 RC_SIGN_IN);
                     }
-                } else if (CURRENT == EDIT) {
-                    ((EditFragment) fragmentJuggler.getCurrentFragment()).publishListing();
-                } else if (CURRENT == VIEW) {
-                    fragmentJuggler.viewToEditListing();
-                } else if (CURRENT == PROF) {
+                } else if (CURRENT == LISTING) {
+                    ((ListingFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
+                } else if (CURRENT == PROFILE) {
                     ((ProfileFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
                 }
             }
@@ -162,14 +162,11 @@ public class MainActivity
                     if (currClass.equals(LocalFragment.class)) {
                         CURRENT = LOCAL;
                     }
-                    if (currClass.equals(ViewFragment.class)) {
-                        CURRENT = VIEW;
-                    }
-                    if (currClass.equals(EditFragment.class)) {
-                        CURRENT = EDIT;
+                    if (currClass.equals(ListingFragment.class)) {
+                        CURRENT = LISTING;
                     }
                     if (currClass.equals(ProfileFragment.class)) {
-                        CURRENT = PROF;
+                        CURRENT = PROFILE;
                     }
                     syncUI();
                 } else {
@@ -194,7 +191,26 @@ public class MainActivity
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
-                fragmentJuggler.openFragment(EDIT, null);
+                fragmentJuggler.openFragment(LISTING, null);
+            }
+        }
+        if (requestCode == GALLERY_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                if (data != null) {
+                    try {
+                        Uri selectedImageUri = data.getData();
+                        Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri);
+                        if (fragmentJuggler.getCurrentFragment().getClass().equals(ListingFragment.class)) {
+                            ((ImageHandler) fragmentJuggler.getCurrentFragment()).OnImageReceived(imageBitmap);
+                        }
+                    } catch (IOException e) {
+                        Snackbar.make(
+                                findViewById(R.id.fab),
+                                getResources().getString(R.string.unexpected_error),
+                                Snackbar.LENGTH_SHORT
+                        ).show();
+                    }
+                }
             }
         }
     }
@@ -210,7 +226,7 @@ public class MainActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.open_profile:
-                fragmentJuggler.openFragment(PROF, null);
+                fragmentJuggler.openFragment(PROFILE, null);
                 break;
             case R.id.delete_listing:
                 String key = getSupportFragmentManager()
@@ -315,7 +331,7 @@ public class MainActivity
                         location.getLongitude());
 
                 try {
-                    ((EditFragment) fragmentJuggler.getCurrentFragment()).updateMapPin();
+                    ((ListingFragment) fragmentJuggler.getCurrentFragment()).updateMapPin();
                 } catch (ClassCastException ignored) {
                 }
 
