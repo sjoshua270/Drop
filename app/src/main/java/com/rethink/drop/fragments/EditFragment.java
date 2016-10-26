@@ -222,39 +222,39 @@ public class EditFragment
 
         UploadTask uploadImage = Utilities.uploadImage(imageHighRes, user.getUid() + "/" + key + "/" + filename);
         uploadImage.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                          @Override
-                          public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                              float progress = 100f * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount();
-                              progressDialog.setProgress((int) progress);
-                          }
-                      })
-                      .addOnFailureListener(new OnFailureListener() {
-                          @Override
-                          public void onFailure(@NonNull Exception e) {
-                              Snackbar.make(cLayout, R.string.failed_to_upload, Snackbar.LENGTH_LONG).show();
-                          }
-                      })
-                      .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                          @Override
-                          public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                              Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                              if (downloadUrl != null) {
-                                  ref.setValue(new Listing(
-                                          user.getUid(),
-                                          Calendar.getInstance().getTimeInMillis(),
-                                          iconURL,
-                                          downloadUrl.toString(),
-                                          inputTitle.getText().toString(),
-                                          inputDesc.getText().toString(),
-                                          userLocation.latitude,
-                                          userLocation.longitude));
-                                  progressDialog.cancel();
-                                  getActivity().getSupportFragmentManager().popBackStackImmediate();
-                              } else {
-                                  Snackbar.make(cLayout, R.string.unexpected_error, Snackbar.LENGTH_LONG).show();
-                              }
-                          }
-                      });
+            @Override
+            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                float progress = 100f * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount();
+                progressDialog.setProgress((int) progress);
+            }
+        })
+                   .addOnFailureListener(new OnFailureListener() {
+                       @Override
+                       public void onFailure(@NonNull Exception e) {
+                           Snackbar.make(cLayout, R.string.failed_to_upload, Snackbar.LENGTH_LONG).show();
+                       }
+                   })
+                   .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                       @Override
+                       public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                           Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                           if (downloadUrl != null) {
+                               ref.setValue(new Listing(
+                                       user.getUid(),
+                                       Calendar.getInstance().getTimeInMillis(),
+                                       iconURL,
+                                       downloadUrl.toString(),
+                                       inputTitle.getText().toString(),
+                                       inputDesc.getText().toString(),
+                                       userLocation.latitude,
+                                       userLocation.longitude));
+                               progressDialog.cancel();
+                               getActivity().getSupportFragmentManager().popBackStackImmediate();
+                           } else {
+                               Snackbar.make(cLayout, R.string.unexpected_error, Snackbar.LENGTH_LONG).show();
+                           }
+                       }
+                   });
     }
 
     private int getBlockLocation(double latitude) {
