@@ -4,18 +4,16 @@ public class Listing {
     public static final String KEY = "KEY";
     private String userID;
     private long timestamp;
-    private String iconURL;
     private String imageURL;
     private String title;
     private String description;
     private Double latitude;
     private Double longitude;
 
-    public Listing(String userID, long timestamp, String iconURL, String imageURL,
+    public Listing(String userID, long timestamp, String imageURL,
                    String title, String description, Double latitude, Double longitude) {
         this.userID = userID;
         this.timestamp = timestamp;
-        this.iconURL = iconURL;
         this.imageURL = imageURL;
         this.title = title;
         this.description = description;
@@ -36,7 +34,7 @@ public class Listing {
     }
 
     public String getIconURL() {
-        return iconURL;
+        return imageURL + "_icon";
     }
 
     public String getImageURL() {
