@@ -195,7 +195,7 @@ public class EditFragment
     }
 
     private void uploadIcon(final String key, final String filename) {
-        UploadTask uploadIcon = Utilities.uploadImage(imageIcon, user.getUid() + key + filename + "_icon");
+        UploadTask uploadIcon = Utilities.uploadImage(imageIcon, user.getUid() + "/" + key + "/" + filename + "_icon");
         uploadIcon.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -220,7 +220,7 @@ public class EditFragment
         progressDialog.setCancelable(false);
         progressDialog.show();
 
-        UploadTask uploadImage = Utilities.uploadImage(imageHighRes, user.getUid() + key + filename);
+        UploadTask uploadImage = Utilities.uploadImage(imageHighRes, user.getUid() + "/" + key + "/" + filename);
         uploadImage.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
                           @Override
                           public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {

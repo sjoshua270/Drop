@@ -206,8 +206,8 @@ public class ProfileFragment
                                       .toLowerCase();
         UploadTask iconUpload = Utilities.uploadImage(
                 imageIcon,
-                "profile_images"
-                        + getArguments().getString(USER_ID)
+                "profile_images/"
+                        + getArguments().getString(USER_ID) + "/"
                         + filename
                         + "_icon");
         iconUpload.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -238,8 +238,8 @@ public class ProfileFragment
                                       .toLowerCase();
         UploadTask uploadImage = Utilities.uploadImage(
                 imageHighRes,
-                "profile_images"
-                        + getArguments().getString(USER_ID)
+                "profile_images/"
+                        + getArguments().getString(USER_ID) + "/"
                         + filename);
         uploadImage.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
             @Override
