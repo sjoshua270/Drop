@@ -9,8 +9,6 @@ import android.support.v4.view.ViewCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -63,10 +61,8 @@ public class ImageFragment
     }
 
     private void setImageView(final ImageView imageView, final Bitmap image) {
-        final Animation imageIn = AnimationUtils.loadAnimation(imageView.getContext(), R.anim.grow_fade_in);
         imageView.setPadding(0, 0, 0, 0);
         imageView.setImageBitmap(image);
-        imageView.startAnimation(imageIn);
     }
 
 
