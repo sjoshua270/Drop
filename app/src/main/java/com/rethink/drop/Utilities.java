@@ -79,15 +79,13 @@ public class Utilities {
         float ratio = Math.min(
                 maxImageSize / realImage.getWidth(),
                 maxImageSize / realImage.getHeight());
-        int width, height;
         if (ratio < 1) {
-            width = Math.round(ratio * realImage.getWidth());
-            height = Math.round(ratio * realImage.getHeight());
+            int width = Math.round(ratio * realImage.getWidth());
+            int height = Math.round(ratio * realImage.getHeight());
+            return Bitmap.createScaledBitmap(realImage, width, height, filter);
         } else {
-            width = realImage.getWidth();
-            height = realImage.getHeight();
+            return realImage;
         }
-        return Bitmap.createScaledBitmap(realImage, width, height, filter);
     }
 
     public static Bitmap generateIcon(Bitmap original) {
