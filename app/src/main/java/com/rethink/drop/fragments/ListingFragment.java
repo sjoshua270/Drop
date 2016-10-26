@@ -5,20 +5,14 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewCompat;
-import android.transition.ChangeBounds;
-import android.transition.ChangeTransform;
-import android.transition.Fade;
-import android.transition.TransitionSet;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -405,17 +399,6 @@ public class ListingFragment
             } else {
                 ((MainActivity) getActivity()).viewImage(getArguments().getString(KEY));
             }
-        }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public class ViewTransition
-            extends TransitionSet {
-        ViewTransition() {
-            setOrdering(ORDERING_TOGETHER);
-            addTransition(new ChangeBounds());
-            addTransition(new ChangeTransform());
-            addTransition(new Fade());
         }
     }
 }
