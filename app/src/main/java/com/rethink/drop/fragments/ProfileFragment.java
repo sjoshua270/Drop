@@ -122,7 +122,7 @@ public class ProfileFragment
                 try {
                     Uri selectedImageUri = data.getData();
                     Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), selectedImageUri);
-                    imageHighRes = Utilities.compressImage(imageBitmap);
+                    imageHighRes = Utilities.scaleDown(imageBitmap, 1024f, false);
                     imageIcon = Utilities.generateIcon(imageBitmap);
                     imageChanged = true;
                     setImageView(profImage, imageIcon);

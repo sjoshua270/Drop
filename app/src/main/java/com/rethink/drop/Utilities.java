@@ -75,15 +75,19 @@ public class Utilities {
         return distance(lat1, lat2, lon1, lon2, el1, el2) / 1000;
     }
 
-    public static Bitmap compressImage(Bitmap original) {
-        int imageWidth = original.getWidth();
-        int imageHeight = original.getHeight();
-
-        // Downscale the image to an appropriate size for storage
-        float scaleY = 1024f / imageHeight;
-        float scaleX = 1024f / imageWidth;
-        float scale = Math.max(scaleX, scaleY);
-        return Bitmap.createScaledBitmap(original, (int) scale * imageWidth, (int) scale * imageHeight, false);
+    public static Bitmap scaleDown(Bitmap realImage, float maxImageSize, boolean filter) {
+        float ratio = Math.min(
+                maxImageSize / realImage.getWidth(),
+                maxImageSize / realImage.getHeight());
+        int width, height;
+        if (ratio < 1) {
+            width = Math.round(ratio * realImage.getWidth());
+            height = Math.round(ratio * realImage.getHeight());
+        } else {
+            width = realImage.getWidth();
+            height = realImage.getHeight();
+        }
+        return Bitmap.createScaledBitmap(realImage, width, height, filter);
     }
 
     public static Bitmap generateIcon(Bitmap original) {
