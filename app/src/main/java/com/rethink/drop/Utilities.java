@@ -93,26 +93,6 @@ public class Utilities {
         }
     }
 
-    public static Bitmap generateIcon(Bitmap original) {
-        int imageWidth = original.getWidth();
-        int imageHeight = original.getHeight();
-
-        int imageStartX = 0;
-        int imageStartY = 0;
-        // Calculate starting X or Y
-        if (imageWidth > imageHeight) {
-            imageStartX = (imageWidth - imageHeight) / 2;
-        } else {
-            imageStartY = (imageHeight - imageWidth) / 2;
-        }
-        // Get minimum dimension for squaring
-        int imageMinDimen = Math.min(imageHeight, imageWidth);
-        // Crop image to square
-        original = Bitmap.createBitmap(original, imageStartX, imageStartY, imageMinDimen, imageMinDimen);
-        // Scale image down
-        return Bitmap.createScaledBitmap(original, 256, 256, false);
-    }
-
     public static UploadTask uploadImage(Context context, Bitmap bitmap, String path) {
         final ProgressDialog progressDialog = new ProgressDialog(context);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
