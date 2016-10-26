@@ -80,16 +80,27 @@ public class Utilities {
 
     // ===== Image Magic =====
 
-    public static Bitmap scaleDown(Bitmap realImage, float maxImageSize, boolean filter) {
+    public static Bitmap scaleDown(Bitmap realImage, float maxImageSize, boolean square) {
+        Bitmap toReturn;
         float ratio = Math.min(
                 maxImageSize / realImage.getWidth(),
                 maxImageSize / realImage.getHeight());
         if (ratio < 1) {
             int width = Math.round(ratio * realImage.getWidth());
             int height = Math.round(ratio * realImage.getHeight());
-            return Bitmap.createScaledBitmap(realImage, width, height, filter);
+            toReturn = Bitmap.createScaledBitmap(realImage, width, height, false);
         } else {
-            return realImage;
+            toReturn = realImage;
+        }
+        if (square) {
+            int dimen = Math.min(toReturn.getWidth(), toReturn.getHeight());
+            return Bitmap.createBitmap(
+                    toReturn,
+                    (toReturn.getWidth() - dimen) / 2,
+                    (toReturn.getHeight() - dimen) / 2,
+                    dimen, dimen);
+        } else {
+            return toReturn;
         }
     }
 
