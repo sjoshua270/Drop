@@ -169,7 +169,7 @@ public class ListingFragment
 
     protected void setImageView() {
         if (image != null) {
-            imageView.setImageBitmap(image);
+            imageView.setImageBitmap(Utilities.squareImage(image));
             imageView.setPadding(0, 0, 0, 0);
         }
     }

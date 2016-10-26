@@ -160,7 +160,7 @@ public class ProfileFragment
     private void setImageView(final ImageView imageView, final Bitmap image) {
         final Animation imageIn = AnimationUtils.loadAnimation(imageView.getContext(), R.anim.grow_fade_in);
         imageView.setPadding(0, 0, 0, 0);
-        imageView.setImageBitmap(Utilities.scaleDown(image, 256f, true));
+        imageView.setImageBitmap(Utilities.squareImage(image));
         imageView.startAnimation(imageIn);
     }
 

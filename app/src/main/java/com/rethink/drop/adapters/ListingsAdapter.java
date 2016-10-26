@@ -18,6 +18,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
+import com.rethink.drop.Utilities;
 import com.rethink.drop.models.Listing;
 
 import java.text.SimpleDateFormat;
@@ -111,7 +112,7 @@ public class ListingsAdapter
                                    int dimens = Math.min(bmp.getWidth(), bmp.getHeight());
                                    imageBitmaps.put(key, Bitmap.createBitmap(bmp, 0, 0, dimens, dimens));
                                    imageStatus.put(key, DOWNLOADED);
-                                   ListingsAdapter.this.notifyItemChanged(keys.indexOf(key));
+                                   notifyItemChanged(keys.indexOf(key));
                                }
                            });
         }
@@ -152,7 +153,7 @@ public class ListingsAdapter
                     @Override
                     public void onAnimationEnd(Animation animation) {
                         imageView.setPadding(0, 0, 0, 0);
-                        imageView.setImageBitmap(imageBitmaps.get(key));
+                        imageView.setImageBitmap(Utilities.squareImage(imageBitmaps.get(key)));
                         imageView.startAnimation(imageIn);
                     }
 
@@ -166,7 +167,7 @@ public class ListingsAdapter
                 break;
             case DISPLAYED:
                 imageView.setPadding(0, 0, 0, 0);
-                imageView.setImageBitmap(imageBitmaps.get(key));
+                imageView.setImageBitmap(Utilities.squareImage(imageBitmaps.get(key)));
                 break;
         }
     }
