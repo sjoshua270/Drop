@@ -77,13 +77,6 @@ public class ListingFragment
         return fragment;
     }
 
-    public static ListingFragment newInstance() {
-        Bundle args = new Bundle();
-        ListingFragment fragment = new ListingFragment();
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
