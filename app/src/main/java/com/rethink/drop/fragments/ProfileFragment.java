@@ -29,6 +29,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.UploadTask;
+import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.Utilities;
 import com.rethink.drop.models.Profile;
@@ -248,6 +249,7 @@ public class ProfileFragment
     public void toggleState() {
         editing = !editing;
         prepViews();
+        ((MainActivity) getActivity()).syncUI();
     }
 
     public boolean isEditing() {

@@ -141,13 +141,12 @@ public class MainActivity
                     fragmentJuggler.viewToEditListing();
                 } else if (CURRENT == PROF) {
                     ((ProfileFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
-                    syncUI();
                 }
             }
         });
     }
 
-    private void syncUI() {
+    public void syncUI() {
         syncUpNav();
         fab.update();
     }
