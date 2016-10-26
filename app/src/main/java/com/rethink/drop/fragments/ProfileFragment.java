@@ -1,6 +1,7 @@
 package com.rethink.drop.fragments;
 
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -8,6 +9,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +27,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.UploadTask;
 import com.rethink.drop.R;
 import com.rethink.drop.Utilities;
 import com.rethink.drop.models.Profile;
@@ -46,6 +50,7 @@ public class ProfileFragment
     private Boolean imageChanged;
     private ImageView profImage;
     private Profile profile;
+    private View cLayout;
 
     public static ProfileFragment newInstance(@Nullable String userID) {
 
@@ -89,6 +94,7 @@ public class ProfileFragment
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_profile, container, false);
+        cLayout = container;
         profImage = (ImageView) v.findViewById(R.id.prof_img);
         profImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -164,15 +170,79 @@ public class ProfileFragment
 
     public void handleFabPress() {
         if (editing) {
-            profile = new Profile(
-                    getArguments().getString(USER_ID),
-                    "",
-                    "",
-                    profNameEdit.getText().toString()
-            );
-            ref.setValue(profile);
+            if (imageIcon != null && imageChanged) {
+                uploadImages();
+            }
+        } else {
+            toggleState();
         }
-        toggleState();
+    }
+
+    private void uploadImages() {
+        String filename = profNameEdit.getText()
+                                      .toString()
+                                      .replaceAll("[^A-Za-z]+", "")
+                                      .toLowerCase();
+        UploadTask iconUpload = Utilities.uploadImage(
+                imageIcon,
+                "profile_images"
+                        + getArguments().getString(USER_ID)
+                        + filename
+                        + "_icon");
+        iconUpload.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Uri iconUrl = taskSnapshot.getDownloadUrl();
+                if (iconUrl != null) {
+                    uploadHighRes(iconUrl.toString());
+                } else {
+                    Snackbar.make(cLayout, R.string.unexpected_error, Snackbar.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    private void uploadHighRes(final String iconURL) {
+        // Prepare a progress bar
+        final ProgressDialog progressDialog = new ProgressDialog(getActivity());
+        progressDialog.setMax(100);
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progressDialog.setTitle(R.string.uploading);
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        String filename = profNameEdit.getText()
+                                      .toString()
+                                      .replaceAll("[^A-Za-z]+", "")
+                                      .toLowerCase();
+        UploadTask uploadImage = Utilities.uploadImage(
+                imageHighRes,
+                "profile_images"
+                        + getArguments().getString(USER_ID)
+                        + filename);
+        uploadImage.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                float progress = 100f * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount();
+                progressDialog.setProgress((int) progress);
+            }
+        });
+        uploadImage.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Uri imageURL = taskSnapshot.getDownloadUrl();
+                if (imageURL != null) {
+                    ref.setValue(new Profile(
+                            getArguments().getString(USER_ID),
+                            iconURL,
+                            imageURL.toString(),
+                            profNameEdit.getText().toString()
+                    ));
+                }
+                progressDialog.cancel();
+                toggleState();
+            }
+        });
     }
 
     public void toggleState() {
