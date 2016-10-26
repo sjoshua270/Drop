@@ -1,14 +1,12 @@
 package com.rethink.drop.fragments;
 
 import android.Manifest;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -25,13 +23,11 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.UploadTask;
 import com.rethink.drop.R;
 import com.rethink.drop.Utilities;
@@ -173,14 +169,13 @@ public class EditFragment
             }
             ref = ref.child(key);
             if (imageIcon != null && imageChanged) {
-                uploadIcon(key, filename);
+                uploadImage(key, filename);
             } else {
                 ref.setValue(
                         new Listing(
                                 user.getUid(),
                                 Calendar.getInstance()
                                         .getTimeInMillis(),
-                                listing != null ? listing.getIconURL() : "",
                                 listing != null ? listing.getImageURL() : "",
                                 inputTitle.getText()
                                           .toString(),
@@ -194,67 +189,30 @@ public class EditFragment
         }
     }
 
-    private void uploadIcon(final String key, final String filename) {
-        UploadTask uploadIcon = Utilities.uploadImage(imageIcon, user.getUid() + "/" + key + "/" + filename + "_icon");
-        uploadIcon.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+    private void uploadImage(String key, String filename) {
+        Utilities.uploadImage(
+                getActivity(),
+                imageHighRes,
+                user.getUid() + "/" + key + "/" + filename
+        ).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Uri iconUrl = taskSnapshot.getDownloadUrl();
-                if (iconUrl != null) {
-                    uploadImage(key, filename, iconUrl.toString());
+                Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                if (downloadUrl != null) {
+                    ref.setValue(new Listing(
+                            user.getUid(),
+                            Calendar.getInstance().getTimeInMillis(),
+                            downloadUrl.toString(),
+                            inputTitle.getText().toString(),
+                            inputDesc.getText().toString(),
+                            userLocation.latitude,
+                            userLocation.longitude));
+                    getActivity().getSupportFragmentManager().popBackStackImmediate();
                 } else {
                     Snackbar.make(cLayout, R.string.unexpected_error, Snackbar.LENGTH_LONG).show();
                 }
             }
         });
-
-    }
-
-    private void uploadImage(String key, String filename, final String iconURL) {
-        // Prepare a progress bar
-        final ProgressDialog progressDialog = new ProgressDialog
-                (getActivity());
-        progressDialog.setMax(100);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        progressDialog.setTitle(R.string.uploading);
-        progressDialog.setCancelable(false);
-        progressDialog.show();
-
-        UploadTask uploadImage = Utilities.uploadImage(imageHighRes, user.getUid() + "/" + key + "/" + filename);
-        uploadImage.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                float progress = 100f * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount();
-                progressDialog.setProgress((int) progress);
-            }
-        })
-                   .addOnFailureListener(new OnFailureListener() {
-                       @Override
-                       public void onFailure(@NonNull Exception e) {
-                           Snackbar.make(cLayout, R.string.failed_to_upload, Snackbar.LENGTH_LONG).show();
-                       }
-                   })
-                   .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                       @Override
-                       public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                           Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                           if (downloadUrl != null) {
-                               ref.setValue(new Listing(
-                                       user.getUid(),
-                                       Calendar.getInstance().getTimeInMillis(),
-                                       iconURL,
-                                       downloadUrl.toString(),
-                                       inputTitle.getText().toString(),
-                                       inputDesc.getText().toString(),
-                                       userLocation.latitude,
-                                       userLocation.longitude));
-                               progressDialog.cancel();
-                               getActivity().getSupportFragmentManager().popBackStackImmediate();
-                           } else {
-                               Snackbar.make(cLayout, R.string.unexpected_error, Snackbar.LENGTH_LONG).show();
-                           }
-                       }
-                   });
     }
 
     private int getBlockLocation(double latitude) {

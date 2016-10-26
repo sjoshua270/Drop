@@ -9,7 +9,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -173,7 +172,7 @@ public class ProfileFragment
     public void handleFabPress() {
         if (editing) {
             if (imageIcon != null && imageChanged) {
-                uploadImages();
+                uploadImage();
             } else {
                 if (profile != null) {
                     if (!profNameEdit.getText()
@@ -181,14 +180,12 @@ public class ProfileFragment
                                      .equals(profile.getName())) {
                         profile = new Profile(
                                 profile.getUserID(),
-                                profile.getIconURL(),
                                 profile.getImageURL(),
                                 profNameEdit.getText().toString());
                     }
                 } else {
                     profile = new Profile(
                             getArguments().getString(USER_ID),
-                            "",
                             "",
                             profNameEdit.getText().toString());
                 }
@@ -200,31 +197,7 @@ public class ProfileFragment
         }
     }
 
-    private void uploadImages() {
-        String filename = profNameEdit.getText()
-                                      .toString()
-                                      .replaceAll("[^A-Za-z]+", "")
-                                      .toLowerCase();
-        UploadTask iconUpload = Utilities.uploadImage(
-                imageIcon,
-                "profile_images/"
-                        + getArguments().getString(USER_ID) + "/"
-                        + filename
-                        + "_icon");
-        iconUpload.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Uri iconUrl = taskSnapshot.getDownloadUrl();
-                if (iconUrl != null) {
-                    uploadHighRes(iconUrl.toString());
-                } else {
-                    Snackbar.make(cLayout, R.string.unexpected_error, Snackbar.LENGTH_LONG).show();
-                }
-            }
-        });
-    }
-
-    private void uploadHighRes(final String iconURL) {
+    private void uploadImage() {
         // Prepare a progress bar
         final ProgressDialog progressDialog = new ProgressDialog(getActivity());
         progressDialog.setMax(100);
@@ -238,6 +211,7 @@ public class ProfileFragment
                                       .replaceAll("[^A-Za-z]+", "")
                                       .toLowerCase();
         UploadTask uploadImage = Utilities.uploadImage(
+                getActivity(),
                 imageHighRes,
                 "profile_images/"
                         + getArguments().getString(USER_ID) + "/"
@@ -256,7 +230,6 @@ public class ProfileFragment
                 if (imageURL != null) {
                     profile = new Profile(
                             getArguments().getString(USER_ID),
-                            iconURL,
                             imageURL.toString(),
                             profNameEdit.getText().toString()
                     );
