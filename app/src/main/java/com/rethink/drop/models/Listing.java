@@ -1,5 +1,7 @@
 package com.rethink.drop.models;
 
+import com.google.firebase.database.Exclude;
+
 public class Listing {
     public static final String KEY = "KEY";
     private String userID;
@@ -33,6 +35,7 @@ public class Listing {
         return timestamp;
     }
 
+    @Exclude
     public String getIconURL() {
         return imageURL + "_icon";
     }
