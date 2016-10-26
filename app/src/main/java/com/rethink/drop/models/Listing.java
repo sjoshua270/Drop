@@ -1,5 +1,6 @@
 package com.rethink.drop.models;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.Exclude;
 
 public class Listing {
@@ -50,6 +51,11 @@ public class Listing {
 
     public String getDescription() {
         return description;
+    }
+
+    @Exclude
+    public LatLng getLatLng() {
+        return new LatLng(latitude, longitude);
     }
 
     public Double getLatitude() {
