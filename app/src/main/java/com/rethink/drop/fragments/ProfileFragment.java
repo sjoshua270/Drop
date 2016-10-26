@@ -173,14 +173,24 @@ public class ProfileFragment
         if (editing) {
             if (imageIcon != null && imageChanged) {
                 uploadImages();
-            } else if (profile != null && !profNameEdit.getText()
-                                                       .toString()
-                                                       .equals(profile.getName())) {
-                profile = new Profile(
-                        profile.getUserID(),
-                        profile.getIconURL(),
-                        profile.getImageURL(),
-                        profNameEdit.getText().toString());
+            } else {
+                if (profile != null) {
+                    if (!profNameEdit.getText()
+                                     .toString()
+                                     .equals(profile.getName())) {
+                        profile = new Profile(
+                                profile.getUserID(),
+                                profile.getIconURL(),
+                                profile.getImageURL(),
+                                profNameEdit.getText().toString());
+                    }
+                } else {
+                    profile = new Profile(
+                            getArguments().getString(USER_ID),
+                            "",
+                            "",
+                            profNameEdit.getText().toString());
+                }
                 ref.setValue(profile);
                 toggleState();
             }
