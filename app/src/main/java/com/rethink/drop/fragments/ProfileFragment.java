@@ -253,12 +253,13 @@ public class ProfileFragment
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 Uri imageURL = taskSnapshot.getDownloadUrl();
                 if (imageURL != null) {
-                    ref.setValue(new Profile(
+                    profile = new Profile(
                             getArguments().getString(USER_ID),
                             iconURL,
                             imageURL.toString(),
                             profNameEdit.getText().toString()
-                    ));
+                    );
+                    ref.setValue(profile);
                 }
                 progressDialog.cancel();
                 toggleState();
