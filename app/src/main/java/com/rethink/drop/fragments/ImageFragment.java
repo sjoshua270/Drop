@@ -53,9 +53,7 @@ public class ImageFragment
                        .addOnSuccessListener(new OnSuccessListener<byte[]>() {
                            @Override
                            public void onSuccess(final byte[] bytes) {
-                               Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                               imageBitmaps.put(key, bmp);
-                               setImageView(imageView, bmp);
+                               setImageView(imageView, BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
                            }
                        });
     }
