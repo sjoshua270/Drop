@@ -1,5 +1,7 @@
 package com.rethink.drop.models;
 
+import com.google.firebase.database.Exclude;
+
 public class Profile {
     private String userID;
     private String imageURL;
@@ -18,6 +20,7 @@ public class Profile {
         return userID;
     }
 
+    @Exclude
     public String getIconURL() {
         return imageURL + "_icon";
     }
