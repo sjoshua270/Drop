@@ -41,8 +41,7 @@ public class ProfileFragment
         extends Fragment {
     public static final String USER_ID = "user_id";
     private static final int GALLERY_REQUEST = 2;
-    private Bitmap imageHighRes;
-    private Bitmap imageIcon;
+    private Bitmap image;
     private DatabaseReference ref;
     private TextView profName;
     private TextView profNameEdit;
@@ -50,7 +49,6 @@ public class ProfileFragment
     private Boolean imageChanged;
     private ImageView profImage;
     private Profile profile;
-    private View cLayout;
 
     public static ProfileFragment newInstance(@Nullable String userID) {
 
@@ -94,7 +92,6 @@ public class ProfileFragment
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_profile, container, false);
-        cLayout = container;
         profImage = (ImageView) v.findViewById(R.id.prof_img);
         profImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -120,11 +117,9 @@ public class ProfileFragment
             if (data != null) {
                 try {
                     Uri selectedImageUri = data.getData();
-                    Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), selectedImageUri);
-                    imageHighRes = Utilities.scaleDown(imageBitmap, 1024f, false);
-                    imageIcon = Utilities.generateIcon(imageBitmap);
+                    image = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), selectedImageUri);
                     imageChanged = true;
-                    setImageView(profImage, imageIcon);
+                    setImageView(profImage, image);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -138,7 +133,7 @@ public class ProfileFragment
                 profNameEdit.setVisibility(View.GONE);
                 profName.setVisibility(View.VISIBLE);
                 profName.setText(profile.getName());
-                if (!profile.getIconURL().equals("")) {
+                if (!profile.getImageURL().equals("")) {
                     FirebaseStorage.getInstance().getReferenceFromUrl(profile.getIconURL())
                                    .getBytes(1024 * 1024)
                                    .addOnSuccessListener(new OnSuccessListener<byte[]>() {
@@ -171,7 +166,7 @@ public class ProfileFragment
 
     public void handleFabPress() {
         if (editing) {
-            if (imageIcon != null && imageChanged) {
+            if (image != null && imageChanged) {
                 uploadImage();
             } else {
                 if (profile != null) {
@@ -212,7 +207,7 @@ public class ProfileFragment
                                       .toLowerCase();
         UploadTask uploadImage = Utilities.uploadImage(
                 getActivity(),
-                imageHighRes,
+                image,
                 "profile_images/"
                         + getArguments().getString(USER_ID) + "/"
                         + filename);
