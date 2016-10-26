@@ -187,6 +187,10 @@ public class MainActivity
         fragmentJuggler.viewListing(listingView, key);
     }
 
+    public void viewImage(String key) {
+        fragmentJuggler.viewImage(key);
+    }
+
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_SIGN_IN) {

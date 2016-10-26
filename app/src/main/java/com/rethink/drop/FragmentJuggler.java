@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.rethink.drop.fragments.ImageFragment;
 import com.rethink.drop.fragments.ListingFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
@@ -24,6 +25,7 @@ class FragmentJuggler {
     static final int LOCAL = 0;
     static final int LISTING = 1;
     static final int PROFILE = 2;
+    static final int IMAGE = 3;
     static int CURRENT;
     private FragmentManager fragmentManager;
 
@@ -47,6 +49,9 @@ class FragmentJuggler {
                     Toast.makeText(getCurrentFragment().getContext(), "No userID", Toast.LENGTH_SHORT).show();
                 }
                 break;
+            case IMAGE:
+                switchFragments(ImageFragment.newInstance(key));
+                break;
         }
         CURRENT = fragmentID;
     }
@@ -64,6 +69,24 @@ class FragmentJuggler {
                        .replace(R.id.main_fragment_container, newFragment)
                        .addToBackStack(null)
                        .commit();
+    }
+
+    void viewImage(String key) {
+        ImageFragment imageFragment = ImageFragment.newInstance(key);
+        ListingFragment listingFragment = (ListingFragment) getCurrentFragment();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            imageFragment.setSharedElementEnterTransition(new ViewTransition());
+            imageFragment.setEnterTransition(new Fade());
+            listingFragment.setReturnTransition(new Fade());
+            listingFragment.setSharedElementReturnTransition(new ViewTransition());
+        }
+        fragmentManager.beginTransaction()
+                       .addSharedElement(listingFragment.getImageView(), "image")
+                       .replace(R.id.main_fragment_container,
+                               imageFragment)
+                       .addToBackStack(null)
+                       .commit();
+        CURRENT = IMAGE;
     }
 
     void viewListing(View listingView, String key) {

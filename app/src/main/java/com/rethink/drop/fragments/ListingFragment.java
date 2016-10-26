@@ -382,6 +382,10 @@ public class ListingFragment
         mapView.onDestroy();
     }
 
+    public ImageView getImageView() {
+        return imageView;
+    }
+
     private class ImageClickHandler
             implements View.OnClickListener {
         @Override
@@ -399,20 +403,7 @@ public class ListingFragment
                             0);
                 }
             } else {
-                ImageFragment imageFragment = ImageFragment.newInstance(getArguments().getString(KEY));
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    imageFragment.setSharedElementEnterTransition(new ViewTransition());
-                    imageFragment.setEnterTransition(new Fade());
-                    setReturnTransition(new Fade());
-                    setSharedElementReturnTransition(new ViewTransition());
-                }
-                getActivity().getSupportFragmentManager()
-                             .beginTransaction()
-                             .addSharedElement(imageView, "image")
-                             .replace(R.id.main_fragment_container,
-                                     imageFragment)
-                             .addToBackStack(null)
-                             .commit();
+                ((MainActivity) getActivity()).viewImage(getArguments().getString(KEY));
             }
         }
     }
