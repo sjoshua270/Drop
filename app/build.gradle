@@ -9,8 +9,8 @@ android {
         applicationId "com.rethink.drop"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 20161026
-        versionName "0.0.2"
+        versionCode 2016102600
+        versionName "0.0.3"
         multiDexEnabled true
     }
     buildTypes {
