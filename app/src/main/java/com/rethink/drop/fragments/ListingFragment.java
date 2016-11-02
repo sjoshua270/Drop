@@ -107,17 +107,19 @@ public class ListingFragment
 
         imageView = (ImageView) fragmentView.findViewById(R.id.listing_image);
         ViewCompat.setTransitionName(imageView, "image");
-        String imageUrl = listing.getImageURL() == null ? "" : listing.getImageURL();
-        if (!imageUrl.equals("") && container != null) {
-            Picasso.with(container.getContext())
-                   .load(imageUrl)
-                   .placeholder(R.drawable.ic_photo_camera_white_24px)
-                   .resize(getContext().getResources()
-                                       .getDimensionPixelSize(R.dimen.listing_image_dimen),
-                           getContext().getResources()
-                                       .getDimensionPixelSize(R.dimen.listing_image_dimen))
-                   .centerCrop()
-                   .into(imageView);
+        if (listing != null) {
+            String imageUrl = listing.getImageURL() == null ? "" : listing.getImageURL();
+            if (!imageUrl.equals("") && container != null) {
+                Picasso.with(container.getContext())
+                       .load(imageUrl)
+                       .placeholder(R.drawable.ic_photo_camera_white_24px)
+                       .resize(getContext().getResources()
+                                           .getDimensionPixelSize(R.dimen.listing_image_dimen),
+                               getContext().getResources()
+                                           .getDimensionPixelSize(R.dimen.listing_image_dimen))
+                       .centerCrop()
+                       .into(imageView);
+            }
         }
         imageView.setOnClickListener(new ImageClickHandler());
 
