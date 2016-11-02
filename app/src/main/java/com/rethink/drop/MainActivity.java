@@ -340,31 +340,37 @@ public class MainActivity
     }
 
     private void updateDBRef() {
-        LocalFragment localFragment = (LocalFragment) fragmentJuggler.getCurrentFragment();
-        for (DatabaseReference databaseReference : databaseReferences) {
-            localFragment.detachListeners(databaseReference);
-        }
-        databaseReferences.clear();
-        localFragment.reset();
-        for (int i = -2; i <= 2; i += 1) {
-            for (int j = -2; j <= 2; j += 1) {
-                databaseReferences.add(FirebaseDatabase.getInstance()
-                                                       .getReference()
-                                                       .child("listings")
-                                                       .child(String.valueOf((int) (userLocation.latitude / degreesPerMile) + i))
-                                                       .child(String.valueOf((int) (userLocation.longitude / degreesPerMile) + j))
-                );
+        try {
+            LocalFragment localFragment = (LocalFragment) fragmentJuggler.getCurrentFragment();
+            for (DatabaseReference databaseReference : databaseReferences) {
+                localFragment.detachListeners(databaseReference);
             }
-        }
-        for (DatabaseReference databaseReference : databaseReferences) {
-            localFragment.attachListeners(databaseReference);
+            databaseReferences.clear();
+            localFragment.reset();
+            for (int i = -2; i <= 2; i += 1) {
+                for (int j = -2; j <= 2; j += 1) {
+                    databaseReferences.add(FirebaseDatabase.getInstance()
+                                                           .getReference()
+                                                           .child("listings")
+                                                           .child(String.valueOf((int) (userLocation.latitude / degreesPerMile) + i))
+                                                           .child(String.valueOf((int) (userLocation.longitude / degreesPerMile) + j))
+                    );
+                }
+            }
+            for (DatabaseReference databaseReference : databaseReferences) {
+                localFragment.attachListeners(databaseReference);
+            }
+        } catch (ClassCastException ignored) {
         }
     }
 
     private void detachAllListeners() {
-        LocalFragment localFragment = (LocalFragment) fragmentJuggler.getCurrentFragment();
-        for (DatabaseReference databaseReference : databaseReferences) {
-            localFragment.detachListeners(databaseReference);
+        try {
+            LocalFragment localFragment = (LocalFragment) fragmentJuggler.getCurrentFragment();
+            for (DatabaseReference databaseReference : databaseReferences) {
+                localFragment.detachListeners(databaseReference);
+            }
+        } catch (ClassCastException ignored) {
         }
     }
 
