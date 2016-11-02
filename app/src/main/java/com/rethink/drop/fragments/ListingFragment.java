@@ -119,6 +119,8 @@ public class ListingFragment
                                            .getDimensionPixelSize(R.dimen.listing_image_dimen))
                        .centerCrop()
                        .into(imageView);
+            } else {
+                imageView.setVisibility(View.GONE);
             }
         }
         imageView.setOnClickListener(new ImageClickHandler());
