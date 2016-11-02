@@ -17,7 +17,7 @@ import com.rethink.drop.adapters.ListingsAdapter;
 
 public class LocalFragment
         extends Fragment {
-    public static ListingsAdapter listingsAdapter;
+    public ListingsAdapter listingsAdapter;
 
     public static LocalFragment newInstance() {
 
@@ -31,7 +31,7 @@ public class LocalFragment
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        listingsAdapter = new ListingsAdapter();
+        listingsAdapter = new ListingsAdapter(getActivity().getApplicationContext());
         setHasOptionsMenu(true);
     }
 
