@@ -112,7 +112,10 @@ public class ListingFragment
             Picasso.with(container.getContext())
                    .load(imageUrl)
                    .placeholder(R.drawable.ic_photo_camera_white_24px)
-                   .resize(500, 500)
+                   .resize(getContext().getResources()
+                                       .getDimensionPixelSize(R.dimen.listing_image_dimen),
+                           getContext().getResources()
+                                       .getDimensionPixelSize(R.dimen.listing_image_dimen))
                    .centerCrop()
                    .into(imageView);
         }

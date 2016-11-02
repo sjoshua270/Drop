@@ -47,7 +47,10 @@ public class ListingsAdapter
             Picasso.with(context)
                    .load(imageUrl)
                    .placeholder(R.drawable.ic_photo_camera_white_24px)
-                   .resize(100, 100)
+                   .resize(context.getResources()
+                                  .getDimensionPixelSize(R.dimen.item_image_dimen),
+                           context.getResources()
+                                  .getDimensionPixelSize(R.dimen.item_image_dimen))
                    .centerCrop()
                    .into(holder.imageView);
         }
