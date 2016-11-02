@@ -13,15 +13,11 @@ import com.rethink.drop.models.Listing;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static com.rethink.drop.adapters.ListingsAdapter.NOT_DOWNLOADED;
-import static com.rethink.drop.adapters.ListingsAdapter.NO_IMAGE;
-
 public class DataManager {
 
     public static ArrayList<String> keys;
     public static HashMap<String, Bitmap> imageBitmaps;
     public static HashMap<String, Listing> listings;
-    public static HashMap<String, Integer> imageStatus;
     private static DataListener dataListener;
     private ListingsAdapter listingsAdapter;
 
@@ -29,7 +25,6 @@ public class DataManager {
         keys = new ArrayList<>();
         imageBitmaps = new HashMap<>();
         listings = new HashMap<>();
-        imageStatus = new HashMap<>();
         dataListener = new DataListener();
         this.listingsAdapter = listingsAdapter;
     }
@@ -46,7 +41,6 @@ public class DataManager {
         keys = new ArrayList<>();
         imageBitmaps = new HashMap<>();
         listings = new HashMap<>();
-        imageStatus = new HashMap<>();
         listingsAdapter.notifyDataSetChanged();
     }
 
@@ -58,7 +52,6 @@ public class DataManager {
             Listing listing = dataSnapshot.getValue(Listing.class);
             keys.add(key);
             listings.put(key, listing);
-            imageStatus.put(key, listing.getImageURL().equals("") ? NO_IMAGE : NOT_DOWNLOADED);
             listingsAdapter.notifyItemInserted(keys.indexOf(key));
         }
 
@@ -71,7 +64,6 @@ public class DataManager {
                 // Delete previous image to save space
                 FirebaseStorage.getInstance().getReferenceFromUrl(prevImageURL).delete();
                 FirebaseStorage.getInstance().getReferenceFromUrl(prevImageURL + "_icon").delete();
-                imageStatus.put(key, NOT_DOWNLOADED);
             }
             listings.put(key, listing);
             listingsAdapter.notifyItemChanged(keys.indexOf(key));

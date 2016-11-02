@@ -26,8 +26,6 @@ import static com.rethink.drop.Utilities.useMetric;
 
 public class ListingsAdapter
         extends RecyclerView.Adapter<ListingsAdapter.ListingHolder> {
-    public static final int NO_IMAGE = 0;
-    public static final int NOT_DOWNLOADED = 1;
     private Context context;
 
     @Override
