@@ -7,6 +7,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.storage.FirebaseStorage;
+import com.rethink.drop.adapters.ListingsAdapter;
 import com.rethink.drop.models.Listing;
 
 import java.util.ArrayList;
@@ -14,7 +15,6 @@ import java.util.HashMap;
 
 import static com.rethink.drop.adapters.ListingsAdapter.NOT_DOWNLOADED;
 import static com.rethink.drop.adapters.ListingsAdapter.NO_IMAGE;
-import static com.rethink.drop.fragments.LocalFragment.listingsAdapter;
 
 public class DataManager {
 
@@ -23,24 +23,26 @@ public class DataManager {
     public static HashMap<String, Listing> listings;
     public static HashMap<String, Integer> imageStatus;
     private static DataListener dataListener;
+    private ListingsAdapter listingsAdapter;
 
-    DataManager() {
+    public DataManager(ListingsAdapter listingsAdapter) {
         keys = new ArrayList<>();
         imageBitmaps = new HashMap<>();
         listings = new HashMap<>();
         imageStatus = new HashMap<>();
         dataListener = new DataListener();
+        this.listingsAdapter = listingsAdapter;
     }
 
-    void attachListeners(DatabaseReference listingsRef) {
+    public void attachListeners(DatabaseReference listingsRef) {
         listingsRef.addChildEventListener(dataListener);
     }
 
-    void detachListeners(DatabaseReference listingsRef) {
+    public void detachListeners(DatabaseReference listingsRef) {
         listingsRef.removeEventListener(dataListener);
     }
 
-    void reset() {
+    public void reset() {
         keys = new ArrayList<>();
         imageBitmaps = new HashMap<>();
         listings = new HashMap<>();

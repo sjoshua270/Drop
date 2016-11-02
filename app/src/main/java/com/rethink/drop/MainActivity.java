@@ -64,7 +64,6 @@ public class MainActivity
     private final String STATE_LAT = "state_latitude";
     private final String STATE_LON = "state_longitude";
     private List<DatabaseReference> databaseReferences;
-    private DataManager dataManager;
     private FabManager fab;
     private FragmentJuggler fragmentJuggler;
 
@@ -85,7 +84,6 @@ public class MainActivity
             fragmentJuggler.openFragment(LOCAL, null);
         }
 
-        dataManager = new DataManager();
         databaseReferences = new ArrayList<>();
 
         fab = new FabManager(
@@ -342,11 +340,12 @@ public class MainActivity
     }
 
     private void updateDBRef() {
+        LocalFragment localFragment = (LocalFragment) fragmentJuggler.getCurrentFragment();
         for (DatabaseReference databaseReference : databaseReferences) {
-            dataManager.detachListeners(databaseReference);
+            localFragment.detachListeners(databaseReference);
         }
         databaseReferences.clear();
-        dataManager.reset();
+        localFragment.reset();
         for (int i = -2; i <= 2; i += 1) {
             for (int j = -2; j <= 2; j += 1) {
                 databaseReferences.add(FirebaseDatabase.getInstance()
@@ -358,13 +357,14 @@ public class MainActivity
             }
         }
         for (DatabaseReference databaseReference : databaseReferences) {
-            dataManager.attachListeners(databaseReference);
+            localFragment.attachListeners(databaseReference);
         }
     }
 
     private void detachAllListeners() {
+        LocalFragment localFragment = (LocalFragment) fragmentJuggler.getCurrentFragment();
         for (DatabaseReference databaseReference : databaseReferences) {
-            dataManager.detachListeners(databaseReference);
+            localFragment.detachListeners(databaseReference);
         }
     }
 

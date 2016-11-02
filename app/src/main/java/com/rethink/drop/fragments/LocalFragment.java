@@ -11,13 +11,16 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.firebase.database.DatabaseReference;
+import com.rethink.drop.DataManager;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.ListingsAdapter;
 
 
 public class LocalFragment
         extends Fragment {
-    public ListingsAdapter listingsAdapter;
+    private ListingsAdapter listingsAdapter;
+    private DataManager dataManager;
 
     public static LocalFragment newInstance() {
 
@@ -31,7 +34,8 @@ public class LocalFragment
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        listingsAdapter = new ListingsAdapter(getActivity().getApplicationContext());
+        listingsAdapter = new ListingsAdapter();
+        dataManager = new DataManager(listingsAdapter);
         setHasOptionsMenu(true);
     }
 
@@ -57,5 +61,17 @@ public class LocalFragment
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_local, menu);
         super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    public void detachListeners(DatabaseReference databaseReference) {
+        dataManager.detachListeners(databaseReference);
+    }
+
+    public void attachListeners(DatabaseReference databaseReference) {
+        dataManager.attachListeners(databaseReference);
+    }
+
+    public void reset() {
+        dataManager.reset();
     }
 }

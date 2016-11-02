@@ -30,12 +30,9 @@ public class ListingsAdapter
     public static final int NOT_DOWNLOADED = 1;
     private Context context;
 
-    public ListingsAdapter(Context context) {
-        this.context = context;
-    }
-
     @Override
     public ListingHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        this.context = parent.getContext();
         View v = LayoutInflater.from(parent.getContext())
                                .inflate(R.layout.listing, parent, false);
         return new ListingHolder(v);
