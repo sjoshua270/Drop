@@ -1,7 +1,6 @@
 package com.rethink.drop.fragments;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -11,10 +10,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.storage.FirebaseStorage;
 import com.rethink.drop.R;
 import com.rethink.drop.models.Listing;
+import com.squareup.picasso.Picasso;
 
 import static com.rethink.drop.DataManager.imageBitmaps;
 import static com.rethink.drop.DataManager.listings;
@@ -40,22 +38,17 @@ public class ImageFragment
         View v = inflater.inflate(R.layout.fragment_image, container, false);
         imageView = (ImageView) v.findViewById(R.id.full_image);
         imageView.setImageBitmap(imageBitmap);
-        getPhoto(getArguments().getString(KEY));
+        Listing listing = listings.get(getArguments().getString(KEY));
+        String imageUrl = listing.getImageURL() == null ? "" : listing.getImageURL();
+        if (!imageUrl.equals("") && container != null) {
+            Picasso.with(container.getContext())
+                   .load(imageUrl)
+                   .placeholder(R.drawable.ic_photo_camera_white_24px)
+                   .into(imageView);
+        }
 
         ViewCompat.setTransitionName(imageView, "image");
         return v;
-    }
-
-    private void getPhoto(final String key) {
-        Listing listing = listings.get(key);
-        FirebaseStorage.getInstance().getReferenceFromUrl(listing.getImageURL())
-                       .getBytes(4 * (1024 * 1024))
-                       .addOnSuccessListener(new OnSuccessListener<byte[]>() {
-                           @Override
-                           public void onSuccess(final byte[] bytes) {
-                               imageView.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
-                           }
-                       });
     }
 
     @Override
