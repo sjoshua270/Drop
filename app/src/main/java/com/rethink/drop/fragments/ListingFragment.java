@@ -107,22 +107,6 @@ public class ListingFragment
 
         imageView = (ImageView) fragmentView.findViewById(R.id.listing_image);
         ViewCompat.setTransitionName(imageView, "image");
-        if (listing != null) {
-            String imageUrl = listing.getImageURL() == null ? "" : listing.getImageURL();
-            if (!imageUrl.equals("") && container != null) {
-                Picasso.with(container.getContext())
-                       .load(imageUrl)
-                       .placeholder(R.drawable.ic_photo_camera_white_24px)
-                       .resize(getContext().getResources()
-                                           .getDimensionPixelSize(R.dimen.listing_image_dimen),
-                               getContext().getResources()
-                                           .getDimensionPixelSize(R.dimen.listing_image_dimen))
-                       .centerCrop()
-                       .into(imageView);
-            } else {
-                imageView.setVisibility(View.GONE);
-            }
-        }
         imageView.setOnClickListener(new ImageClickHandler());
 
         title = (TextView) fragmentView.findViewById(R.id.listing_title);
@@ -194,6 +178,24 @@ public class ListingFragment
             inputDesc.setVisibility(View.GONE);
             title.setVisibility(View.VISIBLE);
             desc.setVisibility(View.VISIBLE);
+        }
+        if (listing != null) {
+            String imageUrl = listing.getImageURL() == null ? "" : listing.getImageURL();
+            if (!imageUrl.equals("") && container != null) {
+                Picasso.with(container.getContext())
+                       .load(imageUrl)
+                       .placeholder(R.drawable.ic_photo_camera_white_24px)
+                       .resize(getContext().getResources()
+                                           .getDimensionPixelSize(R.dimen.listing_image_dimen),
+                               getContext().getResources()
+                                           .getDimensionPixelSize(R.dimen.listing_image_dimen))
+                       .centerCrop()
+                       .into(imageView);
+            } else if (!editing) {
+                imageView.setVisibility(View.GONE);
+            } else {
+                imageView.setVisibility(View.VISIBLE);
+            }
         }
         displayListing(listing);
         setHasOptionsMenu(editing);
@@ -289,6 +291,9 @@ public class ListingFragment
     }
 
     public void toggleState() {
+        if (editing) {
+            imageChanged = false;
+        }
         editing = !editing;
         prepViews();
         ((MainActivity) getActivity()).syncUI();
