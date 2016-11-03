@@ -73,15 +73,7 @@ class FragmentJuggler {
 
     void viewImage(String key) {
         ImageFragment imageFragment = ImageFragment.newInstance(key);
-        ListingFragment listingFragment = (ListingFragment) getCurrentFragment();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            imageFragment.setSharedElementEnterTransition(new ViewTransition());
-            imageFragment.setEnterTransition(new Fade());
-            listingFragment.setReturnTransition(new Fade());
-            listingFragment.setSharedElementReturnTransition(new ViewTransition());
-        }
         fragmentManager.beginTransaction()
-                       .addSharedElement(listingFragment.getImageView(), "image")
                        .replace(R.id.main_fragment_container,
                                imageFragment)
                        .addToBackStack(null)
