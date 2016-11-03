@@ -42,6 +42,7 @@ import java.io.IOException;
 
 import static com.rethink.drop.DataManager.listings;
 import static com.rethink.drop.FragmentJuggler.CURRENT;
+import static com.rethink.drop.FragmentJuggler.IMAGE;
 import static com.rethink.drop.FragmentJuggler.LISTING;
 import static com.rethink.drop.FragmentJuggler.LOCAL;
 import static com.rethink.drop.FragmentJuggler.PROFILE;
@@ -176,12 +177,16 @@ public class MainActivity
         }
     }
 
-    public void openListing(View listingView, String key) {
-        fragmentJuggler.viewListing(listingView, key);
+    public void openListing(View listingView, Bitmap image, String key) {
+        try {
+            fragmentJuggler.viewListing(listingView, image, key);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void viewImage(String key) {
-        fragmentJuggler.viewImage(key);
+        fragmentJuggler.openFragment(IMAGE, key);
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

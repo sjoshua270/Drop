@@ -1,5 +1,6 @@
 package com.rethink.drop;
 
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -19,6 +20,8 @@ import com.rethink.drop.fragments.ImageFragment;
 import com.rethink.drop.fragments.ListingFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
+
+import java.io.IOException;
 
 class FragmentJuggler {
 
@@ -81,8 +84,8 @@ class FragmentJuggler {
         CURRENT = IMAGE;
     }
 
-    void viewListing(View listingView, String key) {
-        Fragment listingFragment = ListingFragment.newInstance(key);
+    void viewListing(View listingView, Bitmap image, String key) throws IOException {
+        Fragment listingFragment = ListingFragment.newInstance(key, image);
         transitionFragments(getCurrentFragment(), listingFragment,
                 new View[]{
                         listingView.findViewById(R.id.item_image),

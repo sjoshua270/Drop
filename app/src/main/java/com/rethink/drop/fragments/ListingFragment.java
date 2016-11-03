@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -42,6 +44,8 @@ import com.rethink.drop.interfaces.ImageHandler;
 import com.rethink.drop.models.Listing;
 import com.squareup.picasso.Picasso;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Calendar;
 
 import static com.rethink.drop.MainActivity.degreesPerMile;
@@ -53,6 +57,7 @@ public class ListingFragment
         implements OnMapReadyCallback,
                    ImageHandler {
 
+    private static final String IMAGE = "image";
     protected Bitmap image;
     protected ImageView imageView;
     protected Listing listing;
@@ -78,6 +83,19 @@ public class ListingFragment
         return fragment;
     }
 
+    public static ListingFragment newInstance(String key, Bitmap image) throws IOException {
+        Bundle args = new Bundle();
+        args.putString(KEY, key);
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        image.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        byte[] byteArray = stream.toByteArray();
+        args.putByteArray(IMAGE, byteArray);
+        stream.close();
+        ListingFragment fragment = new ListingFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,6 +109,10 @@ public class ListingFragment
                 .child("listings");
         imageChanged = false;
         if (args != null) {
+            byte[] imageBytes = args.getByteArray(IMAGE);
+            if (imageBytes != null) {
+                image = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+            }
             String key = args.getString(KEY);
             listing = DataManager.listings.get(key);
             editing = key == null;
@@ -184,7 +206,7 @@ public class ListingFragment
             if (!imageUrl.equals("") && container != null) {
                 Picasso.with(container.getContext())
                        .load(imageUrl)
-                       .placeholder(R.drawable.ic_photo_camera_white_24px)
+                       .placeholder(new BitmapDrawable(getResources(), image))
                        .resize(getContext().getResources()
                                            .getDimensionPixelSize(R.dimen.listing_image_dimen),
                                getContext().getResources()

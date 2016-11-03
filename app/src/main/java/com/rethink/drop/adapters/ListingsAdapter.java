@@ -1,6 +1,7 @@
 package com.rethink.drop.adapters;
 
 import android.content.Context;
+import android.graphics.drawable.BitmapDrawable;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -91,6 +92,7 @@ public class ListingsAdapter
             public void onClick(View v) {
                 ((MainActivity) holder.itemView.getContext()).openListing(
                         holder.itemView,
+                        ((BitmapDrawable) holder.imageView.getDrawable()).getBitmap(),
                         keys.get(holder.getAdapterPosition()));
             }
         });
