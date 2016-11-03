@@ -342,14 +342,14 @@ public class MainActivity
 
     private void updateListings() {
         Fragment localFragment = fragmentJuggler.getCurrentFragment();
-        if (localFragment.getClass().equals(LocalFragment.class)) {
+        if (localFragment != null && localFragment.getClass().equals(LocalFragment.class)) {
             ((LocalFragment) localFragment).updateDBRef(userLocation);
         }
     }
 
     private void detachAllListeners() {
         Fragment localFragment = fragmentJuggler.getCurrentFragment();
-        if (localFragment.getClass().equals(LocalFragment.class)) {
+        if (localFragment != null && localFragment.getClass().equals(LocalFragment.class)) {
             ((LocalFragment) localFragment).stopUpdating();
         }
     }
