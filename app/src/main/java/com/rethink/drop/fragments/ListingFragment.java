@@ -383,7 +383,7 @@ public class ListingFragment
                 .title(title));
         googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(
                 CameraPosition.builder()
-                              .target(userLocation)
+                              .target(location)
                               .zoom(20f)
                               .build()));
     }
