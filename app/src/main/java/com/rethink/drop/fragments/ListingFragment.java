@@ -86,11 +86,13 @@ public class ListingFragment
     public static ListingFragment newInstance(String key, Bitmap image) throws IOException {
         Bundle args = new Bundle();
         args.putString(KEY, key);
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        image.compress(Bitmap.CompressFormat.PNG, 100, stream);
-        byte[] byteArray = stream.toByteArray();
-        args.putByteArray(IMAGE, byteArray);
-        stream.close();
+        if (image != null) {
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            image.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            byte[] byteArray = stream.toByteArray();
+            args.putByteArray(IMAGE, byteArray);
+            stream.close();
+        }
         ListingFragment fragment = new ListingFragment();
         fragment.setArguments(args);
         return fragment;

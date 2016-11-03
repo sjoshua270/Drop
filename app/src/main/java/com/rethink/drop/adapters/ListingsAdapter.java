@@ -90,10 +90,17 @@ public class ListingsAdapter
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((MainActivity) holder.itemView.getContext()).openListing(
-                        holder.itemView,
-                        ((BitmapDrawable) holder.imageView.getDrawable()).getBitmap(),
-                        keys.get(holder.getAdapterPosition()));
+                try {
+                    ((MainActivity) holder.itemView.getContext()).openListing(
+                            holder.itemView,
+                            ((BitmapDrawable) holder.imageView.getDrawable()).getBitmap(),
+                            keys.get(holder.getAdapterPosition()));
+                } catch (ClassCastException | NullPointerException e) {
+                    ((MainActivity) holder.itemView.getContext()).openListing(
+                            holder.itemView,
+                            null,
+                            keys.get(holder.getAdapterPosition()));
+                }
             }
         });
     }
