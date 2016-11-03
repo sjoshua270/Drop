@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -38,8 +39,6 @@ import com.rethink.drop.interfaces.ImageHandler;
 import com.rethink.drop.models.Listing;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.rethink.drop.DataManager.listings;
 import static com.rethink.drop.FragmentJuggler.CURRENT;
@@ -63,7 +62,6 @@ public class MainActivity
     private final String STATE_KEY = "state_fragment";
     private final String STATE_LAT = "state_latitude";
     private final String STATE_LON = "state_longitude";
-    private List<DatabaseReference> databaseReferences;
     private FabManager fab;
     private FragmentJuggler fragmentJuggler;
 
@@ -83,8 +81,6 @@ public class MainActivity
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
             fragmentJuggler.openFragment(LOCAL, null);
         }
-
-        databaseReferences = new ArrayList<>();
 
         fab = new FabManager(
                 this,
@@ -304,7 +300,7 @@ public class MainActivity
             Location loc = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
             if (loc != null) {
                 userLocation = new LatLng(loc.getLatitude(), loc.getLongitude());
-                updateDBRef();
+                updateListings();
             }
             LocationRequest locationRequest = LocationRequest.create();
             locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -334,43 +330,22 @@ public class MainActivity
                 } catch (ClassCastException ignored) {
                 }
 
-                updateDBRef();
+                updateListings();
             }
         }
     }
 
-    private void updateDBRef() {
-        try {
-            LocalFragment localFragment = (LocalFragment) fragmentJuggler.getCurrentFragment();
-            for (DatabaseReference databaseReference : databaseReferences) {
-                localFragment.detachListeners(databaseReference);
-            }
-            databaseReferences.clear();
-            localFragment.reset();
-            for (int i = -2; i <= 2; i += 1) {
-                for (int j = -2; j <= 2; j += 1) {
-                    databaseReferences.add(FirebaseDatabase.getInstance()
-                                                           .getReference()
-                                                           .child("listings")
-                                                           .child(String.valueOf((int) (userLocation.latitude / degreesPerMile) + i))
-                                                           .child(String.valueOf((int) (userLocation.longitude / degreesPerMile) + j))
-                    );
-                }
-            }
-            for (DatabaseReference databaseReference : databaseReferences) {
-                localFragment.attachListeners(databaseReference);
-            }
-        } catch (ClassCastException ignored) {
+    private void updateListings() {
+        Fragment localFragment = fragmentJuggler.getCurrentFragment();
+        if (localFragment.getClass().equals(LocalFragment.class)) {
+            ((LocalFragment) localFragment).updateDBRef(userLocation);
         }
     }
 
     private void detachAllListeners() {
-        try {
-            LocalFragment localFragment = (LocalFragment) fragmentJuggler.getCurrentFragment();
-            for (DatabaseReference databaseReference : databaseReferences) {
-                localFragment.detachListeners(databaseReference);
-            }
-        } catch (ClassCastException ignored) {
+        Fragment localFragment = fragmentJuggler.getCurrentFragment();
+        if (localFragment.getClass().equals(LocalFragment.class)) {
+            ((LocalFragment) localFragment).stopUpdating();
         }
     }
 
@@ -395,7 +370,7 @@ public class MainActivity
         if (googleApiClient.isConnected()) {
             startLocationUpdates();
         }
-        updateDBRef();
+        updateListings();
     }
 
     @Override
