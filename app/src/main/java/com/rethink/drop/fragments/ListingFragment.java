@@ -36,7 +36,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.UploadTask;
-import com.rethink.drop.DataManager;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.Utilities;
@@ -48,6 +47,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Calendar;
 
+import static com.rethink.drop.DataManager.listings;
 import static com.rethink.drop.MainActivity.degreesPerMile;
 import static com.rethink.drop.MainActivity.userLocation;
 import static com.rethink.drop.models.Listing.KEY;
@@ -114,7 +114,7 @@ public class ListingFragment
                 image = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
             }
             String key = args.getString(KEY);
-            listing = DataManager.listings.get(key);
+            listing = listings.get(key);
             editing = key == null;
         }
     }
@@ -279,13 +279,14 @@ public class ListingFragment
                                  .toString(),
                         userLocation.latitude,
                         userLocation.longitude);
+                listings.put(key, listing);
                 ref.setValue(listing);
                 toggleState();
             }
         }
     }
 
-    private void uploadImage(String key, String filename) {
+    private void uploadImage(final String key, String filename) {
         Utilities.uploadImage(
                 getActivity(),
                 image,
@@ -303,6 +304,7 @@ public class ListingFragment
                             inputDesc.getText().toString(),
                             userLocation.latitude,
                             userLocation.longitude);
+                    listings.put(key, listing);
                     ref.setValue(listing);
                     toggleState();
                 } else {
