@@ -415,10 +415,6 @@ public class ListingFragment
         mapView.onDestroy();
     }
 
-    public ImageView getImageView() {
-        return imageView;
-    }
-
     private class ImageClickHandler
             implements View.OnClickListener {
         @Override
