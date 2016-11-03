@@ -347,13 +347,6 @@ public class MainActivity
         }
     }
 
-    private void detachAllListeners() {
-        Fragment localFragment = fragmentJuggler.getCurrentFragment();
-        if (localFragment != null && localFragment.getClass().equals(LocalFragment.class)) {
-            ((LocalFragment) localFragment).stopUpdating();
-        }
-    }
-
     private void stopLocationUpdates() {
         if (googleApiClient.isConnected()) {
             LocationServices.FusedLocationApi.removeLocationUpdates
@@ -382,7 +375,6 @@ public class MainActivity
     protected void onPause() {
         super.onPause();
         stopLocationUpdates();
-        detachAllListeners();
     }
 
     @Override
