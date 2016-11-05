@@ -54,9 +54,10 @@ public class DataManager {
     }
 
     public void expandRadius() {
-        scanRadius += 1.0;
-        geoQuery.setRadius(scanRadius);
-        Log.d("Expanded Radius: ", scanRadius.toString());
+        if (scanRadius < 100.0) {
+            scanRadius += 10.0;
+            geoQuery.setRadius(scanRadius);
+        }
     }
 
     public void attachListeners() {

@@ -18,7 +18,7 @@ import com.rethink.drop.DataManager;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.ListingsAdapter;
 
-import static com.rethink.drop.DataManager.listings;
+import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
 
 
 public class LocalFragment
@@ -89,24 +89,17 @@ public class LocalFragment
         dataManager.attachListeners();
     }
 
-    private boolean numberOfListingsHasChanged() {
-        if (listings.size() > prevNumberOfListings) {
-            prevNumberOfListings = listings.size();
-            return true;
-        }
-        return false;
-    }
-
     class ScrollListener
             extends RecyclerView.OnScrollListener {
         @Override
-        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-            LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-            int visibleItemCount = layoutManager.getChildCount();
-            int totalItemCount = layoutManager.getItemCount();
-            int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
-            if (pastVisibleItems + visibleItemCount >= totalItemCount) {
-                if (numberOfListingsHasChanged()) {
+        public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+            super.onScrollStateChanged(recyclerView, newState);
+            if (newState == SCROLL_STATE_IDLE) {
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                int visibleItemCount = layoutManager.getChildCount();
+                int totalItemCount = layoutManager.getItemCount();
+                int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
+                if (pastVisibleItems + visibleItemCount >= totalItemCount) {
                     dataManager.expandRadius();
                 }
             }
