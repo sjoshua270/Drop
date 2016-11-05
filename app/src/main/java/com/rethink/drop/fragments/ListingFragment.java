@@ -315,6 +315,7 @@ public class ListingFragment
         ref.setValue(listing);
         Bundle args = getArguments();
         args.putString(KEY, key);
+        ((MainActivity) getActivity()).dismissKeyboard();
     }
 
     public void toggleState() {
