@@ -22,10 +22,10 @@ import static com.rethink.drop.MainActivity.userLocation;
 
 public class DataManager {
 
-    public static Double scanRadius;
     public static ArrayList<String> keys;
     public static HashMap<String, Bitmap> imageBitmaps;
     public static HashMap<String, Listing> listings;
+    private static Double scanRadius;
     private static DataListener dataListener;
     private static GeoQueryListener geoQueryListener;
     private HashMap<String, DatabaseReference> refs;
@@ -33,7 +33,7 @@ public class DataManager {
     private GeoQuery geoQuery;
 
     public DataManager(ListingsAdapter listingsAdapter) {
-        scanRadius = 0.0;
+        scanRadius = 10.0;
         keys = new ArrayList<>();
         imageBitmaps = new HashMap<>();
         listings = new HashMap<>();
