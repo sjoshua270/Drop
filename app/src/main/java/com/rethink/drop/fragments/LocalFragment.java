@@ -18,11 +18,15 @@ import com.rethink.drop.DataManager;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.ListingsAdapter;
 
+import static com.rethink.drop.DataManager.listings;
+
 
 public class LocalFragment
         extends Fragment {
     private ListingsAdapter listingsAdapter;
+    private ScrollListener scrollListener;
     private DataManager dataManager;
+    private int prevNumberOfListings = 0;
 
     public static LocalFragment newInstance() {
 
@@ -37,6 +41,7 @@ public class LocalFragment
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         listingsAdapter = new ListingsAdapter();
+        scrollListener = new ScrollListener();
         dataManager = new DataManager(listingsAdapter);
         setHasOptionsMenu(true);
     }
@@ -55,6 +60,7 @@ public class LocalFragment
                         getContext(),
                         LinearLayoutManager.VERTICAL,
                         false));
+        listingsRecycler.addOnScrollListener(scrollListener);
         listingsRecycler.setAdapter(listingsAdapter);
         return v;
     }
@@ -81,5 +87,29 @@ public class LocalFragment
     public void onResume() {
         super.onResume();
         dataManager.attachListeners();
+    }
+
+    private boolean numberOfListingsHasChanged() {
+        if (listings.size() > prevNumberOfListings) {
+            prevNumberOfListings = listings.size();
+            return true;
+        }
+        return false;
+    }
+
+    class ScrollListener
+            extends RecyclerView.OnScrollListener {
+        @Override
+        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+            int visibleItemCount = layoutManager.getChildCount();
+            int totalItemCount = layoutManager.getItemCount();
+            int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
+            if (pastVisibleItems + visibleItemCount >= totalItemCount) {
+                if (numberOfListingsHasChanged()) {
+                    dataManager.expandRadius();
+                }
+            }
+        }
     }
 }

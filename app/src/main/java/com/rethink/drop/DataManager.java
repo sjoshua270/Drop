@@ -33,7 +33,7 @@ public class DataManager {
     private GeoQuery geoQuery;
 
     public DataManager(ListingsAdapter listingsAdapter) {
-        scanRadius = 1.0;
+        scanRadius = 0.0;
         keys = new ArrayList<>();
         imageBitmaps = new HashMap<>();
         listings = new HashMap<>();
@@ -51,6 +51,12 @@ public class DataManager {
             ).queryAtLocation(geoLocation, scanRadius);
         }
         geoQuery.setCenter(geoLocation);
+    }
+
+    public void expandRadius() {
+        scanRadius += 1.0;
+        geoQuery.setRadius(scanRadius);
+        Log.d("Expanded Radius: ", scanRadius.toString());
     }
 
     public void attachListeners() {
