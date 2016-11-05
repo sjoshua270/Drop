@@ -115,23 +115,31 @@ public class DataManager {
             Listing listing = dataSnapshot.getValue(Listing.class);
             if (listing != null) {
                 listings.put(key, listing);
-                // To check if the key already exists
-                int keyIndex = keys.indexOf(key);
-                if (keyIndex < 0) {
-                    Double distance = listing.getDistanceFromUser(userLocation);
-                    Double distanceToCompare;
-                    for (keyIndex = 0; keyIndex < keys.size(); keyIndex += 1) {
-                        distanceToCompare = listings.get(keys.get(keyIndex)).getDistanceFromUser(userLocation);
-                        if (distance < distanceToCompare) {
-                            keys.add(keyIndex, key);
+                Double distance = listing.getDistanceFromUser(userLocation);
+                Double distanceToCompare;
+                int scanIndex = keys.indexOf(key);
+                if (keys.size() > 0) {
+                    if (scanIndex < 0) {
+                        // While the key hasn't been inserted yet
+                        while (keys.indexOf(key) < 0) {
+                            scanIndex += 1;
+                            if (scanIndex == keys.size()) {
+                                keys.add(scanIndex, key);
+                            } else {
+                                distanceToCompare = listings.get(keys.get(scanIndex))
+                                                            .getDistanceFromUser(userLocation);
+                                if (distance < distanceToCompare) {
+                                    keys.add(scanIndex, key);
+                                }
+                            }
                         }
+                        listingsAdapter.notifyItemInserted(scanIndex);
+                    } else {
+                        listingsAdapter.notifyItemChanged(scanIndex);
                     }
-                    if (keyIndex >= keys.size()) {
-                        keys.add(key);
-                    }
-                    listingsAdapter.notifyItemInserted(keyIndex);
                 } else {
-                    listingsAdapter.notifyItemChanged(keyIndex);
+                    keys.add(key);
+                    listingsAdapter.notifyItemInserted(keys.indexOf(key));
                 }
             } else {
                 removeListing(key);
