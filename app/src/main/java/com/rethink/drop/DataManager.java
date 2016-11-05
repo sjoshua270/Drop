@@ -74,6 +74,7 @@ public class DataManager {
     private void removeListing(String key) {
         refs.remove(key);
         listings.remove(key);
+        listingsAdapter.notifyItemRemoved(keys.indexOf(key));
         keys.remove(key);
     }
 
