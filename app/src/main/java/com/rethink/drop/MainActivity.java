@@ -36,11 +36,9 @@ import com.rethink.drop.fragments.ListingFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.interfaces.ImageHandler;
-import com.rethink.drop.models.Listing;
 
 import java.io.IOException;
 
-import static com.rethink.drop.DataManager.listings;
 import static com.rethink.drop.FragmentJuggler.CURRENT;
 import static com.rethink.drop.FragmentJuggler.IMAGE;
 import static com.rethink.drop.FragmentJuggler.LISTING;
@@ -234,7 +232,13 @@ public class MainActivity
                         .getArguments()
                         .getString("KEY");
                 if (key != null) {
-                    getReference(key).removeValue();
+                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
+                    ref.child("listings")
+                       .child(key)
+                       .removeValue();
+                    ref.child("geoFire")
+                       .child(key)
+                       .removeValue();
                 }
                 while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
                     getSupportFragmentManager().popBackStackImmediate();
@@ -245,17 +249,6 @@ public class MainActivity
                 return true;
         }
         return super.onOptionsItemSelected(item);
-
-    }
-
-    public DatabaseReference getReference(String key) {
-        Listing listing = listings.get(key);
-        return FirebaseDatabase.getInstance()
-                               .getReference()
-                               .child("listings")
-                               .child(String.valueOf((int) (listing.getLatitude() / degreesPerMile)))
-                               .child(String.valueOf((int) (listing.getLongitude() / degreesPerMile)))
-                               .child(key);
     }
 
     @Override

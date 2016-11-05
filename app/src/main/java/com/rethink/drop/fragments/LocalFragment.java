@@ -11,24 +11,17 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.rethink.drop.DataManager;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.ListingsAdapter;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.rethink.drop.MainActivity.degreesPerMile;
 
 
 public class LocalFragment
         extends Fragment {
     private ListingsAdapter listingsAdapter;
     private DataManager dataManager;
-    private List<DatabaseReference> databaseReferences;
 
     public static LocalFragment newInstance() {
 
@@ -44,7 +37,6 @@ public class LocalFragment
         super.onCreate(savedInstanceState);
         listingsAdapter = new ListingsAdapter();
         dataManager = new DataManager(listingsAdapter);
-        databaseReferences = new ArrayList<>();
         setHasOptionsMenu(true);
     }
 
@@ -72,51 +64,19 @@ public class LocalFragment
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-    public void detachListeners(DatabaseReference databaseReference) {
-        dataManager.detachListeners(databaseReference);
-    }
-
-    public void attachListeners(DatabaseReference databaseReference) {
-        dataManager.attachListeners(databaseReference);
-    }
-
-    public void reset() {
-        dataManager.reset();
-    }
-
     public void updateDBRef(LatLng userLocation) {
-        try {
-            for (DatabaseReference databaseReference : databaseReferences) {
-                detachListeners(databaseReference);
-            }
-            databaseReferences.clear();
-            reset();
-            for (int i = -2; i <= 2; i += 1) {
-                for (int j = -2; j <= 2; j += 1) {
-                    databaseReferences.add(FirebaseDatabase.getInstance()
-                                                           .getReference()
-                                                           .child("listings")
-                                                           .child(String.valueOf((int) (userLocation.latitude / degreesPerMile) + i))
-                                                           .child(String.valueOf((int) (userLocation.longitude / degreesPerMile) + j))
-                    );
-                }
-            }
-            for (DatabaseReference databaseReference : databaseReferences) {
-                attachListeners(databaseReference);
-            }
-        } catch (ClassCastException ignored) {
-        }
-    }
-
-    public void stopUpdating() {
-        for (DatabaseReference databaseReference : databaseReferences) {
-            detachListeners(databaseReference);
-        }
+        dataManager.updateLocation(new GeoLocation(userLocation.latitude, userLocation.longitude));
     }
 
     @Override
     public void onPause() {
-        stopUpdating();
+        dataManager.detachListeners();
         super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        dataManager.attachListeners();
     }
 }

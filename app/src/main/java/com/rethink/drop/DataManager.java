@@ -1,12 +1,17 @@
 package com.rethink.drop;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
-import com.google.firebase.database.ChildEventListener;
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.GeoQuery;
+import com.firebase.geofire.GeoQueryEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.adapters.ListingsAdapter;
 import com.rethink.drop.models.Listing;
 
@@ -19,75 +24,99 @@ public class DataManager {
     public static HashMap<String, Bitmap> imageBitmaps;
     public static HashMap<String, Listing> listings;
     private static DataListener dataListener;
+    private static GeoQueryListener geoQueryListener;
+    private ArrayList<DatabaseReference> refs;
     private ListingsAdapter listingsAdapter;
+    private GeoQuery geoQuery;
 
     public DataManager(ListingsAdapter listingsAdapter) {
         keys = new ArrayList<>();
         imageBitmaps = new HashMap<>();
         listings = new HashMap<>();
         dataListener = new DataListener();
+        geoQueryListener = new GeoQueryListener();
+        refs = new ArrayList<>();
         this.listingsAdapter = listingsAdapter;
     }
 
-    public void attachListeners(DatabaseReference listingsRef) {
-        listingsRef.addChildEventListener(dataListener);
+    public void updateLocation(GeoLocation geoLocation) {
+        if (geoQuery == null) {
+            geoQuery = new GeoFire(FirebaseDatabase.getInstance()
+                                                   .getReference()
+                                                   .child("geoFire")
+            ).queryAtLocation(geoLocation, 2.0);
+        }
+        geoQuery.setCenter(geoLocation);
     }
 
-    public void detachListeners(DatabaseReference listingsRef) {
-        listingsRef.removeEventListener(dataListener);
+    public void attachListeners() {
+        geoQuery.addGeoQueryEventListener(geoQueryListener);
+        for (DatabaseReference ref : refs) {
+            ref.addValueEventListener(dataListener);
+        }
     }
 
-    public void reset() {
-        keys = new ArrayList<>();
-        imageBitmaps = new HashMap<>();
-        listings = new HashMap<>();
-        listingsAdapter.notifyDataSetChanged();
+    public void detachListeners() {
+        geoQuery.removeAllListeners();
+        for (DatabaseReference ref : refs) {
+            ref.removeEventListener(dataListener);
+        }
     }
 
-    private class DataListener
-            implements ChildEventListener {
+    private class GeoQueryListener
+            implements GeoQueryEventListener {
         @Override
-        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-            final String key = dataSnapshot.getKey();
-            Listing listing = dataSnapshot.getValue(Listing.class);
-            keys.add(key);
-            listings.put(key, listing);
-            listingsAdapter.notifyItemInserted(keys.indexOf(key));
+        public void onKeyEntered(String key, GeoLocation location) {
+            DatabaseReference ref = FirebaseDatabase.getInstance()
+                                                    .getReference()
+                                                    .child("listings")
+                                                    .child(key);
+            ref.addValueEventListener(dataListener);
+            refs.add(ref);
         }
 
         @Override
-        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-            final String key = dataSnapshot.getKey();
-            Listing listing = dataSnapshot.getValue(Listing.class);
-            String prevImageURL = listings.get(key).getImageURL();
-            if (!prevImageURL.equals("") && !prevImageURL.equals(listing.getImageURL())) {
-                // Delete previous image to save space
-                FirebaseStorage.getInstance().getReferenceFromUrl(prevImageURL).delete();
-                FirebaseStorage.getInstance().getReferenceFromUrl(prevImageURL + "_icon").delete();
-            }
-            listings.put(key, listing);
-            listingsAdapter.notifyItemChanged(keys.indexOf(key));
-        }
-
-        @Override
-        public void onChildRemoved(DataSnapshot dataSnapshot) {
-            final String key = dataSnapshot.getKey();
-            String imageURL = listings.get(key).getImageURL();
-            if (imageURL != null && !imageURL.equals("")) {
-                FirebaseStorage.getInstance().getReferenceFromUrl(imageURL).delete();
-            }
+        public void onKeyExited(String key) {
+            refs.remove(keys.indexOf(key));
             listings.remove(key);
-            imageBitmaps.remove(key);
-            listingsAdapter.notifyItemRemoved(keys.indexOf(key));
             keys.remove(key);
         }
 
         @Override
-        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+        public void onKeyMoved(String key, GeoLocation location) {
+
+        }
+
+        @Override
+        public void onGeoQueryReady() {
+
+        }
+
+        @Override
+        public void onGeoQueryError(DatabaseError error) {
+
+        }
+
+    }
+
+    private class DataListener
+            implements ValueEventListener {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            final String key = dataSnapshot.getKey();
+            Listing listing = dataSnapshot.getValue(Listing.class);
+            listings.put(key, listing);
+            if (keys.indexOf(key) < 0) {
+                keys.add(key);
+                listingsAdapter.notifyItemInserted(keys.indexOf(key));
+            } else {
+                listingsAdapter.notifyItemChanged(keys.indexOf(key));
+            }
         }
 
         @Override
         public void onCancelled(DatabaseError databaseError) {
+            Log.w("DataManager", "loadPost:onCancelled", databaseError.toException());
         }
     }
 }

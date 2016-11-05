@@ -23,6 +23,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -48,7 +50,6 @@ import java.io.IOException;
 import java.util.Calendar;
 
 import static com.rethink.drop.DataManager.listings;
-import static com.rethink.drop.MainActivity.degreesPerMile;
 import static com.rethink.drop.MainActivity.userLocation;
 import static com.rethink.drop.models.Listing.KEY;
 
@@ -248,20 +249,6 @@ public class ListingFragment
                     .show();
         } else {
             String key = getArguments().getString("KEY");
-            /* If the listing exists, and the block Location is different than before,
-            remove the original listing from its block. This ensures no leftover listings
-            because of editing a listing in a different location than the original posting. */
-            if (key != null) {
-                int blockNumber = getBlockLocation(userLocation.latitude);
-                if (blockNumber != getBlockLocation(listing.getLatitude())) {
-                    ref.child(String.valueOf(getBlockLocation(listing.getLatitude())))
-                       .child(String.valueOf(getBlockLocation(listing.getLongitude())))
-                       .child(key)
-                       .removeValue();
-                }
-            }
-            ref = ref.child(String.valueOf(getBlockLocation(userLocation.latitude)))
-                     .child(String.valueOf(getBlockLocation(userLocation.longitude)));
             if (key == null) {
                 key = ref.push()
                          .getKey();
@@ -281,8 +268,7 @@ public class ListingFragment
                                  .toString(),
                         userLocation.latitude,
                         userLocation.longitude);
-                listings.put(key, listing);
-                ref.setValue(listing);
+                saveListing(key, listing);
                 toggleState();
             }
         }
@@ -306,14 +292,27 @@ public class ListingFragment
                             inputDesc.getText().toString(),
                             userLocation.latitude,
                             userLocation.longitude);
-                    listings.put(key, listing);
-                    ref.setValue(listing);
+                    saveListing(key, listing);
                     toggleState();
                 } else {
                     Snackbar.make(cLayout, R.string.unexpected_error, Snackbar.LENGTH_LONG).show();
                 }
             }
         });
+    }
+
+    private void saveListing(String key, Listing listing) {
+        listings.put(key, listing);
+        new GeoFire(
+                FirebaseDatabase.getInstance()
+                                .getReference()
+                                .child("geoFire"))
+                .setLocation(
+                        key,
+                        new GeoLocation(
+                                userLocation.latitude,
+                                userLocation.longitude));
+        ref.setValue(listing);
     }
 
     public void toggleState() {
@@ -323,10 +322,6 @@ public class ListingFragment
         editing = !editing;
         prepViews();
         ((MainActivity) getActivity()).syncUI();
-    }
-
-    private int getBlockLocation(double latitude) {
-        return (int) (latitude / degreesPerMile);
     }
 
     @Override
