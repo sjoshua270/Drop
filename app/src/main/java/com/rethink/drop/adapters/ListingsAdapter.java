@@ -54,6 +54,13 @@ public class ListingsAdapter
                                   .getDimensionPixelSize(R.dimen.item_image_dimen))
                    .centerCrop()
                    .into(holder.imageView);
+        } else {
+            holder.imageView.setImageResource(R.drawable.ic_photo_camera_white_24px);
+            int padding = holder.itemView.getContext()
+                                         .getResources()
+                                         .getDimensionPixelSize(
+                                                 R.dimen.listing_padding);
+            holder.imageView.setPadding(padding, padding, padding, padding);
         }
 
 
