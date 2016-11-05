@@ -313,6 +313,8 @@ public class ListingFragment
                                 userLocation.latitude,
                                 userLocation.longitude));
         ref.setValue(listing);
+        Bundle args = getArguments();
+        args.putString(KEY, key);
     }
 
     public void toggleState() {
