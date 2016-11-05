@@ -25,7 +25,7 @@ public class DataManager {
     public static HashMap<String, Listing> listings;
     private static DataListener dataListener;
     private static GeoQueryListener geoQueryListener;
-    private ArrayList<DatabaseReference> refs;
+    private HashMap<String, DatabaseReference> refs;
     private ListingsAdapter listingsAdapter;
     private GeoQuery geoQuery;
 
@@ -35,7 +35,7 @@ public class DataManager {
         listings = new HashMap<>();
         dataListener = new DataListener();
         geoQueryListener = new GeoQueryListener();
-        refs = new ArrayList<>();
+        refs = new HashMap<>();
         this.listingsAdapter = listingsAdapter;
     }
 
@@ -51,16 +51,22 @@ public class DataManager {
 
     public void attachListeners() {
         geoQuery.addGeoQueryEventListener(geoQueryListener);
-        for (DatabaseReference ref : refs) {
-            ref.addValueEventListener(dataListener);
+        for (String key : keys) {
+            refs.get(key).addValueEventListener(dataListener);
         }
     }
 
     public void detachListeners() {
         geoQuery.removeAllListeners();
-        for (DatabaseReference ref : refs) {
-            ref.removeEventListener(dataListener);
+        for (String key : keys) {
+            refs.get(key).removeEventListener(dataListener);
         }
+    }
+
+    private void removeListing(String key) {
+        refs.remove(key);
+        listings.remove(key);
+        keys.remove(key);
     }
 
     private class GeoQueryListener
@@ -72,14 +78,12 @@ public class DataManager {
                                                     .child("listings")
                                                     .child(key);
             ref.addValueEventListener(dataListener);
-            refs.add(ref);
+            refs.put(key, ref);
         }
 
         @Override
         public void onKeyExited(String key) {
-            refs.remove(keys.indexOf(key));
-            listings.remove(key);
-            keys.remove(key);
+            removeListing(key);
         }
 
         @Override
@@ -105,12 +109,16 @@ public class DataManager {
         public void onDataChange(DataSnapshot dataSnapshot) {
             final String key = dataSnapshot.getKey();
             Listing listing = dataSnapshot.getValue(Listing.class);
-            listings.put(key, listing);
-            if (keys.indexOf(key) < 0) {
-                keys.add(key);
-                listingsAdapter.notifyItemInserted(keys.indexOf(key));
+            if (listing != null) {
+                listings.put(key, listing);
+                if (keys.indexOf(key) < 0) {
+                    keys.add(key);
+                    listingsAdapter.notifyItemInserted(keys.indexOf(key));
+                } else {
+                    listingsAdapter.notifyItemChanged(keys.indexOf(key));
+                }
             } else {
-                listingsAdapter.notifyItemChanged(keys.indexOf(key));
+                removeListing(key);
             }
         }
 
