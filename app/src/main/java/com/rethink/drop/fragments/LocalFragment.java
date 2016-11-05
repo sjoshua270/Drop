@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 
 import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.auth.FirebaseAuth;
 import com.rethink.drop.DataManager;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.ListingsAdapter;
@@ -60,8 +61,10 @@ public class LocalFragment
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_local, menu);
-        super.onCreateOptionsMenu(menu, inflater);
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            inflater.inflate(R.menu.menu_local, menu);
+            super.onCreateOptionsMenu(menu, inflater);
+        }
     }
 
     public void updateDBRef(LatLng userLocation) {
