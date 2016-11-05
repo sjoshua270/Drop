@@ -18,8 +18,11 @@ import com.rethink.drop.models.Listing;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static com.rethink.drop.MainActivity.userLocation;
+
 public class DataManager {
 
+    public static Double scanRadius;
     public static ArrayList<String> keys;
     public static HashMap<String, Bitmap> imageBitmaps;
     public static HashMap<String, Listing> listings;
@@ -30,6 +33,7 @@ public class DataManager {
     private GeoQuery geoQuery;
 
     public DataManager(ListingsAdapter listingsAdapter) {
+        scanRadius = 1.0;
         keys = new ArrayList<>();
         imageBitmaps = new HashMap<>();
         listings = new HashMap<>();
@@ -44,7 +48,7 @@ public class DataManager {
             geoQuery = new GeoFire(FirebaseDatabase.getInstance()
                                                    .getReference()
                                                    .child("geoFire")
-            ).queryAtLocation(geoLocation, 2.0);
+            ).queryAtLocation(geoLocation, scanRadius);
         }
         geoQuery.setCenter(geoLocation);
     }
@@ -111,11 +115,23 @@ public class DataManager {
             Listing listing = dataSnapshot.getValue(Listing.class);
             if (listing != null) {
                 listings.put(key, listing);
-                if (keys.indexOf(key) < 0) {
-                    keys.add(key);
-                    listingsAdapter.notifyItemInserted(keys.indexOf(key));
+                // To check if the key already exists
+                int keyIndex = keys.indexOf(key);
+                if (keyIndex < 0) {
+                    Double distance = listing.getDistanceFromUser(userLocation);
+                    Double distanceToCompare;
+                    for (keyIndex = 0; keyIndex < keys.size(); keyIndex += 1) {
+                        distanceToCompare = listings.get(keys.get(keyIndex)).getDistanceFromUser(userLocation);
+                        if (distance < distanceToCompare) {
+                            keys.add(keyIndex, key);
+                        }
+                    }
+                    if (keyIndex >= keys.size()) {
+                        keys.add(key);
+                    }
+                    listingsAdapter.notifyItemInserted(keyIndex);
                 } else {
-                    listingsAdapter.notifyItemChanged(keys.indexOf(key));
+                    listingsAdapter.notifyItemChanged(keyIndex);
                 }
             } else {
                 removeListing(key);
