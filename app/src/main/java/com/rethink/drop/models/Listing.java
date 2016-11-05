@@ -37,11 +37,6 @@ public class Listing {
         return timestamp;
     }
 
-    @Exclude
-    public String getIconURL() {
-        return imageURL + "_icon";
-    }
-
     public String getImageURL() {
         return imageURL;
     }
@@ -71,7 +66,7 @@ public class Listing {
     public Double getDistanceFromUser(LatLng userLocation) {
         return Utilities.distanceInKilometers(
                 userLocation.latitude, getLatitude(),
-                userLocation.longitude, getLongitude(),
-                0.0, 0.0);
+                userLocation.longitude, getLongitude()
+        );
     }
 }

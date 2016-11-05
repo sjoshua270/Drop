@@ -39,7 +39,7 @@ import static android.app.Activity.RESULT_OK;
 
 public class ProfileFragment
         extends Fragment {
-    public static final String USER_ID = "user_id";
+    private static final String USER_ID = "user_id";
     private static final int GALLERY_REQUEST = 2;
     private Bitmap image;
     private DatabaseReference ref;
@@ -105,7 +105,7 @@ public class ProfileFragment
         return v;
     }
 
-    public void getImage() {
+    private void getImage() {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -236,7 +236,7 @@ public class ProfileFragment
         });
     }
 
-    public void toggleState() {
+    private void toggleState() {
         editing = !editing;
         prepViews();
         ((MainActivity) getActivity()).syncUI();

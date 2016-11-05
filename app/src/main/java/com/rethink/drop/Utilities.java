@@ -48,7 +48,7 @@ public class Utilities {
      * @return Distance in Meters
      **/
     private static double distance(double lat1, double lat2, double lon1,
-                                   double lon2, double el1, double el2) {
+                                   double lon2) {
 
         final int R = 6371; // Radius of the earth
 
@@ -60,7 +60,7 @@ public class Utilities {
         Double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double distance = R * c * 1000; // convert to meters
 
-        double height = el1 - el2;
+        double height = 0.0 - 0.0;
 
         //noinspection SuspiciousNameCombination
         distance = Math.pow(distance, 2) + Math.pow(height, 2);
@@ -69,13 +69,13 @@ public class Utilities {
     }
 
     public static double distanceInMiles(double lat1, double lat2, double lon1,
-                                         double lon2, double el1, double el2) {
-        return 0.000621371 * distance(lat1, lat2, lon1, lon2, el1, el2);
+                                         double lon2) {
+        return 0.000621371 * distance(lat1, lat2, lon1, lon2);
     }
 
     public static double distanceInKilometers(double lat1, double lat2, double lon1,
-                                              double lon2, double el1, double el2) {
-        return distance(lat1, lat2, lon1, lon2, el1, el2) / 1000;
+                                              double lon2) {
+        return distance(lat1, lat2, lon1, lon2) / 1000;
     }
 
     // ===== Image Magic =====
@@ -89,7 +89,7 @@ public class Utilities {
                 dimen, dimen);
     }
 
-    public static Bitmap scaleDown(Bitmap realImage, float maxImageSize) {
+    private static Bitmap scaleDown(Bitmap realImage, float maxImageSize) {
         float ratio = Math.min(
                 maxImageSize / realImage.getWidth(),
                 maxImageSize / realImage.getHeight());

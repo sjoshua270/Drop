@@ -22,9 +22,9 @@ import static com.rethink.drop.models.Listing.KEY;
 
 final class FabManager {
 
-    private Context context;
-    private FloatingActionButton fab;
-    private FragmentJuggler fragmentJuggler;
+    private final Context context;
+    private final FloatingActionButton fab;
+    private final FragmentJuggler fragmentJuggler;
 
     FabManager(Context context, FloatingActionButton fab, FragmentJuggler fragmentJuggler) {
         this.context = context;

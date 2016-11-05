@@ -59,16 +59,15 @@ public class ListingFragment
                    ImageHandler {
 
     private static final String IMAGE = "image";
-    protected Bitmap image;
-    protected ImageView imageView;
-    protected Listing listing;
-    protected MapView mapView;
-    protected TextView title;
-    protected TextView desc;
-    protected TextInputEditText inputTitle;
-    protected TextInputEditText inputDesc;
-    protected View fragmentView;
-    protected ViewGroup container;
+    private Bitmap image;
+    private ImageView imageView;
+    private Listing listing;
+    private MapView mapView;
+    private TextView title;
+    private TextView desc;
+    private TextInputEditText inputTitle;
+    private TextInputEditText inputDesc;
+    private ViewGroup container;
     private Boolean imageChanged;
     private CoordinatorLayout cLayout;
     private DatabaseReference ref;
@@ -127,7 +126,7 @@ public class ListingFragment
             Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         this.container = container;
-        fragmentView = inflater.inflate(R.layout.fragment_listing, container, false);
+        View fragmentView = inflater.inflate(R.layout.fragment_listing, container, false);
         cLayout = (CoordinatorLayout) getActivity().findViewById(R.id.coordinator);
 
         imageView = (ImageView) fragmentView.findViewById(R.id.listing_image);
@@ -154,14 +153,14 @@ public class ListingFragment
         return fragmentView;
     }
 
-    public void getImage() {
+    private void getImage() {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
         getActivity().startActivityForResult(Intent.createChooser(intent, "Select Picture"), MainActivity.GALLERY_REQUEST);
     }
 
-    public void displayListing(Listing listing) {
+    private void displayListing(Listing listing) {
         this.listing = listing;
         if (listing != null) {
             title.setText(listing.getTitle());
@@ -178,14 +177,14 @@ public class ListingFragment
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-    protected void setImageView() {
+    private void setImageView() {
         if (image != null) {
             imageView.setImageBitmap(Utilities.squareImage(image));
             imageView.setPadding(0, 0, 0, 0);
         }
     }
 
-    public void prepViews() {
+    private void prepViews() {
         if (editing) {
             title.setVisibility(View.GONE);
             desc.setVisibility(View.GONE);
@@ -238,7 +237,7 @@ public class ListingFragment
      * Takes all values in the current layout and sends them off to Firebase,
      * then returns to the previous fragment
      */
-    public void publishListing() {
+    private void publishListing() {
         String filename = inputTitle.getText()
                                     .toString()
                                     .replaceAll("[^A-Za-z]+", "")
@@ -318,7 +317,7 @@ public class ListingFragment
         ((MainActivity) getActivity()).dismissKeyboard();
     }
 
-    public void toggleState() {
+    private void toggleState() {
         if (editing) {
             imageChanged = false;
         }
@@ -387,24 +386,9 @@ public class ListingFragment
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
-    @Override
     public void onPause() {
         super.onPause();
         mapView.onPause();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
     }
 
     @Override

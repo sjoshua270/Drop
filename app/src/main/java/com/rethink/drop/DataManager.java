@@ -1,6 +1,5 @@
 package com.rethink.drop;
 
-import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.firebase.geofire.GeoFire;
@@ -23,19 +22,17 @@ import static com.rethink.drop.MainActivity.userLocation;
 public class DataManager {
 
     public static ArrayList<String> keys;
-    public static HashMap<String, Bitmap> imageBitmaps;
     public static HashMap<String, Listing> listings;
     private static Double scanRadius;
     private static DataListener dataListener;
     private static GeoQueryListener geoQueryListener;
-    private HashMap<String, DatabaseReference> refs;
-    private ListingsAdapter listingsAdapter;
+    private final HashMap<String, DatabaseReference> refs;
+    private final ListingsAdapter listingsAdapter;
     private GeoQuery geoQuery;
 
     public DataManager(ListingsAdapter listingsAdapter) {
         scanRadius = 10.0;
         keys = new ArrayList<>();
-        imageBitmaps = new HashMap<>();
         listings = new HashMap<>();
         dataListener = new DataListener();
         geoQueryListener = new GeoQueryListener();

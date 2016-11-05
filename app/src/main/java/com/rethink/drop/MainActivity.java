@@ -53,8 +53,8 @@ public class MainActivity
         implements OnConnectionFailedListener,
                    ConnectionCallbacks,
                    LocationListener {
-    public final static float degreesPerMile = 0.01449275362f;
     public static final int GALLERY_REQUEST = 3;
+    private final static float degreesPerMile = 0.01449275362f;
     public static LatLng userLocation;
     private static GoogleApiClient googleApiClient;
     private final int RC_SIGN_IN = 1;
@@ -178,7 +178,7 @@ public class MainActivity
         });
     }
 
-    void syncUpNav() {
+    private void syncUpNav() {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(
                     getSupportFragmentManager().getBackStackEntryCount() > 1);

@@ -67,13 +67,13 @@ public class ListingsAdapter
         if (useMetric(Locale.getDefault())) {
             distance = distanceInKilometers(
                     MainActivity.userLocation.latitude, listing.getLatitude(),
-                    MainActivity.userLocation.longitude, listing.getLongitude(),
-                    0.0, 0.0);
+                    MainActivity.userLocation.longitude, listing.getLongitude()
+            );
         } else {
             distance = distanceInMiles(
                     MainActivity.userLocation.latitude, listing.getLatitude(),
-                    MainActivity.userLocation.longitude, listing.getLongitude(),
-                    0.0, 0.0);
+                    MainActivity.userLocation.longitude, listing.getLongitude()
+            );
         }
         distance = Math.round(distance * 100);
         distance /= 100;

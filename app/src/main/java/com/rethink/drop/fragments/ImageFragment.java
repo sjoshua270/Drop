@@ -17,14 +17,12 @@ import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListene
 import com.rethink.drop.R;
 import com.rethink.drop.models.Listing;
 
-import static com.rethink.drop.DataManager.imageBitmaps;
 import static com.rethink.drop.DataManager.listings;
 import static com.rethink.drop.models.Listing.KEY;
 
 public class ImageFragment
         extends Fragment {
-    Bitmap imageBitmap;
-    SubsamplingScaleImageView imageView;
+    private SubsamplingScaleImageView imageView;
 
     public static ImageFragment newInstance(String key) {
         Bundle args = new Bundle();
@@ -57,10 +55,4 @@ public class ImageFragment
         return v;
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Bundle args = getArguments();
-        imageBitmap = imageBitmaps.get(args.getString(KEY));
-    }
 }

@@ -26,7 +26,6 @@ public class LocalFragment
     private ListingsAdapter listingsAdapter;
     private ScrollListener scrollListener;
     private DataManager dataManager;
-    private int prevNumberOfListings = 0;
 
     public static LocalFragment newInstance() {
 
@@ -89,7 +88,7 @@ public class LocalFragment
         dataManager.attachListeners();
     }
 
-    class ScrollListener
+    private class ScrollListener
             extends RecyclerView.OnScrollListener {
         @Override
         public void onScrollStateChanged(RecyclerView recyclerView, int newState) {

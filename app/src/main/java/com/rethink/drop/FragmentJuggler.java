@@ -30,7 +30,7 @@ class FragmentJuggler {
     static final int PROFILE = 2;
     static final int IMAGE = 3;
     static int CURRENT;
-    private FragmentManager fragmentManager;
+    private final FragmentManager fragmentManager;
 
     FragmentJuggler(FragmentManager fragmentManager) {
         this.fragmentManager = fragmentManager;
@@ -72,16 +72,6 @@ class FragmentJuggler {
                        .replace(R.id.main_fragment_container, newFragment)
                        .addToBackStack(null)
                        .commit();
-    }
-
-    void viewImage(String key) {
-        ImageFragment imageFragment = ImageFragment.newInstance(key);
-        fragmentManager.beginTransaction()
-                       .replace(R.id.main_fragment_container,
-                               imageFragment)
-                       .addToBackStack(null)
-                       .commit();
-        CURRENT = IMAGE;
     }
 
     void viewListing(View listingView, Bitmap image, String key) throws IOException {

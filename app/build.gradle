@@ -8,6 +8,7 @@ android {
     defaultConfig {
         applicationId "com.rethink.drop"
         minSdkVersion 16
+        //noinspection OldTargetApi
         targetSdkVersion 23
         versionCode 2016110400
         versionName "0.0.4"
