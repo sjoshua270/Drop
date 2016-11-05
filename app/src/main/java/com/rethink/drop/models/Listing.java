@@ -2,6 +2,7 @@ package com.rethink.drop.models;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.Exclude;
+import com.rethink.drop.Utilities;
 
 public class Listing {
     public static final String KEY = "KEY";
@@ -64,5 +65,13 @@ public class Listing {
 
     public Double getLongitude() {
         return longitude;
+    }
+
+    @Exclude
+    public Double getDistanceFromUser(LatLng userLocation) {
+        return Utilities.distanceInKilometers(
+                userLocation.latitude, getLatitude(),
+                userLocation.longitude, getLongitude(),
+                0.0, 0.0);
     }
 }
