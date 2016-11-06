@@ -243,7 +243,7 @@ public class MainActivity
                         .getString("KEY");
                 if (key != null) {
                     DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
-                    ref.child("listings")
+                    ref.child("posts")
                        .child(key)
                        .removeValue();
                     ref.child("geoFire")

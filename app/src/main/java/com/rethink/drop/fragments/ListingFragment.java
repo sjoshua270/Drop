@@ -108,7 +108,7 @@ public class ListingFragment
         ref = FirebaseDatabase
                 .getInstance()
                 .getReference()
-                .child("listings");
+                .child("posts");
         imageChanged = false;
         if (args != null) {
             byte[] imageBytes = args.getByteArray(IMAGE);

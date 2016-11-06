@@ -86,7 +86,7 @@ public class DataManager {
         public void onKeyEntered(String key, GeoLocation location) {
             DatabaseReference ref = FirebaseDatabase.getInstance()
                                                     .getReference()
-                                                    .child("listings")
+                                                    .child("posts")
                                                     .child(key);
             ref.addValueEventListener(dataListener);
             refs.put(key, ref);
