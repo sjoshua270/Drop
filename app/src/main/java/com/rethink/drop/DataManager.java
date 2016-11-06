@@ -11,7 +11,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.rethink.drop.adapters.ListingsAdapter;
+import com.rethink.drop.adapters.PostsAdapter;
 import com.rethink.drop.models.Post;
 
 import java.util.ArrayList;
@@ -27,17 +27,17 @@ public class DataManager {
     private static DataListener dataListener;
     private static GeoQueryListener geoQueryListener;
     private final HashMap<String, DatabaseReference> refs;
-    private final ListingsAdapter listingsAdapter;
+    private final PostsAdapter postsAdapter;
     private GeoQuery geoQuery;
 
-    public DataManager(ListingsAdapter listingsAdapter) {
+    public DataManager(PostsAdapter postsAdapter) {
         scanRadius = 10.0;
         keys = new ArrayList<>();
         listings = new HashMap<>();
         dataListener = new DataListener();
         geoQueryListener = new GeoQueryListener();
         refs = new HashMap<>();
-        this.listingsAdapter = listingsAdapter;
+        this.postsAdapter = postsAdapter;
     }
 
     public void updateLocation(GeoLocation geoLocation) {
@@ -76,7 +76,7 @@ public class DataManager {
     private void removeListing(String key) {
         refs.remove(key);
         listings.remove(key);
-        listingsAdapter.notifyItemRemoved(keys.indexOf(key));
+        postsAdapter.notifyItemRemoved(keys.indexOf(key));
         keys.remove(key);
     }
 
@@ -140,13 +140,13 @@ public class DataManager {
                                 }
                             }
                         }
-                        listingsAdapter.notifyItemInserted(scanIndex);
+                        postsAdapter.notifyItemInserted(scanIndex);
                     } else {
-                        listingsAdapter.notifyItemChanged(scanIndex);
+                        postsAdapter.notifyItemChanged(scanIndex);
                     }
                 } else {
                     keys.add(key);
-                    listingsAdapter.notifyItemInserted(keys.indexOf(key));
+                    postsAdapter.notifyItemInserted(keys.indexOf(key));
                 }
             } else {
                 removeListing(key);

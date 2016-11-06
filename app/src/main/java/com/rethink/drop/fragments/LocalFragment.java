@@ -16,14 +16,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.rethink.drop.DataManager;
 import com.rethink.drop.R;
-import com.rethink.drop.adapters.ListingsAdapter;
+import com.rethink.drop.adapters.PostsAdapter;
 
 import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
 
 
 public class LocalFragment
         extends Fragment {
-    private ListingsAdapter listingsAdapter;
+    private PostsAdapter postsAdapter;
     private ScrollListener scrollListener;
     private DataManager dataManager;
 
@@ -39,9 +39,9 @@ public class LocalFragment
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        listingsAdapter = new ListingsAdapter();
+        postsAdapter = new PostsAdapter();
         scrollListener = new ScrollListener();
-        dataManager = new DataManager(listingsAdapter);
+        dataManager = new DataManager(postsAdapter);
         setHasOptionsMenu(true);
     }
 
@@ -60,7 +60,7 @@ public class LocalFragment
                         LinearLayoutManager.VERTICAL,
                         false));
         listingsRecycler.addOnScrollListener(scrollListener);
-        listingsRecycler.setAdapter(listingsAdapter);
+        listingsRecycler.setAdapter(postsAdapter);
         return v;
     }
 

@@ -35,8 +35,8 @@ import static com.rethink.drop.Utilities.distanceInMiles;
 import static com.rethink.drop.Utilities.getDistanceString;
 import static com.rethink.drop.Utilities.useMetric;
 
-public class ListingsAdapter
-        extends RecyclerView.Adapter<ListingsAdapter.ListingHolder> {
+public class PostsAdapter
+        extends RecyclerView.Adapter<PostsAdapter.ListingHolder> {
     private Context context;
 
     @Override
