@@ -58,7 +58,9 @@ public class DataManager {
     }
 
     public void attachListeners() {
-        geoQuery.addGeoQueryEventListener(geoQueryListener);
+        if (geoQuery != null) {
+            geoQuery.addGeoQueryEventListener(geoQueryListener);
+        }
         for (String key : keys) {
             refs.get(key).addValueEventListener(dataListener);
         }
