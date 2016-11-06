@@ -13,13 +13,20 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.models.Listing;
+import com.rethink.drop.models.Profile;
 import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 import static com.rethink.drop.DataManager.keys;
 import static com.rethink.drop.DataManager.listings;
@@ -70,6 +77,33 @@ public class ListingsAdapter
             holder.imageView.setPadding(padding, padding, padding, padding);
         }
 
+        FirebaseDatabase.getInstance()
+                        .getReference()
+                        .child("profiles")
+                        .child(listing.getUserID())
+                        .addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                Profile profile = dataSnapshot.getValue(Profile.class);
+                                if (profile != null) {
+                                    String imageUrl = profile.getImageURL() == null ? "" : profile.getImageURL();
+                                    Picasso.with(context)
+                                           .load(imageUrl)
+                                           .placeholder(R.drawable.ic_photo_camera_white_24px)
+                                           .resize(context.getResources()
+                                                          .getDimensionPixelSize(R.dimen.listing_prof_dimen),
+                                                   context.getResources()
+                                                          .getDimensionPixelSize(R.dimen.listing_prof_dimen))
+                                           .centerCrop()
+                                           .into(holder.profile);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
 
         holder.title.setText(listing.getTitle());
         ViewCompat.setTransitionName(holder.title, "title_" + key);
@@ -126,6 +160,7 @@ public class ListingsAdapter
 
     static class ListingHolder
             extends RecyclerView.ViewHolder {
+        final CircleImageView profile;
         final ImageView imageView;
         final TextView title;
         final TextView desc;
@@ -135,6 +170,7 @@ public class ListingsAdapter
 
         ListingHolder(View itemView) {
             super(itemView);
+            profile = (CircleImageView) itemView.findViewById(R.id.item_prof_img);
             imageView = (ImageView) itemView.findViewById(R.id.item_image);
             title = (TextView) itemView.findViewById(R.id.item_title);
             desc = (TextView) itemView.findViewById(R.id.item_desc);

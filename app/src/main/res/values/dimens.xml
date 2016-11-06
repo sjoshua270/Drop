@@ -3,7 +3,9 @@
 
     <!--Listing items-->
     <dimen name="listing_padding">8dp</dimen>
-    <dimen name="item_image_height">200dp</dimen>
+    <dimen name="item_image_height">300dp</dimen>
+
+    <dimen name="listing_prof_dimen">64dp</dimen>
 
     <dimen name="listing_details_height">80dp</dimen>
     <dimen name="listing_title_size">20sp</dimen>

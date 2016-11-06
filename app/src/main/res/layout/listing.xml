@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/item_image_height">
 
@@ -15,12 +16,24 @@
         android:layout_alignParentBottom="true"
         android:background="@color/listing_item_details_background">
 
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/item_prof_img"
+            android:layout_width="@dimen/listing_prof_dimen"
+            android:layout_height="@dimen/listing_prof_dimen"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_margin="10dp"
+            android:src="@drawable/ic_person_black_24dp"
+            app:civ_border_color="#FFFFFF"
+            app:civ_border_width="2dp"/>
+
         <TextView
             android:id="@+id/item_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
+            android:layout_toEndOf="@+id/item_prof_img"
+            android:layout_toRightOf="@+id/item_prof_img"
             android:padding="@dimen/listing_padding"
             android:text="@string/hint_title"
             android:textSize="@dimen/listing_title_size"
@@ -30,9 +43,9 @@
             android:id="@+id/item_desc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_below="@id/item_title"
+            android:layout_below="@+id/item_title"
+            android:layout_toEndOf="@+id/item_prof_img"
+            android:layout_toRightOf="@+id/item_prof_img"
             android:padding="@dimen/listing_padding"
             android:text="@string/hint_description"
             android:textSize="@dimen/listing_desc_size"/>
