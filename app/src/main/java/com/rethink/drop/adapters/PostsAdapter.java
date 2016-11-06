@@ -74,14 +74,16 @@ public class PostsAdapter
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 Post post = dataSnapshot.getValue(Post.class);
-                                String imageUrl = post.getImageURL() == null ? "" : post.getImageURL();
+                                if (post != null) {
+                                    String imageUrl = post.getImageURL() == null ? "" : post.getImageURL();
 
-                                getPostImage(holder.itemView.getContext(), imageUrl, holder.imageView);
-                                getProfileImage(post.getUserID(), holder.profile);
+                                    getPostImage(holder.itemView.getContext(), imageUrl, holder.imageView);
+                                    getProfileImage(post.getUserID(), holder.profile);
 
-                                holder.imageView.setPadding(0, 0, 0, 0);
-                                holder.title.setText(post.getTitle());
-                                holder.desc.setText(post.getDescription());
+                                    holder.imageView.setPadding(0, 0, 0, 0);
+                                    holder.title.setText(post.getTitle());
+                                    holder.desc.setText(post.getDescription());
+                                }
                             }
 
                             @Override

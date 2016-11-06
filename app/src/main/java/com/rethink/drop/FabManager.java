@@ -49,15 +49,16 @@ final class FabManager {
                                     .getReference()
                                     .child("posts")
                                     .child(key)
-                                    .addValueEventListener(new ValueEventListener() {
+                                    .addListenerForSingleValueEvent(new ValueEventListener() {
                                         @Override
                                         public void onDataChange(DataSnapshot dataSnapshot) {
                                             Post post = dataSnapshot.getValue(Post.class);
-                                            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                                            if (user != null && user.getUid().equals(post.getUserID())) {
-                                                setDrawable(R.drawable.ic_mode_edit_white_24px);
+                                            if (post != null) {
+                                                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                                                if (user != null && user.getUid().equals(post.getUserID())) {
+                                                    setDrawable(R.drawable.ic_mode_edit_white_24px);
+                                                }
                                             }
-
                                         }
 
                                         @Override
