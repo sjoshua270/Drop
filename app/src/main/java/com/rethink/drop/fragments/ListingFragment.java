@@ -127,44 +127,32 @@ public class ListingFragment
         super.onCreateView(inflater, container, savedInstanceState);
         String key = getArguments().getString(KEY);
         if (key != null) {
-            FirebaseDatabase.getInstance()
-                            .getReference()
-                            .child("posts")
-                            .child(key).addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    Post post = dataSnapshot.getValue(Post.class);
-                    if (post != null) {
-                        imageURL = post.getImageURL() == null ? "" : post.getImageURL();
-                        if (!imageURL.equals("")) {
-                            Picasso.with(getContext())
-                                   .load(imageURL)
-                                   .placeholder(new BitmapDrawable(getResources(), image))
-                                   .resize(getContext().getResources()
-                                                       .getDimensionPixelSize(R.dimen.listing_image_dimen),
-                                           getContext().getResources()
-                                                       .getDimensionPixelSize(R.dimen.listing_image_dimen))
-                                   .centerCrop()
-                                   .into(imageView);
-                        } else if (!editing) {
-                            imageView.setVisibility(View.GONE);
-                        } else {
-                            imageView.setVisibility(View.VISIBLE);
-                        }
-                        title.setText(post.getTitle());
-                        desc.setText(post.getDescription());
-                        inputTitle.setText(post.getTitle());
-                        inputDesc.setText(post.getDescription());
-                        setMap(post);
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
+            getPostData(key);
         }
+
+        // TODO: Merge in this code
+//            double distance;
+//            if (useMetric(Locale.getDefault())) {
+//                distance = distanceInKilometers(
+//                        MainActivity.userLocation.latitude, post.getLatitude(),
+//                        MainActivity.userLocation.longitude, post.getLongitude()
+//                );
+//            } else {
+//                distance = distanceInMiles(
+//                        MainActivity.userLocation.latitude, post.getLatitude(),
+//                        MainActivity.userLocation.longitude, post.getLongitude()
+//                );
+//            }
+//            distance = Math.round(distance * 100);
+//            distance /= 100;
+//            String formatString = getDistanceString(Locale.getDefault());
+//            holder.dist.setText(String.format(formatString, String.valueOf(distance)));
+//
+//            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+//            holder.timeStampDay.setText(sdf.format(post.getTimestamp()));
+//
+//            sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+//            holder.timeStampTime.setText(sdf.format(post.getTimestamp()));
         View fragmentView = inflater.inflate(R.layout.fragment_listing, container, false);
         cLayout = (CoordinatorLayout) getActivity().findViewById(R.id.coordinator);
 
@@ -190,6 +178,47 @@ public class ListingFragment
         prepViews();
 
         return fragmentView;
+    }
+
+    private void getPostData(String key) {
+
+        FirebaseDatabase.getInstance()
+                        .getReference()
+                        .child("posts")
+                        .child(key).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Post post = dataSnapshot.getValue(Post.class);
+                if (post != null) {
+                    imageURL = post.getImageURL() == null ? "" : post.getImageURL();
+                    if (!imageURL.equals("")) {
+                        Picasso.with(getContext())
+                               .load(imageURL)
+                               .placeholder(new BitmapDrawable(getResources(), image))
+                               .resize(getContext().getResources()
+                                                   .getDimensionPixelSize(R.dimen.listing_image_dimen),
+                                       getContext().getResources()
+                                                   .getDimensionPixelSize(R.dimen.listing_image_dimen))
+                               .centerCrop()
+                               .into(imageView);
+                    } else if (!editing) {
+                        imageView.setVisibility(View.GONE);
+                    } else {
+                        imageView.setVisibility(View.VISIBLE);
+                    }
+                    title.setText(post.getTitle());
+                    desc.setText(post.getDescription());
+                    inputTitle.setText(post.getTitle());
+                    inputDesc.setText(post.getDescription());
+                    setMap(post);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void getImage() {
@@ -314,6 +343,7 @@ public class ListingFragment
         Bundle args = getArguments();
         args.putString(KEY, key);
         ((MainActivity) getActivity()).dismissKeyboard();
+        getPostData(key);
     }
 
     private void toggleState() {
