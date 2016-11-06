@@ -49,7 +49,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Calendar;
 
-import static com.rethink.drop.DataManager.listings;
+import static com.rethink.drop.DataManager.posts;
 import static com.rethink.drop.MainActivity.userLocation;
 import static com.rethink.drop.models.Post.KEY;
 
@@ -116,7 +116,7 @@ public class ListingFragment
                 image = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
             }
             String key = args.getString(KEY);
-            post = listings.get(key);
+            post = posts.get(key);
             editing = key == null;
         }
     }
@@ -301,7 +301,7 @@ public class ListingFragment
     }
 
     private void saveListing(String key, Post post) {
-        listings.put(key, post);
+        posts.put(key, post);
         new GeoFire(
                 FirebaseDatabase.getInstance()
                                 .getReference()

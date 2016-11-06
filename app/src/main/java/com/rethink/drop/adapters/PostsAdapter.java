@@ -29,7 +29,7 @@ import java.util.Locale;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import static com.rethink.drop.DataManager.keys;
-import static com.rethink.drop.DataManager.listings;
+import static com.rethink.drop.DataManager.posts;
 import static com.rethink.drop.Utilities.distanceInKilometers;
 import static com.rethink.drop.Utilities.distanceInMiles;
 import static com.rethink.drop.Utilities.getDistanceString;
@@ -50,7 +50,7 @@ public class PostsAdapter
     @Override
     public void onBindViewHolder(final ListingHolder holder, final int position) {
         final String key = keys.get(position);
-        final Post post = listings.get(key);
+        final Post post = posts.get(key);
 
         holder.imageView.setPadding(0, 0, 0, 0);
         String imageUrl = post.getImageURL() == null ? "" : post.getImageURL();

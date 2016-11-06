@@ -17,7 +17,7 @@ import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListene
 import com.rethink.drop.R;
 import com.rethink.drop.models.Post;
 
-import static com.rethink.drop.DataManager.listings;
+import static com.rethink.drop.DataManager.posts;
 import static com.rethink.drop.models.Post.KEY;
 
 public class ImageFragment
@@ -38,7 +38,7 @@ public class ImageFragment
         super.onCreateView(inflater, container, savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_image, container, false);
         imageView = (SubsamplingScaleImageView) v.findViewById(R.id.full_image);
-        Post post = listings.get(getArguments().getString(KEY));
+        Post post = posts.get(getArguments().getString(KEY));
         String imageUrl = post.getImageURL() == null ? "" : post.getImageURL();
         if (!imageUrl.equals("") && container != null) {
             ImageLoader imageLoader = ImageLoader.getInstance();

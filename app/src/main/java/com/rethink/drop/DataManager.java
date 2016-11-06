@@ -22,7 +22,7 @@ import static com.rethink.drop.MainActivity.userLocation;
 public class DataManager {
 
     public static ArrayList<String> keys;
-    public static HashMap<String, Post> listings;
+    public static HashMap<String, Post> posts;
     private static Double scanRadius;
     private static DataListener dataListener;
     private static GeoQueryListener geoQueryListener;
@@ -33,7 +33,7 @@ public class DataManager {
     public DataManager(PostsAdapter postsAdapter) {
         scanRadius = 10.0;
         keys = new ArrayList<>();
-        listings = new HashMap<>();
+        posts = new HashMap<>();
         dataListener = new DataListener();
         geoQueryListener = new GeoQueryListener();
         refs = new HashMap<>();
@@ -75,7 +75,7 @@ public class DataManager {
 
     private void removeListing(String key) {
         refs.remove(key);
-        listings.remove(key);
+        posts.remove(key);
         postsAdapter.notifyItemRemoved(keys.indexOf(key));
         keys.remove(key);
     }
@@ -121,7 +121,7 @@ public class DataManager {
             final String key = dataSnapshot.getKey();
             Post post = dataSnapshot.getValue(Post.class);
             if (post != null) {
-                listings.put(key, post);
+                posts.put(key, post);
                 Double distance = post.getDistanceFromUser(userLocation);
                 Double distanceToCompare;
                 int scanIndex = keys.indexOf(key);
@@ -133,8 +133,8 @@ public class DataManager {
                             if (scanIndex == keys.size()) {
                                 keys.add(scanIndex, key);
                             } else {
-                                distanceToCompare = listings.get(keys.get(scanIndex))
-                                                            .getDistanceFromUser(userLocation);
+                                distanceToCompare = posts.get(keys.get(scanIndex))
+                                                         .getDistanceFromUser(userLocation);
                                 if (distance < distanceToCompare) {
                                     keys.add(scanIndex, key);
                                 }
