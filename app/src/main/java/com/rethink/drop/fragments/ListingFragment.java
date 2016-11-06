@@ -75,6 +75,7 @@ public class ListingFragment
     private GoogleMap googleMap;
     private Boolean editing;
     private String imageURL;
+    private DatabaseReference postRef;
 
     public static ListingFragment newInstance(String key) {
         Bundle args = new Bundle();
@@ -118,6 +119,9 @@ public class ListingFragment
             }
             String key = args.getString(KEY);
             editing = key == null;
+            if (key != null) {
+                getPostData(key);
+            }
         }
     }
 
@@ -181,44 +185,46 @@ public class ListingFragment
     }
 
     private void getPostData(String key) {
-
-        FirebaseDatabase.getInstance()
-                        .getReference()
-                        .child("posts")
-                        .child(key).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Post post = dataSnapshot.getValue(Post.class);
-                if (post != null) {
-                    imageURL = post.getImageURL() == null ? "" : post.getImageURL();
-                    if (!imageURL.equals("")) {
-                        Picasso.with(getContext())
-                               .load(imageURL)
-                               .placeholder(new BitmapDrawable(getResources(), image))
-                               .resize(getContext().getResources()
-                                                   .getDimensionPixelSize(R.dimen.listing_image_dimen),
-                                       getContext().getResources()
-                                                   .getDimensionPixelSize(R.dimen.listing_image_dimen))
-                               .centerCrop()
-                               .into(imageView);
-                    } else if (!editing) {
-                        imageView.setVisibility(View.GONE);
-                    } else {
-                        imageView.setVisibility(View.VISIBLE);
+        if (postRef == null) {
+            postRef = FirebaseDatabase.getInstance()
+                                      .getReference()
+                                      .child("posts")
+                                      .child(key);
+            postRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Post post = dataSnapshot.getValue(Post.class);
+                    if (post != null) {
+                        imageURL = post.getImageURL() == null ? "" : post.getImageURL();
+                        if (!imageURL.equals("")) {
+                            Picasso.with(getContext())
+                                   .load(imageURL)
+                                   .placeholder(new BitmapDrawable(getResources(), image))
+                                   .resize(getContext().getResources()
+                                                       .getDimensionPixelSize(R.dimen.listing_image_dimen),
+                                           getContext().getResources()
+                                                       .getDimensionPixelSize(R.dimen.listing_image_dimen))
+                                   .centerCrop()
+                                   .into(imageView);
+                        } else if (!editing) {
+                            imageView.setVisibility(View.GONE);
+                        } else {
+                            imageView.setVisibility(View.VISIBLE);
+                        }
+                        title.setText(post.getTitle());
+                        desc.setText(post.getDescription());
+                        inputTitle.setText(post.getTitle());
+                        inputDesc.setText(post.getDescription());
+                        setMap(post);
                     }
-                    title.setText(post.getTitle());
-                    desc.setText(post.getDescription());
-                    inputTitle.setText(post.getTitle());
-                    inputDesc.setText(post.getDescription());
-                    setMap(post);
                 }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
+                }
+            });
+        }
     }
 
     private void getImage() {
@@ -342,8 +348,8 @@ public class ListingFragment
         ref.setValue(post);
         Bundle args = getArguments();
         args.putString(KEY, key);
-        ((MainActivity) getActivity()).dismissKeyboard();
         getPostData(key);
+        ((MainActivity) getActivity()).dismissKeyboard();
     }
 
     private void toggleState() {
