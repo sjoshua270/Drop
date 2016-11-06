@@ -3,6 +3,7 @@ package com.rethink.drop.adapters;
 import android.content.Context;
 import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.Display;
@@ -87,15 +88,22 @@ public class PostsAdapter
                                 Profile profile = dataSnapshot.getValue(Profile.class);
                                 if (profile != null) {
                                     String imageUrl = profile.getImageURL() == null ? "" : profile.getImageURL();
-                                    Picasso.with(context)
-                                           .load(imageUrl)
-                                           .placeholder(R.drawable.ic_photo_camera_white_24px)
-                                           .resize(context.getResources()
-                                                          .getDimensionPixelSize(R.dimen.listing_prof_dimen),
-                                                   context.getResources()
-                                                          .getDimensionPixelSize(R.dimen.listing_prof_dimen))
-                                           .centerCrop()
-                                           .into(holder.profile);
+                                    if (!imageUrl.equals("")) {
+                                        Picasso.with(context)
+                                               .load(imageUrl)
+                                               .placeholder(R.drawable.ic_photo_camera_white_24px)
+                                               .resize(context.getResources()
+                                                              .getDimensionPixelSize(R.dimen.listing_prof_dimen),
+                                                       context.getResources()
+                                                              .getDimensionPixelSize(R.dimen.listing_prof_dimen))
+                                               .centerCrop()
+                                               .into(holder.profile);
+                                    } else {
+                                        holder.profile.setImageDrawable(
+                                                ContextCompat.getDrawable(
+                                                        context,
+                                                        R.drawable.ic_person_black_24dp));
+                                    }
                                 }
                             }
 
