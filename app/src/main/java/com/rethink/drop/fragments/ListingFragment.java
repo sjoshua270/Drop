@@ -35,8 +35,11 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.UploadTask;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
@@ -126,6 +129,41 @@ public class ListingFragment
             Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         this.container = container;
+        String key = getArguments().getString(KEY);
+        if (key != null) {
+            FirebaseDatabase.getInstance()
+                            .getReference()
+                            .child("posts")
+                            .child(key).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Post post = dataSnapshot.getValue(Post.class);
+                    if (post != null) {
+                        String imageUrl = post.getImageURL() == null ? "" : post.getImageURL();
+                        if (!imageUrl.equals("")) {
+                            Picasso.with(getContext())
+                                   .load(imageUrl)
+                                   .placeholder(new BitmapDrawable(getResources(), image))
+                                   .resize(getContext().getResources()
+                                                       .getDimensionPixelSize(R.dimen.listing_image_dimen),
+                                           getContext().getResources()
+                                                       .getDimensionPixelSize(R.dimen.listing_image_dimen))
+                                   .centerCrop()
+                                   .into(imageView);
+                        } else if (!editing) {
+                            imageView.setVisibility(View.GONE);
+                        } else {
+                            imageView.setVisibility(View.VISIBLE);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
         View fragmentView = inflater.inflate(R.layout.fragment_listing, container, false);
         cLayout = (CoordinatorLayout) getActivity().findViewById(R.id.coordinator);
 
@@ -190,36 +228,11 @@ public class ListingFragment
             desc.setVisibility(View.GONE);
             inputTitle.setVisibility(View.VISIBLE);
             inputDesc.setVisibility(View.VISIBLE);
-
-            if (image == null) {
-                imageView.setImageResource(R.drawable.ic_photo_camera_white_24px);
-                float scale = getResources().getDisplayMetrics().density;
-                int dpAsPixels = (int) (40 * scale + 0.5f);
-                imageView.setPadding(dpAsPixels, dpAsPixels, dpAsPixels, dpAsPixels);
-            }
         } else {
             inputTitle.setVisibility(View.GONE);
             inputDesc.setVisibility(View.GONE);
             title.setVisibility(View.VISIBLE);
             desc.setVisibility(View.VISIBLE);
-        }
-        if (post != null) {
-            String imageUrl = post.getImageURL() == null ? "" : post.getImageURL();
-            if (!imageUrl.equals("") && container != null) {
-                Picasso.with(container.getContext())
-                       .load(imageUrl)
-                       .placeholder(new BitmapDrawable(getResources(), image))
-                       .resize(getContext().getResources()
-                                           .getDimensionPixelSize(R.dimen.listing_image_dimen),
-                               getContext().getResources()
-                                           .getDimensionPixelSize(R.dimen.listing_image_dimen))
-                       .centerCrop()
-                       .into(imageView);
-            } else if (!editing) {
-                imageView.setVisibility(View.GONE);
-            } else {
-                imageView.setVisibility(View.VISIBLE);
-            }
         }
         displayListing(post);
         setHasOptionsMenu(editing);
