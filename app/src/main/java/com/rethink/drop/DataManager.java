@@ -11,8 +11,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.rethink.drop.adapters.PostsAdapter;
-import com.rethink.drop.models.Post;
+import com.rethink.drop.adapters.DropAdapter;
+import com.rethink.drop.models.Drop;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,16 +24,16 @@ public class DataManager {
     private static DataListener dataListener;
     private static GeoQueryListener geoQueryListener;
     private final HashMap<String, DatabaseReference> refs;
-    private final PostsAdapter postsAdapter;
+    private final DropAdapter dropAdapter;
     private GeoQuery geoQuery;
 
-    public DataManager(PostsAdapter postsAdapter) {
+    public DataManager(DropAdapter dropAdapter) {
         scanRadius = 10.0;
         keys = new ArrayList<>();
         dataListener = new DataListener();
         geoQueryListener = new GeoQueryListener();
         refs = new HashMap<>();
-        this.postsAdapter = postsAdapter;
+        this.dropAdapter = dropAdapter;
     }
 
     public void updateLocation(GeoLocation geoLocation) {
@@ -71,7 +71,7 @@ public class DataManager {
 
     private void removeListing(String key) {
         refs.remove(key);
-        postsAdapter.notifyItemRemoved(keys.indexOf(key));
+        dropAdapter.notifyItemRemoved(keys.indexOf(key));
         keys.remove(key);
     }
 
@@ -122,13 +122,13 @@ public class DataManager {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
             final String key = dataSnapshot.getKey();
-            Post post = dataSnapshot.getValue(Post.class);
-            if (post != null) {
+            Drop drop = dataSnapshot.getValue(Drop.class);
+            if (drop != null) {
                 if (keys.indexOf(key) < 0) {
                     keys.add(key);
-                    postsAdapter.notifyItemInserted(keys.indexOf(key));
+                    dropAdapter.notifyItemInserted(keys.indexOf(key));
                 } else {
-                    postsAdapter.notifyItemChanged(keys.indexOf(key));
+                    dropAdapter.notifyItemChanged(keys.indexOf(key));
                 }
             } else {
                 removeListing(key);

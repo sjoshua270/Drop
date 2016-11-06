@@ -13,15 +13,15 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.rethink.drop.fragments.ListingFragment;
+import com.rethink.drop.fragments.DropFragment;
 import com.rethink.drop.fragments.ProfileFragment;
-import com.rethink.drop.models.Post;
+import com.rethink.drop.models.Drop;
 
 import static com.rethink.drop.FragmentJuggler.CURRENT;
 import static com.rethink.drop.FragmentJuggler.LISTING;
 import static com.rethink.drop.FragmentJuggler.LOCAL;
 import static com.rethink.drop.FragmentJuggler.PROFILE;
-import static com.rethink.drop.models.Post.KEY;
+import static com.rethink.drop.models.Drop.KEY;
 
 final class FabManager {
 
@@ -42,7 +42,7 @@ final class FabManager {
         } else if (CURRENT == LISTING) {
             String key = fragmentJuggler.getCurrentFragment().getArguments().getString(KEY);
             if (key != null) {
-                if (((ListingFragment) fragmentJuggler.getCurrentFragment()).isEditing()) {
+                if (((DropFragment) fragmentJuggler.getCurrentFragment()).isEditing()) {
                     setDrawable(R.drawable.ic_save_white_24dp);
                 } else {
                     FirebaseDatabase.getInstance()
@@ -52,10 +52,10 @@ final class FabManager {
                                     .addListenerForSingleValueEvent(new ValueEventListener() {
                                         @Override
                                         public void onDataChange(DataSnapshot dataSnapshot) {
-                                            Post post = dataSnapshot.getValue(Post.class);
-                                            if (post != null) {
+                                            Drop drop = dataSnapshot.getValue(Drop.class);
+                                            if (drop != null) {
                                                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                                                if (user != null && user.getUid().equals(post.getUserID())) {
+                                                if (user != null && user.getUid().equals(drop.getUserID())) {
                                                     setDrawable(R.drawable.ic_mode_edit_white_24px);
                                                 }
                                             }

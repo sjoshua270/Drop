@@ -4,7 +4,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.Exclude;
 import com.rethink.drop.Utilities;
 
-public class Post {
+public class Drop {
     public static final String KEY = "KEY";
     private String userID;
     private long timestamp;
@@ -14,7 +14,7 @@ public class Post {
     private Double latitude;
     private Double longitude;
 
-    public Post(String userID, long timestamp, String imageURL,
+    public Drop(String userID, long timestamp, String imageURL,
                 String title, String description, Double latitude, Double longitude) {
         this.userID = userID;
         this.timestamp = timestamp;
@@ -25,7 +25,7 @@ public class Post {
         this.longitude = longitude;
     }
 
-    public Post() {
+    public Drop() {
 
     }
 

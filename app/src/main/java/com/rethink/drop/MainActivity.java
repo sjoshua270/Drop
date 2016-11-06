@@ -34,7 +34,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.rethink.drop.fragments.ListingFragment;
+import com.rethink.drop.fragments.DropFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.interfaces.ImageHandler;
@@ -46,7 +46,7 @@ import static com.rethink.drop.FragmentJuggler.IMAGE;
 import static com.rethink.drop.FragmentJuggler.LISTING;
 import static com.rethink.drop.FragmentJuggler.LOCAL;
 import static com.rethink.drop.FragmentJuggler.PROFILE;
-import static com.rethink.drop.models.Post.KEY;
+import static com.rethink.drop.models.Drop.KEY;
 
 public class MainActivity
         extends AppCompatActivity
@@ -132,7 +132,7 @@ public class MainActivity
                                 RC_SIGN_IN);
                     }
                 } else if (CURRENT == LISTING) {
-                    ((ListingFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
+                    ((DropFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
                 } else if (CURRENT == PROFILE) {
                     ((ProfileFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
                 }
@@ -164,7 +164,7 @@ public class MainActivity
                     if (currClass.equals(LocalFragment.class)) {
                         CURRENT = LOCAL;
                     }
-                    if (currClass.equals(ListingFragment.class)) {
+                    if (currClass.equals(DropFragment.class)) {
                         CURRENT = LISTING;
                     }
                     if (currClass.equals(ProfileFragment.class)) {
@@ -210,7 +210,7 @@ public class MainActivity
                     try {
                         Uri selectedImageUri = data.getData();
                         Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri);
-                        if (fragmentJuggler.getCurrentFragment().getClass().equals(ListingFragment.class)) {
+                        if (fragmentJuggler.getCurrentFragment().getClass().equals(DropFragment.class)) {
                             ((ImageHandler) fragmentJuggler.getCurrentFragment()).OnImageReceived(imageBitmap);
                         }
                     } catch (IOException e) {
@@ -334,7 +334,7 @@ public class MainActivity
                         location.getLongitude());
 
                 try {
-                    ((ListingFragment) fragmentJuggler.getCurrentFragment()).updateMapPin();
+                    ((DropFragment) fragmentJuggler.getCurrentFragment()).updateMapPin();
                 } catch (ClassCastException ignored) {
                 }
 

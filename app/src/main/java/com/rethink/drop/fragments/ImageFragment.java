@@ -18,9 +18,9 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.rethink.drop.R;
-import com.rethink.drop.models.Post;
+import com.rethink.drop.models.Drop;
 
-import static com.rethink.drop.models.Post.KEY;
+import static com.rethink.drop.models.Drop.KEY;
 
 public class ImageFragment
         extends Fragment {
@@ -49,8 +49,8 @@ public class ImageFragment
                             .addValueEventListener(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
-                                    Post post = dataSnapshot.getValue(Post.class);
-                                    String imageUrl = post.getImageURL() == null ? "" : post.getImageURL();
+                                    Drop drop = dataSnapshot.getValue(Drop.class);
+                                    String imageUrl = drop.getImageURL() == null ? "" : drop.getImageURL();
                                     if (!imageUrl.equals("")) {
                                         ImageLoader imageLoader = ImageLoader.getInstance();
                                         imageLoader.init(ImageLoaderConfiguration.createDefault(getContext()));

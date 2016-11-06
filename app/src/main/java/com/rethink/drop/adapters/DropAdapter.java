@@ -20,7 +20,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
-import com.rethink.drop.models.Post;
+import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
 import com.squareup.picasso.Picasso;
 
@@ -28,8 +28,8 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 import static com.rethink.drop.DataManager.keys;
 
-public class PostsAdapter
-        extends RecyclerView.Adapter<PostsAdapter.ListingHolder> {
+public class DropAdapter
+        extends RecyclerView.Adapter<DropAdapter.ListingHolder> {
     private Context context;
 
     @Override
@@ -73,16 +73,16 @@ public class PostsAdapter
                         .addValueEventListener(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
-                                Post post = dataSnapshot.getValue(Post.class);
-                                if (post != null) {
-                                    String imageUrl = post.getImageURL() == null ? "" : post.getImageURL();
+                                Drop drop = dataSnapshot.getValue(Drop.class);
+                                if (drop != null) {
+                                    String imageUrl = drop.getImageURL() == null ? "" : drop.getImageURL();
 
                                     getPostImage(holder.itemView.getContext(), imageUrl, holder.imageView);
-                                    getProfileImage(post.getUserID(), holder.profile);
+                                    getProfileImage(drop.getUserID(), holder.profile);
 
                                     holder.imageView.setPadding(0, 0, 0, 0);
-                                    holder.title.setText(post.getTitle());
-                                    holder.desc.setText(post.getDescription());
+                                    holder.title.setText(drop.getTitle());
+                                    holder.desc.setText(drop.getDescription());
                                 }
                             }
 

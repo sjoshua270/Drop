@@ -16,8 +16,8 @@ import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.rethink.drop.fragments.DropFragment;
 import com.rethink.drop.fragments.ImageFragment;
-import com.rethink.drop.fragments.ListingFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 
@@ -42,7 +42,7 @@ class FragmentJuggler {
                 switchFragments(LocalFragment.newInstance());
                 break;
             case LISTING:
-                switchFragments(ListingFragment.newInstance(key));
+                switchFragments(DropFragment.newInstance(key));
                 break;
             case PROFILE:
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -75,7 +75,7 @@ class FragmentJuggler {
     }
 
     void viewListing(View listingView, Bitmap image, String key) throws IOException {
-        Fragment listingFragment = ListingFragment.newInstance(key, image);
+        Fragment listingFragment = DropFragment.newInstance(key, image);
         transitionFragments(getCurrentFragment(), listingFragment,
                 new View[]{
                         listingView.findViewById(R.id.item_image),

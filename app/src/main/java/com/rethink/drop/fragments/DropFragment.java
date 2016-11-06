@@ -45,7 +45,7 @@ import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.Utilities;
 import com.rethink.drop.interfaces.ImageHandler;
-import com.rethink.drop.models.Post;
+import com.rethink.drop.models.Drop;
 import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
@@ -53,9 +53,9 @@ import java.io.IOException;
 import java.util.Calendar;
 
 import static com.rethink.drop.MainActivity.userLocation;
-import static com.rethink.drop.models.Post.KEY;
+import static com.rethink.drop.models.Drop.KEY;
 
-public class ListingFragment
+public class DropFragment
         extends Fragment
         implements OnMapReadyCallback,
                    ImageHandler {
@@ -77,15 +77,15 @@ public class ListingFragment
     private String imageURL;
     private DatabaseReference postRef;
 
-    public static ListingFragment newInstance(String key) {
+    public static DropFragment newInstance(String key) {
         Bundle args = new Bundle();
         args.putString(KEY, key);
-        ListingFragment fragment = new ListingFragment();
+        DropFragment fragment = new DropFragment();
         fragment.setArguments(args);
         return fragment;
     }
 
-    public static ListingFragment newInstance(String key, Bitmap image) throws IOException {
+    public static DropFragment newInstance(String key, Bitmap image) throws IOException {
         Bundle args = new Bundle();
         args.putString(KEY, key);
         if (image != null) {
@@ -95,7 +95,7 @@ public class ListingFragment
             args.putByteArray(IMAGE, byteArray);
             stream.close();
         }
-        ListingFragment fragment = new ListingFragment();
+        DropFragment fragment = new DropFragment();
         fragment.setArguments(args);
         return fragment;
     }
@@ -193,9 +193,9 @@ public class ListingFragment
             postRef.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    Post post = dataSnapshot.getValue(Post.class);
-                    if (post != null) {
-                        imageURL = post.getImageURL() == null ? "" : post.getImageURL();
+                    Drop drop = dataSnapshot.getValue(Drop.class);
+                    if (drop != null) {
+                        imageURL = drop.getImageURL() == null ? "" : drop.getImageURL();
                         if (!imageURL.equals("")) {
                             Picasso.with(getContext())
                                    .load(imageURL)
@@ -211,11 +211,11 @@ public class ListingFragment
                         } else {
                             imageView.setVisibility(View.VISIBLE);
                         }
-                        title.setText(post.getTitle());
-                        desc.setText(post.getDescription());
-                        inputTitle.setText(post.getTitle());
-                        inputDesc.setText(post.getDescription());
-                        setMap(post);
+                        title.setText(drop.getTitle());
+                        desc.setText(drop.getDescription());
+                        inputTitle.setText(drop.getTitle());
+                        inputDesc.setText(drop.getDescription());
+                        setMap(drop);
                     }
                 }
 
@@ -293,7 +293,7 @@ public class ListingFragment
             if (image != null && imageChanged) {
                 uploadImage(key, filename);
             } else {
-                saveListing(key, new Post(
+                saveListing(key, new Drop(
                         user.getUid(),
                         Calendar.getInstance()
                                 .getTimeInMillis(),
@@ -319,7 +319,7 @@ public class ListingFragment
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 Uri downloadUrl = taskSnapshot.getDownloadUrl();
                 if (downloadUrl != null) {
-                    saveListing(key, new Post(
+                    saveListing(key, new Drop(
                             user.getUid(),
                             Calendar.getInstance().getTimeInMillis(),
                             downloadUrl.toString(),
@@ -335,7 +335,7 @@ public class ListingFragment
         });
     }
 
-    private void saveListing(String key, Post post) {
+    private void saveListing(String key, Drop drop) {
         new GeoFire(
                 FirebaseDatabase.getInstance()
                                 .getReference()
@@ -345,7 +345,7 @@ public class ListingFragment
                         new GeoLocation(
                                 userLocation.latitude,
                                 userLocation.longitude));
-        ref.setValue(post);
+        ref.setValue(drop);
         Bundle args = getArguments();
         args.putString(KEY, key);
         getPostData(key);
@@ -377,14 +377,14 @@ public class ListingFragment
         this.googleMap = googleMap;
     }
 
-    private void setMap(final Post post) {
+    private void setMap(final Drop drop) {
         if (googleMap != null) {
             if (editing) {
                 googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                     @Override
                     public void onMapClick(LatLng latLng) {
                         userLocation = latLng;
-                        updateMapPin(post);
+                        updateMapPin(drop);
                     }
                 });
             } else {
@@ -395,7 +395,7 @@ public class ListingFragment
             }
             googleMap.getUiSettings()
                      .setMapToolbarEnabled(false);
-            updateMapPin(post);
+            updateMapPin(drop);
         }
     }
 
@@ -403,8 +403,8 @@ public class ListingFragment
         updateMapPin(userLocation, "You are here");
     }
 
-    public void updateMapPin(Post post) {
-        updateMapPin(post.getLatLng(), post.getTitle());
+    public void updateMapPin(Drop drop) {
+        updateMapPin(drop.getLatLng(), drop.getTitle());
     }
 
     private void updateMapPin(LatLng location, String title) {
