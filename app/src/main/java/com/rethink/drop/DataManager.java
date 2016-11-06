@@ -12,7 +12,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.adapters.ListingsAdapter;
-import com.rethink.drop.models.Listing;
+import com.rethink.drop.models.Post;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +22,7 @@ import static com.rethink.drop.MainActivity.userLocation;
 public class DataManager {
 
     public static ArrayList<String> keys;
-    public static HashMap<String, Listing> listings;
+    public static HashMap<String, Post> listings;
     private static Double scanRadius;
     private static DataListener dataListener;
     private static GeoQueryListener geoQueryListener;
@@ -119,10 +119,10 @@ public class DataManager {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
             final String key = dataSnapshot.getKey();
-            Listing listing = dataSnapshot.getValue(Listing.class);
-            if (listing != null) {
-                listings.put(key, listing);
-                Double distance = listing.getDistanceFromUser(userLocation);
+            Post post = dataSnapshot.getValue(Post.class);
+            if (post != null) {
+                listings.put(key, post);
+                Double distance = post.getDistanceFromUser(userLocation);
                 Double distanceToCompare;
                 int scanIndex = keys.indexOf(key);
                 if (keys.size() > 0) {

@@ -46,7 +46,7 @@ import static com.rethink.drop.FragmentJuggler.IMAGE;
 import static com.rethink.drop.FragmentJuggler.LISTING;
 import static com.rethink.drop.FragmentJuggler.LOCAL;
 import static com.rethink.drop.FragmentJuggler.PROFILE;
-import static com.rethink.drop.models.Listing.KEY;
+import static com.rethink.drop.models.Post.KEY;
 
 public class MainActivity
         extends AppCompatActivity

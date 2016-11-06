@@ -11,14 +11,14 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.rethink.drop.fragments.ListingFragment;
 import com.rethink.drop.fragments.ProfileFragment;
-import com.rethink.drop.models.Listing;
+import com.rethink.drop.models.Post;
 
 import static com.rethink.drop.DataManager.listings;
 import static com.rethink.drop.FragmentJuggler.CURRENT;
 import static com.rethink.drop.FragmentJuggler.LISTING;
 import static com.rethink.drop.FragmentJuggler.LOCAL;
 import static com.rethink.drop.FragmentJuggler.PROFILE;
-import static com.rethink.drop.models.Listing.KEY;
+import static com.rethink.drop.models.Post.KEY;
 
 final class FabManager {
 
@@ -42,9 +42,9 @@ final class FabManager {
                 if (((ListingFragment) fragmentJuggler.getCurrentFragment()).isEditing()) {
                     setDrawable(R.drawable.ic_save_white_24dp);
                 } else {
-                    Listing listing = listings.get(key);
+                    Post post = listings.get(key);
                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                    if (user != null && user.getUid().equals(listing.getUserID())) {
+                    if (user != null && user.getUid().equals(post.getUserID())) {
                         setDrawable(R.drawable.ic_mode_edit_white_24px);
                     }
                 }

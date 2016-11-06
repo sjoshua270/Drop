@@ -15,10 +15,10 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.rethink.drop.R;
-import com.rethink.drop.models.Listing;
+import com.rethink.drop.models.Post;
 
 import static com.rethink.drop.DataManager.listings;
-import static com.rethink.drop.models.Listing.KEY;
+import static com.rethink.drop.models.Post.KEY;
 
 public class ImageFragment
         extends Fragment {
@@ -38,8 +38,8 @@ public class ImageFragment
         super.onCreateView(inflater, container, savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_image, container, false);
         imageView = (SubsamplingScaleImageView) v.findViewById(R.id.full_image);
-        Listing listing = listings.get(getArguments().getString(KEY));
-        String imageUrl = listing.getImageURL() == null ? "" : listing.getImageURL();
+        Post post = listings.get(getArguments().getString(KEY));
+        String imageUrl = post.getImageURL() == null ? "" : post.getImageURL();
         if (!imageUrl.equals("") && container != null) {
             ImageLoader imageLoader = ImageLoader.getInstance();
             imageLoader.init(ImageLoaderConfiguration.createDefault(getContext()));

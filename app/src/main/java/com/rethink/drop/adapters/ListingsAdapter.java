@@ -19,7 +19,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
-import com.rethink.drop.models.Listing;
+import com.rethink.drop.models.Post;
 import com.rethink.drop.models.Profile;
 import com.squareup.picasso.Picasso;
 
@@ -50,10 +50,10 @@ public class ListingsAdapter
     @Override
     public void onBindViewHolder(final ListingHolder holder, final int position) {
         final String key = keys.get(position);
-        final Listing listing = listings.get(key);
+        final Post post = listings.get(key);
 
         holder.imageView.setPadding(0, 0, 0, 0);
-        String imageUrl = listing.getImageURL() == null ? "" : listing.getImageURL();
+        String imageUrl = post.getImageURL() == null ? "" : post.getImageURL();
         if (!imageUrl.equals("")) {
             WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
             Display display = wm.getDefaultDisplay();
@@ -80,7 +80,7 @@ public class ListingsAdapter
         FirebaseDatabase.getInstance()
                         .getReference()
                         .child("profiles")
-                        .child(listing.getUserID())
+                        .child(post.getUserID())
                         .addValueEventListener(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -105,22 +105,22 @@ public class ListingsAdapter
                             }
                         });
 
-        holder.title.setText(listing.getTitle());
+        holder.title.setText(post.getTitle());
         ViewCompat.setTransitionName(holder.title, "title_" + key);
 
-        holder.desc.setText(listing.getDescription());
+        holder.desc.setText(post.getDescription());
         ViewCompat.setTransitionName(holder.desc, "desc_" + key);
 
         double distance;
         if (useMetric(Locale.getDefault())) {
             distance = distanceInKilometers(
-                    MainActivity.userLocation.latitude, listing.getLatitude(),
-                    MainActivity.userLocation.longitude, listing.getLongitude()
+                    MainActivity.userLocation.latitude, post.getLatitude(),
+                    MainActivity.userLocation.longitude, post.getLongitude()
             );
         } else {
             distance = distanceInMiles(
-                    MainActivity.userLocation.latitude, listing.getLatitude(),
-                    MainActivity.userLocation.longitude, listing.getLongitude()
+                    MainActivity.userLocation.latitude, post.getLatitude(),
+                    MainActivity.userLocation.longitude, post.getLongitude()
             );
         }
         distance = Math.round(distance * 100);
@@ -129,10 +129,10 @@ public class ListingsAdapter
         holder.dist.setText(String.format(formatString, String.valueOf(distance)));
 
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
-        holder.timeStampDay.setText(sdf.format(listing.getTimestamp()));
+        holder.timeStampDay.setText(sdf.format(post.getTimestamp()));
 
         sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
-        holder.timeStampTime.setText(sdf.format(listing.getTimestamp()));
+        holder.timeStampTime.setText(sdf.format(post.getTimestamp()));
 
         ViewCompat.setTransitionName(holder.imageView, "image_" + key);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
