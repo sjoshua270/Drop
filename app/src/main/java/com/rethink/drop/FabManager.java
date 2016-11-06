@@ -9,11 +9,14 @@ import android.view.animation.AnimationUtils;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.fragments.ListingFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.models.Post;
 
-import static com.rethink.drop.DataManager.posts;
 import static com.rethink.drop.FragmentJuggler.CURRENT;
 import static com.rethink.drop.FragmentJuggler.LISTING;
 import static com.rethink.drop.FragmentJuggler.LOCAL;
@@ -42,11 +45,27 @@ final class FabManager {
                 if (((ListingFragment) fragmentJuggler.getCurrentFragment()).isEditing()) {
                     setDrawable(R.drawable.ic_save_white_24dp);
                 } else {
-                    Post post = posts.get(key);
-                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                    if (user != null && user.getUid().equals(post.getUserID())) {
-                        setDrawable(R.drawable.ic_mode_edit_white_24px);
-                    }
+                    FirebaseDatabase.getInstance()
+                                    .getReference()
+                                    .child("posts")
+                                    .child(key)
+                                    .addValueEventListener(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                            Post post = dataSnapshot.getValue(Post.class);
+                                            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                                            if (user != null && user.getUid().equals(post.getUserID())) {
+                                                setDrawable(R.drawable.ic_mode_edit_white_24px);
+                                            }
+
+                                        }
+
+                                        @Override
+                                        public void onCancelled(DatabaseError databaseError) {
+
+                                        }
+                                    });
+
                 }
             } else {
                 setDrawable(R.drawable.ic_send_white_24px);

@@ -52,7 +52,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Calendar;
 
-import static com.rethink.drop.DataManager.posts;
 import static com.rethink.drop.MainActivity.userLocation;
 import static com.rethink.drop.models.Post.KEY;
 
@@ -64,19 +63,18 @@ public class ListingFragment
     private static final String IMAGE = "image";
     private Bitmap image;
     private ImageView imageView;
-    private Post post;
     private MapView mapView;
     private TextView title;
     private TextView desc;
     private TextInputEditText inputTitle;
     private TextInputEditText inputDesc;
-    private ViewGroup container;
     private Boolean imageChanged;
     private CoordinatorLayout cLayout;
     private DatabaseReference ref;
     private FirebaseUser user;
     private GoogleMap googleMap;
     private Boolean editing;
+    private String imageURL;
 
     public static ListingFragment newInstance(String key) {
         Bundle args = new Bundle();
@@ -119,7 +117,6 @@ public class ListingFragment
                 image = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
             }
             String key = args.getString(KEY);
-            post = posts.get(key);
             editing = key == null;
         }
     }
@@ -128,7 +125,6 @@ public class ListingFragment
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable
             Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        this.container = container;
         String key = getArguments().getString(KEY);
         if (key != null) {
             FirebaseDatabase.getInstance()
@@ -139,10 +135,10 @@ public class ListingFragment
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     Post post = dataSnapshot.getValue(Post.class);
                     if (post != null) {
-                        String imageUrl = post.getImageURL() == null ? "" : post.getImageURL();
-                        if (!imageUrl.equals("")) {
+                        imageURL = post.getImageURL() == null ? "" : post.getImageURL();
+                        if (!imageURL.equals("")) {
                             Picasso.with(getContext())
-                                   .load(imageUrl)
+                                   .load(imageURL)
                                    .placeholder(new BitmapDrawable(getResources(), image))
                                    .resize(getContext().getResources()
                                                        .getDimensionPixelSize(R.dimen.listing_image_dimen),
@@ -155,6 +151,11 @@ public class ListingFragment
                         } else {
                             imageView.setVisibility(View.VISIBLE);
                         }
+                        title.setText(post.getTitle());
+                        desc.setText(post.getDescription());
+                        inputTitle.setText(post.getTitle());
+                        inputDesc.setText(post.getDescription());
+                        setMap(post);
                     }
                 }
 
@@ -198,17 +199,6 @@ public class ListingFragment
         getActivity().startActivityForResult(Intent.createChooser(intent, "Select Picture"), MainActivity.GALLERY_REQUEST);
     }
 
-    private void displayListing(Post post) {
-        this.post = post;
-        if (post != null) {
-            title.setText(post.getTitle());
-            desc.setText(post.getDescription());
-            inputTitle.setText(post.getTitle());
-            inputDesc.setText(post.getDescription());
-            setMap();
-        }
-    }
-
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_edit, menu);
@@ -234,7 +224,6 @@ public class ListingFragment
             title.setVisibility(View.VISIBLE);
             desc.setVisibility(View.VISIBLE);
         }
-        displayListing(post);
         setHasOptionsMenu(editing);
     }
 
@@ -269,18 +258,17 @@ public class ListingFragment
             if (image != null && imageChanged) {
                 uploadImage(key, filename);
             } else {
-                post = new Post(
+                saveListing(key, new Post(
                         user.getUid(),
                         Calendar.getInstance()
                                 .getTimeInMillis(),
-                        post != null ? post.getImageURL() : "",
+                        imageURL,
                         inputTitle.getText()
                                   .toString(),
                         inputDesc.getText()
                                  .toString(),
                         userLocation.latitude,
-                        userLocation.longitude);
-                saveListing(key, post);
+                        userLocation.longitude));
                 toggleState();
             }
         }
@@ -296,15 +284,14 @@ public class ListingFragment
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 Uri downloadUrl = taskSnapshot.getDownloadUrl();
                 if (downloadUrl != null) {
-                    post = new Post(
+                    saveListing(key, new Post(
                             user.getUid(),
                             Calendar.getInstance().getTimeInMillis(),
                             downloadUrl.toString(),
                             inputTitle.getText().toString(),
                             inputDesc.getText().toString(),
                             userLocation.latitude,
-                            userLocation.longitude);
-                    saveListing(key, post);
+                            userLocation.longitude));
                     toggleState();
                 } else {
                     Snackbar.make(cLayout, R.string.unexpected_error, Snackbar.LENGTH_LONG).show();
@@ -314,7 +301,6 @@ public class ListingFragment
     }
 
     private void saveListing(String key, Post post) {
-        posts.put(key, post);
         new GeoFire(
                 FirebaseDatabase.getInstance()
                                 .getReference()
@@ -353,17 +339,16 @@ public class ListingFragment
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
-        setMap();
     }
 
-    private void setMap() {
+    private void setMap(final Post post) {
         if (googleMap != null) {
             if (editing) {
                 googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                     @Override
                     public void onMapClick(LatLng latLng) {
                         userLocation = latLng;
-                        updateMapPin();
+                        updateMapPin(post);
                     }
                 });
             } else {
@@ -374,19 +359,19 @@ public class ListingFragment
             }
             googleMap.getUiSettings()
                      .setMapToolbarEnabled(false);
-            updateMapPin();
+            updateMapPin(post);
         }
     }
 
     public void updateMapPin() {
-        LatLng location;
-        String title = "You are here";
-        if (editing) {
-            location = userLocation;
-        } else {
-            location = post.getLatLng();
-            title = post.getTitle();
-        }
+        updateMapPin(userLocation, "You are here");
+    }
+
+    public void updateMapPin(Post post) {
+        updateMapPin(post.getLatLng(), post.getTitle());
+    }
+
+    private void updateMapPin(LatLng location, String title) {
         googleMap.clear();
         googleMap.addMarker(new MarkerOptions()
                 .position(location)
@@ -396,6 +381,7 @@ public class ListingFragment
                               .target(location)
                               .zoom(20f)
                               .build()));
+
     }
 
     @Override

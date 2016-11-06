@@ -17,12 +17,9 @@ import com.rethink.drop.models.Post;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static com.rethink.drop.MainActivity.userLocation;
-
 public class DataManager {
 
     public static ArrayList<String> keys;
-    public static HashMap<String, Post> posts;
     private static Double scanRadius;
     private static DataListener dataListener;
     private static GeoQueryListener geoQueryListener;
@@ -33,7 +30,6 @@ public class DataManager {
     public DataManager(PostsAdapter postsAdapter) {
         scanRadius = 10.0;
         keys = new ArrayList<>();
-        posts = new HashMap<>();
         dataListener = new DataListener();
         geoQueryListener = new GeoQueryListener();
         refs = new HashMap<>();
@@ -75,9 +71,16 @@ public class DataManager {
 
     private void removeListing(String key) {
         refs.remove(key);
-        posts.remove(key);
         postsAdapter.notifyItemRemoved(keys.indexOf(key));
         keys.remove(key);
+    }
+
+    public ArrayList<String> getKeys() {
+        return keys;
+    }
+
+    public void setKeys(ArrayList<String> keys) {
+        DataManager.keys = keys;
     }
 
     private class GeoQueryListener
@@ -121,32 +124,11 @@ public class DataManager {
             final String key = dataSnapshot.getKey();
             Post post = dataSnapshot.getValue(Post.class);
             if (post != null) {
-                posts.put(key, post);
-                Double distance = post.getDistanceFromUser(userLocation);
-                Double distanceToCompare;
-                int scanIndex = keys.indexOf(key);
-                if (keys.size() > 0) {
-                    if (scanIndex < 0) {
-                        // While the key hasn't been inserted yet
-                        while (keys.indexOf(key) < 0) {
-                            scanIndex += 1;
-                            if (scanIndex == keys.size()) {
-                                keys.add(scanIndex, key);
-                            } else {
-                                distanceToCompare = posts.get(keys.get(scanIndex))
-                                                         .getDistanceFromUser(userLocation);
-                                if (distance < distanceToCompare) {
-                                    keys.add(scanIndex, key);
-                                }
-                            }
-                        }
-                        postsAdapter.notifyItemInserted(scanIndex);
-                    } else {
-                        postsAdapter.notifyItemChanged(scanIndex);
-                    }
-                } else {
+                if (keys.indexOf(key) < 0) {
                     keys.add(key);
                     postsAdapter.notifyItemInserted(keys.indexOf(key));
+                } else {
+                    postsAdapter.notifyItemChanged(keys.indexOf(key));
                 }
             } else {
                 removeListing(key);

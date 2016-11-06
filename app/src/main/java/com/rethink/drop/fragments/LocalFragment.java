@@ -23,6 +23,7 @@ import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
 
 public class LocalFragment
         extends Fragment {
+    private static final String KEYS = "keys";
     private PostsAdapter postsAdapter;
     private ScrollListener scrollListener;
     private DataManager dataManager;
@@ -42,6 +43,9 @@ public class LocalFragment
         postsAdapter = new PostsAdapter();
         scrollListener = new ScrollListener();
         dataManager = new DataManager(postsAdapter);
+        if (savedInstanceState != null) {
+            dataManager.setKeys(savedInstanceState.getStringArrayList(KEYS));
+        }
         setHasOptionsMenu(true);
     }
 
@@ -86,6 +90,12 @@ public class LocalFragment
     public void onResume() {
         super.onResume();
         dataManager.attachListeners();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putStringArrayList(KEYS, dataManager.getKeys());
+        super.onSaveInstanceState(outState);
     }
 
     private class ScrollListener

@@ -30,7 +30,6 @@ import java.util.Locale;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import static com.rethink.drop.DataManager.keys;
-import static com.rethink.drop.DataManager.posts;
 import static com.rethink.drop.Utilities.distanceInKilometers;
 import static com.rethink.drop.Utilities.distanceInMiles;
 import static com.rethink.drop.Utilities.getDistanceString;
@@ -51,60 +50,103 @@ public class PostsAdapter
     @Override
     public void onBindViewHolder(final ListingHolder holder, final int position) {
         final String key = keys.get(position);
-        final Post post = posts.get(key);
-
-        holder.imageView.setPadding(0, 0, 0, 0);
-        String imageUrl = post.getImageURL() == null ? "" : post.getImageURL();
-        if (!imageUrl.equals("")) {
-            WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-            Display display = wm.getDefaultDisplay();
-            Point size = new Point();
-            display.getSize(size);
-            int width = size.x;
-            Picasso.with(context)
-                   .load(imageUrl)
-                   .placeholder(R.drawable.ic_photo_camera_white_24px)
-                   .resize(width,
-                           context.getResources()
-                                  .getDimensionPixelSize(R.dimen.item_image_height))
-                   .centerCrop()
-                   .into(holder.imageView);
-        } else {
-            holder.imageView.setImageResource(R.drawable.ic_photo_camera_white_24px);
-            int padding = holder.itemView.getContext()
-                                         .getResources()
-                                         .getDimensionPixelSize(
-                                                 R.dimen.listing_padding);
-            holder.imageView.setPadding(padding, padding, padding, padding);
-        }
-
         FirebaseDatabase.getInstance()
                         .getReference()
-                        .child("profiles")
-                        .child(post.getUserID())
+                        .child("posts")
+                        .child(key)
                         .addValueEventListener(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
-                                Profile profile = dataSnapshot.getValue(Profile.class);
-                                if (profile != null) {
-                                    String imageUrl = profile.getImageURL() == null ? "" : profile.getImageURL();
-                                    if (!imageUrl.equals("")) {
-                                        Picasso.with(context)
-                                               .load(imageUrl)
-                                               .placeholder(R.drawable.ic_photo_camera_white_24px)
-                                               .resize(context.getResources()
-                                                              .getDimensionPixelSize(R.dimen.listing_prof_dimen),
-                                                       context.getResources()
-                                                              .getDimensionPixelSize(R.dimen.listing_prof_dimen))
-                                               .centerCrop()
-                                               .into(holder.profile);
-                                    } else {
-                                        holder.profile.setImageDrawable(
-                                                ContextCompat.getDrawable(
-                                                        context,
-                                                        R.drawable.ic_person_black_24dp));
-                                    }
+                                Post post = dataSnapshot.getValue(Post.class);
+                                String imageUrl = post.getImageURL() == null ? "" : post.getImageURL();
+                                if (!imageUrl.equals("")) {
+                                    WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+                                    Display display = wm.getDefaultDisplay();
+                                    Point size = new Point();
+                                    display.getSize(size);
+                                    int width = size.x;
+                                    Picasso.with(context)
+                                           .load(imageUrl)
+                                           .placeholder(R.drawable.ic_photo_camera_white_24px)
+                                           .resize(width,
+                                                   context.getResources()
+                                                          .getDimensionPixelSize(R.dimen.item_image_height))
+                                           .centerCrop()
+                                           .into(holder.imageView);
+                                } else {
+                                    holder.imageView.setImageResource(R.drawable.ic_photo_camera_white_24px);
+                                    int padding = holder.itemView.getContext()
+                                                                 .getResources()
+                                                                 .getDimensionPixelSize(
+                                                                         R.dimen.listing_padding);
+                                    holder.imageView.setPadding(padding, padding, padding, padding);
                                 }
+
+                                FirebaseDatabase.getInstance()
+                                                .getReference()
+                                                .child("profiles")
+                                                .child(post.getUserID())
+                                                .addValueEventListener(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                                        Profile profile = dataSnapshot.getValue(Profile.class);
+                                                        if (profile != null) {
+                                                            String imageUrl = profile.getImageURL() == null ? "" : profile.getImageURL();
+                                                            if (!imageUrl.equals("")) {
+                                                                Picasso.with(context)
+                                                                       .load(imageUrl)
+                                                                       .placeholder(R.drawable.ic_photo_camera_white_24px)
+                                                                       .resize(context.getResources()
+                                                                                      .getDimensionPixelSize(R.dimen.listing_prof_dimen),
+                                                                               context.getResources()
+                                                                                      .getDimensionPixelSize(R.dimen.listing_prof_dimen))
+                                                                       .centerCrop()
+                                                                       .into(holder.profile);
+                                                            } else {
+                                                                holder.profile.setImageDrawable(
+                                                                        ContextCompat.getDrawable(
+                                                                                context,
+                                                                                R.drawable.ic_person_black_24dp));
+                                                            }
+                                                        }
+                                                    }
+
+                                                    @Override
+                                                    public void onCancelled(DatabaseError databaseError) {
+
+                                                    }
+                                                });
+                                holder.imageView.setPadding(0, 0, 0, 0);
+
+                                holder.title.setText(post.getTitle());
+                                ViewCompat.setTransitionName(holder.title, "title_" + key);
+
+                                holder.desc.setText(post.getDescription());
+                                ViewCompat.setTransitionName(holder.desc, "desc_" + key);
+
+                                double distance;
+                                if (useMetric(Locale.getDefault())) {
+                                    distance = distanceInKilometers(
+                                            MainActivity.userLocation.latitude, post.getLatitude(),
+                                            MainActivity.userLocation.longitude, post.getLongitude()
+                                    );
+                                } else {
+                                    distance = distanceInMiles(
+                                            MainActivity.userLocation.latitude, post.getLatitude(),
+                                            MainActivity.userLocation.longitude, post.getLongitude()
+                                    );
+                                }
+                                distance = Math.round(distance * 100);
+                                distance /= 100;
+                                String formatString = getDistanceString(Locale.getDefault());
+                                holder.dist.setText(String.format(formatString, String.valueOf(distance)));
+
+                                SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                                holder.timeStampDay.setText(sdf.format(post.getTimestamp()));
+
+                                sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+                                holder.timeStampTime.setText(sdf.format(post.getTimestamp()));
+
                             }
 
                             @Override
@@ -112,35 +154,6 @@ public class PostsAdapter
 
                             }
                         });
-
-        holder.title.setText(post.getTitle());
-        ViewCompat.setTransitionName(holder.title, "title_" + key);
-
-        holder.desc.setText(post.getDescription());
-        ViewCompat.setTransitionName(holder.desc, "desc_" + key);
-
-        double distance;
-        if (useMetric(Locale.getDefault())) {
-            distance = distanceInKilometers(
-                    MainActivity.userLocation.latitude, post.getLatitude(),
-                    MainActivity.userLocation.longitude, post.getLongitude()
-            );
-        } else {
-            distance = distanceInMiles(
-                    MainActivity.userLocation.latitude, post.getLatitude(),
-                    MainActivity.userLocation.longitude, post.getLongitude()
-            );
-        }
-        distance = Math.round(distance * 100);
-        distance /= 100;
-        String formatString = getDistanceString(Locale.getDefault());
-        holder.dist.setText(String.format(formatString, String.valueOf(distance)));
-
-        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
-        holder.timeStampDay.setText(sdf.format(post.getTimestamp()));
-
-        sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
-        holder.timeStampTime.setText(sdf.format(post.getTimestamp()));
 
         ViewCompat.setTransitionName(holder.imageView, "image_" + key);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
