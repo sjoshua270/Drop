@@ -1,12 +1,15 @@
 package com.rethink.drop.adapters;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -45,13 +48,17 @@ public class ListingsAdapter
         holder.imageView.setPadding(0, 0, 0, 0);
         String imageUrl = listing.getImageURL() == null ? "" : listing.getImageURL();
         if (!imageUrl.equals("")) {
+            WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+            Display display = wm.getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            int width = size.x;
             Picasso.with(context)
                    .load(imageUrl)
                    .placeholder(R.drawable.ic_photo_camera_white_24px)
-                   .resize(context.getResources()
-                                  .getDimensionPixelSize(R.dimen.item_image_dimen),
+                   .resize(width,
                            context.getResources()
-                                  .getDimensionPixelSize(R.dimen.item_image_dimen))
+                                  .getDimensionPixelSize(R.dimen.item_image_height))
                    .centerCrop()
                    .into(holder.imageView);
         } else {

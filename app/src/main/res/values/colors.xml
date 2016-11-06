@@ -6,4 +6,5 @@
     <color name="accent">#0091ea</color>
     <color name="divider">#BDBDBD</color>
 
+    <color name="listing_item_details_background">#afffffff</color>
 </resources>
