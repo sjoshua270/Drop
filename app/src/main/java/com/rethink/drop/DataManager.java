@@ -23,6 +23,7 @@ public class DataManager {
     private static Double scanRadius;
     private static DataListener dataListener;
     private static GeoQueryListener geoQueryListener;
+    private static Boolean geoQueryDone;
     private final HashMap<String, DatabaseReference> refs;
     private final DropAdapter dropAdapter;
     private GeoQuery geoQuery;
@@ -32,6 +33,7 @@ public class DataManager {
         keys = new ArrayList<>();
         dataListener = new DataListener();
         geoQueryListener = new GeoQueryListener();
+        geoQueryDone = false;
         refs = new HashMap<>();
         this.dropAdapter = dropAdapter;
     }
@@ -43,12 +45,14 @@ public class DataManager {
                                                    .child("geoFire")
             ).queryAtLocation(geoLocation, scanRadius);
         }
+        geoQueryDone = false;
         geoQuery.setCenter(geoLocation);
     }
 
     public void expandRadius() {
         if (scanRadius < 100.0) {
             scanRadius += 10.0;
+            geoQueryDone = false;
             geoQuery.setRadius(scanRadius);
         }
     }
@@ -83,6 +87,12 @@ public class DataManager {
         DataManager.keys = keys;
     }
 
+    private void updateAdapter() {
+        if (geoQueryDone) {
+            dropAdapter.notifyDataSetChanged();
+        }
+    }
+
     private class GeoQueryListener
             implements GeoQueryEventListener {
         @Override
@@ -107,7 +117,7 @@ public class DataManager {
 
         @Override
         public void onGeoQueryReady() {
-
+            geoQueryDone = true;
         }
 
         @Override
@@ -126,12 +136,12 @@ public class DataManager {
             if (drop != null) {
                 if (keys.indexOf(key) < 0) {
                     keys.add(key);
-                    dropAdapter.notifyItemInserted(keys.indexOf(key));
-                } else {
-                    dropAdapter.notifyItemChanged(keys.indexOf(key));
                 }
             } else {
                 removeListing(key);
+            }
+            if (geoQueryDone && keys.size() == refs.size()) {
+                updateAdapter();
             }
         }
 
