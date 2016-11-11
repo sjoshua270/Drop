@@ -80,7 +80,7 @@ public class MainActivity
 
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
-            fragmentJuggler.openFragment(LOCAL, null);
+            openFragment(LOCAL, null);
         }
 
         fab = new FabManager(
@@ -96,7 +96,7 @@ public class MainActivity
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        fragmentJuggler.openFragment(
+        openFragment(
                 savedInstanceState.getInt(STATE_FRAGMENT),
                 savedInstanceState.getString(STATE_KEY));
         userLocation = new LatLng(savedInstanceState.getDouble(STATE_LAT),
@@ -118,7 +118,7 @@ public class MainActivity
             public void onClick(View view) {
                 if (CURRENT == LOCAL) {
                     if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-                        fragmentJuggler.openFragment(LISTING, null);
+                        openFragment(LISTING, null);
                     } else {
                         startActivityForResult(
                                 // Get an instance of AuthUI based on the default app
@@ -138,6 +138,11 @@ public class MainActivity
                 }
             }
         });
+    }
+
+    private void openFragment(int id, String key) {
+        fab.hide();
+        fragmentJuggler.openFragment(id, key);
     }
 
     public void syncUI() {
@@ -194,14 +199,14 @@ public class MainActivity
     }
 
     public void viewImage(String key) {
-        fragmentJuggler.openFragment(IMAGE, key);
+        openFragment(IMAGE, key);
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
-                fragmentJuggler.openFragment(LISTING, null);
+                openFragment(LISTING, null);
             }
         }
         if (requestCode == GALLERY_REQUEST) {
@@ -234,7 +239,7 @@ public class MainActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.open_profile:
-                fragmentJuggler.openFragment(PROFILE, null);
+                openFragment(PROFILE, null);
                 break;
             case R.id.delete_listing:
                 String key = getSupportFragmentManager()
