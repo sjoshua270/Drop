@@ -36,7 +36,6 @@ final class FabManager {
     }
 
     void update() {
-        hide();
         if (CURRENT == LOCAL) {
             setDrawable(R.drawable.ic_add_white_24px);
         } else if (CURRENT == LISTING) {
@@ -88,7 +87,8 @@ final class FabManager {
         show();
     }
 
-    private void hide() {
+    void hide() {
+        fab.setClickable(false);
         Animation anim = AnimationUtils
                 .loadAnimation(context, R.anim.shrink_fade_out);
         anim.setAnimationListener(new Animation.AnimationListener() {
@@ -111,6 +111,7 @@ final class FabManager {
     }
 
     private void show() {
+        fab.setClickable(true);
         Animation anim = AnimationUtils
                 .loadAnimation(context, R.anim.grow_fade_in);
         anim.setAnimationListener(new Animation.AnimationListener() {
