@@ -332,12 +332,6 @@ public class MainActivity
                 userLocation = new LatLng(
                         location.getLatitude(),
                         location.getLongitude());
-
-                try {
-                    ((DropFragment) fragmentJuggler.getCurrentFragment()).updateMapPin();
-                } catch (ClassCastException ignored) {
-                }
-
                 updateListings();
             }
         }

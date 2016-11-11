@@ -1,37 +1,36 @@
 package com.rethink.drop.fragments;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.Point;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewCompat;
+import android.support.v7.widget.AppCompatTextView;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ViewSwitcher;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -57,13 +56,14 @@ import static com.rethink.drop.models.Drop.KEY;
 
 public class DropFragment
         extends Fragment
-        implements OnMapReadyCallback,
-                   ImageHandler {
+        implements ImageHandler {
 
     private static final String IMAGE = "image";
     private Bitmap image;
+    private Context context;
     private ImageView imageView;
-    private MapView mapView;
+    private ViewSwitcher titleSwitcher;
+    private ViewSwitcher descSwitcher;
     private TextView title;
     private TextView desc;
     private TextInputEditText inputTitle;
@@ -72,7 +72,6 @@ public class DropFragment
     private CoordinatorLayout cLayout;
     private DatabaseReference ref;
     private FirebaseUser user;
-    private GoogleMap googleMap;
     private Boolean editing;
     private String imageURL;
     private DatabaseReference postRef;
@@ -129,10 +128,6 @@ public class DropFragment
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable
             Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        String key = getArguments().getString(KEY);
-        if (key != null) {
-            getPostData(key);
-        }
 
         // TODO: Merge in this code
 //            double distance;
@@ -164,6 +159,9 @@ public class DropFragment
         ViewCompat.setTransitionName(imageView, "image");
         imageView.setOnClickListener(new ImageClickHandler());
 
+        titleSwitcher = (ViewSwitcher) fragmentView.findViewById(R.id.title_switcher);
+        descSwitcher = (ViewSwitcher) fragmentView.findViewById(R.id.description_switcher);
+
         title = (TextView) fragmentView.findViewById(R.id.listing_title);
         desc = (TextView) fragmentView.findViewById(R.id.listing_desc);
         ViewCompat.setTransitionName(title, "title");
@@ -174,14 +172,19 @@ public class DropFragment
         ViewCompat.setTransitionName(inputTitle, "input_title");
         ViewCompat.setTransitionName(inputDesc, "input_desc");
 
-        mapView = (MapView) fragmentView.findViewById(R.id.listing_map);
-        mapView.onCreate(null);
-        mapView.onResume();
-        mapView.getMapAsync(this);
-
         prepViews();
 
         return fragmentView;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        this.context = context;
+        String key = getArguments().getString(KEY);
+        if (key != null) {
+            getPostData(key);
+        }
     }
 
     private void getPostData(String key) {
@@ -197,13 +200,16 @@ public class DropFragment
                     if (drop != null) {
                         imageURL = drop.getImageURL() == null ? "" : drop.getImageURL();
                         if (!imageURL.equals("")) {
-                            Picasso.with(getContext())
+                            WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+                            Display display = wm.getDefaultDisplay();
+                            Point size = new Point();
+                            display.getSize(size);
+                            int width = size.x;
+                            Picasso.with(context)
                                    .load(imageURL)
-                                   .placeholder(new BitmapDrawable(getResources(), image))
-                                   .resize(getContext().getResources()
-                                                       .getDimensionPixelSize(R.dimen.listing_image_dimen),
-                                           getContext().getResources()
-                                                       .getDimensionPixelSize(R.dimen.listing_image_dimen))
+                                   .resize(width,
+                                           context.getResources()
+                                                  .getDimensionPixelSize(R.dimen.item_image_height))
                                    .centerCrop()
                                    .into(imageView);
                         } else if (!editing) {
@@ -215,7 +221,6 @@ public class DropFragment
                         desc.setText(drop.getDescription());
                         inputTitle.setText(drop.getTitle());
                         inputDesc.setText(drop.getDescription());
-                        setMap(drop);
                     }
                 }
 
@@ -249,15 +254,19 @@ public class DropFragment
 
     private void prepViews() {
         if (editing) {
-            title.setVisibility(View.GONE);
-            desc.setVisibility(View.GONE);
-            inputTitle.setVisibility(View.VISIBLE);
-            inputDesc.setVisibility(View.VISIBLE);
+            if (titleSwitcher.getNextView().getClass().equals(TextInputLayout.class)) {
+                titleSwitcher.showNext();
+            }
+            if (descSwitcher.getNextView().getClass().equals(TextInputLayout.class)) {
+                descSwitcher.showNext();
+            }
         } else {
-            inputTitle.setVisibility(View.GONE);
-            inputDesc.setVisibility(View.GONE);
-            title.setVisibility(View.VISIBLE);
-            desc.setVisibility(View.VISIBLE);
+            if (titleSwitcher.getNextView().getClass().equals(AppCompatTextView.class)) {
+                titleSwitcher.showNext();
+            }
+            if (descSwitcher.getNextView().getClass().equals(AppCompatTextView.class)) {
+                descSwitcher.showNext();
+            }
         }
         setHasOptionsMenu(editing);
     }
@@ -373,63 +382,13 @@ public class DropFragment
     }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-        this.googleMap = googleMap;
-    }
-
-    private void setMap(final Drop drop) {
-        if (googleMap != null) {
-            if (editing) {
-                googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-                    @Override
-                    public void onMapClick(LatLng latLng) {
-                        userLocation = latLng;
-                        updateMapPin(drop);
-                    }
-                });
-            } else {
-                googleMap.getUiSettings()
-                         .setAllGesturesEnabled(false);
-                googleMap.getUiSettings()
-                         .setMyLocationButtonEnabled(false);
-            }
-            googleMap.getUiSettings()
-                     .setMapToolbarEnabled(false);
-            updateMapPin(drop);
-        }
-    }
-
-    public void updateMapPin() {
-        updateMapPin(userLocation, "You are here");
-    }
-
-    public void updateMapPin(Drop drop) {
-        updateMapPin(drop.getLatLng(), drop.getTitle());
-    }
-
-    private void updateMapPin(LatLng location, String title) {
-        googleMap.clear();
-        googleMap.addMarker(new MarkerOptions()
-                .position(location)
-                .title(title));
-        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(
-                CameraPosition.builder()
-                              .target(location)
-                              .zoom(20f)
-                              .build()));
-
-    }
-
-    @Override
     public void onPause() {
         super.onPause();
-        mapView.onPause();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mapView.onDestroy();
     }
 
     private class ImageClickHandler
