@@ -54,13 +54,14 @@ public class MainActivity
                    ConnectionCallbacks,
                    LocationListener {
     public static final int GALLERY_REQUEST = 3;
+    public static final String EDITING = "editing";
     private final static float degreesPerMile = 0.01449275362f;
     public static LatLng userLocation;
     private static GoogleApiClient googleApiClient;
     private final int RC_SIGN_IN = 1;
     private final int LOCATION_REQUEST = 2;
     private final String STATE_FRAGMENT = "state_fragment";
-    private final String STATE_KEY = "state_fragment";
+    private final String STATE_KEY = "state_key";
     private final String STATE_LAT = "state_latitude";
     private final String STATE_LON = "state_longitude";
     private FabManager fab;
@@ -79,14 +80,12 @@ public class MainActivity
                 .build();
 
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
+        fab = new FabManager(
+                this,
+                (FloatingActionButton) findViewById(R.id.fab));
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
             openFragment(LOCAL, null);
         }
-
-        fab = new FabManager(
-                this,
-                (FloatingActionButton) findViewById(R.id.fab),
-                fragmentJuggler);
 
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         setFabListener((FloatingActionButton) findViewById(R.id.fab));
@@ -147,7 +146,10 @@ public class MainActivity
 
     public void syncUI() {
         syncUpNav();
-        fab.update();
+        Bundle args = fragmentJuggler.getCurrentFragment().getArguments();
+        String key = args.getString(KEY);
+        Boolean isEditing = args.getBoolean(EDITING);
+        fab.update(CURRENT, key, isEditing);
     }
 
     public void dismissKeyboard() {

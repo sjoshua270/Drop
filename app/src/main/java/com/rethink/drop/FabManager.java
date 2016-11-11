@@ -13,35 +13,28 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.rethink.drop.fragments.DropFragment;
-import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.models.Drop;
 
-import static com.rethink.drop.FragmentJuggler.CURRENT;
 import static com.rethink.drop.FragmentJuggler.LISTING;
 import static com.rethink.drop.FragmentJuggler.LOCAL;
 import static com.rethink.drop.FragmentJuggler.PROFILE;
-import static com.rethink.drop.models.Drop.KEY;
 
 final class FabManager {
 
     private final Context context;
     private final FloatingActionButton fab;
-    private final FragmentJuggler fragmentJuggler;
 
-    FabManager(Context context, FloatingActionButton fab, FragmentJuggler fragmentJuggler) {
+    FabManager(Context context, FloatingActionButton fab) {
         this.context = context;
         this.fab = fab;
-        this.fragmentJuggler = fragmentJuggler;
     }
 
-    void update() {
-        if (CURRENT == LOCAL) {
+    void update(int fragmentID, String key, boolean isEditing) {
+        if (fragmentID == LOCAL) {
             setDrawable(R.drawable.ic_add_white_24px);
-        } else if (CURRENT == LISTING) {
-            String key = fragmentJuggler.getCurrentFragment().getArguments().getString(KEY);
+        } else if (fragmentID == LISTING) {
             if (key != null) {
-                if (((DropFragment) fragmentJuggler.getCurrentFragment()).isEditing()) {
+                if (isEditing) {
                     setDrawable(R.drawable.ic_save_white_24dp);
                 } else {
                     FirebaseDatabase.getInstance()
@@ -71,8 +64,8 @@ final class FabManager {
                 setDrawable(R.drawable.ic_send_white_24px);
             }
             show();
-        } else if (CURRENT == PROFILE) {
-            if (((ProfileFragment) fragmentJuggler.getCurrentFragment()).isEditing()) {
+        } else if (fragmentID == PROFILE) {
+            if (isEditing) {
                 setDrawable(R.drawable.ic_save_white_24dp);
             } else {
                 setDrawable(R.drawable.ic_mode_edit_white_24px);

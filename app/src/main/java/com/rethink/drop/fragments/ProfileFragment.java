@@ -36,6 +36,7 @@ import com.rethink.drop.models.Profile;
 import java.io.IOException;
 
 import static android.app.Activity.RESULT_OK;
+import static com.rethink.drop.MainActivity.EDITING;
 
 public class ProfileFragment
         extends Fragment {
@@ -238,6 +239,7 @@ public class ProfileFragment
 
     private void toggleState() {
         editing = !editing;
+        getArguments().putBoolean(EDITING, editing);
         prepViews();
         ((MainActivity) getActivity()).syncUI();
     }

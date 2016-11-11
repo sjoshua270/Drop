@@ -51,6 +51,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Calendar;
 
+import static com.rethink.drop.MainActivity.EDITING;
 import static com.rethink.drop.MainActivity.userLocation;
 import static com.rethink.drop.models.Drop.KEY;
 
@@ -366,6 +367,7 @@ public class DropFragment
             imageChanged = false;
         }
         editing = !editing;
+        getArguments().putBoolean(EDITING, editing);
         prepViews();
         ((MainActivity) getActivity()).syncUI();
     }
@@ -375,10 +377,6 @@ public class DropFragment
         this.image = image;
         imageChanged = true;
         setImageView();
-    }
-
-    public boolean isEditing() {
-        return editing;
     }
 
     @Override
