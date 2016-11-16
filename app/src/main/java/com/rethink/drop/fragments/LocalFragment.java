@@ -17,9 +17,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.rethink.drop.BuildConfig;
 import com.rethink.drop.DataManager;
+import com.rethink.drop.MyLayoutManager;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.DropAdapter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
@@ -48,9 +50,6 @@ public class LocalFragment
         dropAdapter = new DropAdapter();
         scrollListener = new ScrollListener();
         dataManager = new DataManager(dropAdapter);
-        if (savedInstanceState != null) {
-            dataManager.setKeys(savedInstanceState.getStringArrayList(KEYS));
-        }
         setHasOptionsMenu(true);
     }
 
@@ -64,7 +63,7 @@ public class LocalFragment
         RecyclerView listingsRecycler = (RecyclerView) v.findViewById(R.id
                 .recycler_local_listings);
         listingsRecycler.setLayoutManager(
-                new LinearLayoutManager(
+                new MyLayoutManager(
                         getContext(),
                         LinearLayoutManager.VERTICAL,
                         false));
@@ -102,19 +101,19 @@ public class LocalFragment
     @Override
     public void onPause() {
         dataManager.detachListeners();
+        getArguments().putStringArrayList(KEYS, dataManager.getKeys());
         super.onPause();
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        ArrayList<String> keys = getArguments().getStringArrayList(KEYS);
+        if (keys == null) {
+            keys = new ArrayList<>();
+        }
+        dataManager.setKeys(keys);
         dataManager.attachListeners();
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        outState.putStringArrayList(KEYS, dataManager.getKeys());
-        super.onSaveInstanceState(outState);
     }
 
     private class ScrollListener

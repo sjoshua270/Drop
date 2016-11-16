@@ -23,17 +23,14 @@ public class DataManager {
     private static Double scanRadius;
     private static DataListener dataListener;
     private static GeoQueryListener geoQueryListener;
-    private static Boolean geoQueryDone;
     private final HashMap<String, DatabaseReference> refs;
     private final DropAdapter dropAdapter;
     private GeoQuery geoQuery;
 
     public DataManager(DropAdapter dropAdapter) {
         scanRadius = 10.0;
-        keys = new ArrayList<>();
         dataListener = new DataListener();
         geoQueryListener = new GeoQueryListener();
-        geoQueryDone = false;
         refs = new HashMap<>();
         this.dropAdapter = dropAdapter;
     }
@@ -45,14 +42,12 @@ public class DataManager {
                                                    .child("geoFire")
             ).queryAtLocation(geoLocation, scanRadius);
         }
-        geoQueryDone = false;
         geoQuery.setCenter(geoLocation);
     }
 
     public void expandRadius() {
         if (scanRadius < 100.0) {
             scanRadius += 10.0;
-            geoQueryDone = false;
             geoQuery.setRadius(scanRadius);
         }
     }
@@ -73,7 +68,16 @@ public class DataManager {
         }
     }
 
-    private void removeListing(String key) {
+    private void addKey(String key) {
+        DatabaseReference ref = FirebaseDatabase.getInstance()
+                                                .getReference()
+                                                .child("posts")
+                                                .child(key);
+        ref.addValueEventListener(dataListener);
+        refs.put(key, ref);
+    }
+
+    private void removeKey(String key) {
         refs.remove(key);
         dropAdapter.notifyItemRemoved(keys.indexOf(key));
         keys.remove(key);
@@ -87,27 +91,16 @@ public class DataManager {
         DataManager.keys = keys;
     }
 
-    private void updateAdapter() {
-        if (geoQueryDone) {
-            dropAdapter.notifyDataSetChanged();
-        }
-    }
-
     private class GeoQueryListener
             implements GeoQueryEventListener {
         @Override
         public void onKeyEntered(String key, GeoLocation location) {
-            DatabaseReference ref = FirebaseDatabase.getInstance()
-                                                    .getReference()
-                                                    .child("posts")
-                                                    .child(key);
-            ref.addValueEventListener(dataListener);
-            refs.put(key, ref);
+            addKey(key);
         }
 
         @Override
         public void onKeyExited(String key) {
-            removeListing(key);
+            removeKey(key);
         }
 
         @Override
@@ -117,7 +110,7 @@ public class DataManager {
 
         @Override
         public void onGeoQueryReady() {
-            geoQueryDone = true;
+
         }
 
         @Override
@@ -136,12 +129,10 @@ public class DataManager {
             if (drop != null) {
                 if (keys.indexOf(key) < 0) {
                     keys.add(key);
+                    dropAdapter.notifyItemInserted(keys.indexOf(key));
                 }
             } else {
-                removeListing(key);
-            }
-            if (geoQueryDone && keys.size() == refs.size()) {
-                updateAdapter();
+                removeKey(key);
             }
         }
 
