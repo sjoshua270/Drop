@@ -11,6 +11,8 @@ import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -87,6 +89,7 @@ public class ProfileFragment
         }
         editing = false;
         imageChanged = false;
+        setHasOptionsMenu(true);
     }
 
     @Nullable
@@ -244,7 +247,9 @@ public class ProfileFragment
         ((MainActivity) getActivity()).syncUI();
     }
 
-    public boolean isEditing() {
-        return editing;
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_profile, menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 }

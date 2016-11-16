@@ -15,4 +15,6 @@
     <string name="profile">Profile</string>
     <string name="prof_img_desc">Profile Image</string>
     <string name="prof_name">Public Name</string>
+
+    <string name="log_out">Logout</string>
 </resources>

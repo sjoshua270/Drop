@@ -31,6 +31,8 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -40,6 +42,7 @@ import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.interfaces.ImageHandler;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import static com.rethink.drop.FragmentJuggler.CURRENT;
 import static com.rethink.drop.FragmentJuggler.IMAGE;
@@ -123,10 +126,11 @@ public class MainActivity
                                 // Get an instance of AuthUI based on the default app
                                 AuthUI.getInstance()
                                       .createSignInIntentBuilder()
-                                      .setProviders(
-                                              AuthUI.EMAIL_PROVIDER
-                                              // AuthUI.GOOGLE_PROVIDER
-                                      )
+                                      .setIsSmartLockEnabled(!BuildConfig.DEBUG)
+                                      .setProviders(Arrays.asList(
+                                              new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
+                                              new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build()))
+                                      .setTheme(R.style.AppTheme)
                                       .build(),
                                 RC_SIGN_IN);
                     }
@@ -263,6 +267,15 @@ public class MainActivity
                     getSupportFragmentManager().popBackStackImmediate();
                 }
                 break;
+            case R.id.log_out:
+                AuthUI.getInstance()
+                      .signOut(this)
+                      .addOnCompleteListener(new OnCompleteListener<Void>() {
+                          @Override
+                          public void onComplete(@NonNull Task<Void> task) {
+                              getSupportFragmentManager().popBackStackImmediate();
+                          }
+                      });
             case android.R.id.home:
                 getSupportFragmentManager().popBackStackImmediate();
                 return true;
