@@ -153,7 +153,7 @@ public class DropFragment
 //
 //            sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
 //            holder.timeStampTime.setText(sdf.format(post.getTimestamp()));
-        View fragmentView = inflater.inflate(R.layout.fragment_listing, container, false);
+        View fragmentView = inflater.inflate(R.layout.fragment_drop, container, false);
         cLayout = (CoordinatorLayout) getActivity().findViewById(R.id.coordinator);
 
         imageView = (ImageView) fragmentView.findViewById(R.id.listing_image);
