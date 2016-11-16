@@ -311,9 +311,7 @@ public class DropFragment
                         inputTitle.getText()
                                   .toString(),
                         inputDesc.getText()
-                                 .toString(),
-                        userLocation.latitude,
-                        userLocation.longitude));
+                                 .toString()));
                 toggleState();
             }
         }
@@ -334,9 +332,7 @@ public class DropFragment
                             Calendar.getInstance().getTimeInMillis(),
                             downloadUrl.toString(),
                             inputTitle.getText().toString(),
-                            inputDesc.getText().toString(),
-                            userLocation.latitude,
-                            userLocation.longitude));
+                            inputDesc.getText().toString()));
                     toggleState();
                 } else {
                     Snackbar.make(cLayout, R.string.unexpected_error, Snackbar.LENGTH_LONG).show();
