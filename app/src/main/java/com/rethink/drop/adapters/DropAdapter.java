@@ -75,10 +75,8 @@ public class DropAdapter
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 Drop drop = dataSnapshot.getValue(Drop.class);
                                 if (drop != null) {
-                                    String imageUrl = drop.getImageURL() == null ? "" : drop.getImageURL();
-
-                                    getPostImage(holder.itemView.getContext(), imageUrl, holder.imageView);
-                                    getProfileImage(drop.getUserID(), holder.profile);
+                                    getPostImage(drop, holder.imageView);
+                                    getProfileImage(drop, holder.profile);
 
                                     holder.imageView.setPadding(0, 0, 0, 0);
                                     holder.title.setText(drop.getTitle());
@@ -93,7 +91,8 @@ public class DropAdapter
                         });
     }
 
-    private void getPostImage(Context context, String imageUrl, ImageView imageView) {
+    private void getPostImage(Drop drop, ImageView imageView) {
+        String imageUrl = drop.getImageURL() == null ? "" : drop.getImageURL();
         if (!imageUrl.equals("")) {
             WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
             Display display = wm.getDefaultDisplay();
@@ -118,7 +117,8 @@ public class DropAdapter
         }
     }
 
-    private void getProfileImage(String userID, final CircleImageView circleImageView) {
+    private void getProfileImage(Drop drop, final CircleImageView circleImageView) {
+        String userID = drop.getUserID();
         FirebaseDatabase.getInstance()
                         .getReference()
                         .child("profiles")
@@ -130,21 +130,12 @@ public class DropAdapter
                                 if (profile != null) {
                                     String imageUrl = profile.getImageURL() == null ? "" : profile.getImageURL();
                                     if (!imageUrl.equals("")) {
-                                        Picasso.with(context)
-                                               .load(imageUrl)
-                                               .placeholder(R.drawable.ic_photo_camera_white_24px)
-                                               .resize(context.getResources()
-                                                              .getDimensionPixelSize(R.dimen.listing_prof_dimen),
-                                                       context.getResources()
-                                                              .getDimensionPixelSize(R.dimen.listing_prof_dimen))
-                                               .centerCrop()
-                                               .into(circleImageView);
+                                        setProfileImage(imageUrl, circleImageView);
                                     } else {
-                                        circleImageView.setImageDrawable(
-                                                ContextCompat.getDrawable(
-                                                        context,
-                                                        R.drawable.ic_person_black_24dp));
+                                        setDefaultProfileImage(circleImageView);
                                     }
+                                } else {
+                                    setDefaultProfileImage(circleImageView);
                                 }
                             }
 
@@ -153,6 +144,25 @@ public class DropAdapter
 
                             }
                         });
+    }
+
+    private void setProfileImage(String imageUrl, CircleImageView circleImageView) {
+        Picasso.with(context)
+               .load(imageUrl)
+               .placeholder(R.drawable.ic_photo_camera_white_24px)
+               .resize(context.getResources()
+                              .getDimensionPixelSize(R.dimen.listing_prof_dimen),
+                       context.getResources()
+                              .getDimensionPixelSize(R.dimen.listing_prof_dimen))
+               .centerCrop()
+               .into(circleImageView);
+    }
+
+    private void setDefaultProfileImage(CircleImageView circleImageView) {
+        circleImageView.setImageDrawable(
+                ContextCompat.getDrawable(
+                        context,
+                        R.drawable.ic_person_black_24dp));
     }
 
     @Override
