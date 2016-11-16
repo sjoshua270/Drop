@@ -42,7 +42,6 @@ import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.interfaces.ImageHandler;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import static com.rethink.drop.FragmentJuggler.CURRENT;
 import static com.rethink.drop.FragmentJuggler.IMAGE;
@@ -57,11 +56,11 @@ public class MainActivity
                    ConnectionCallbacks,
                    LocationListener {
     public static final int GALLERY_REQUEST = 3;
+    public static final int RC_SIGN_IN = 1;
     public static final String EDITING = "editing";
     private final static float degreesPerMile = 0.01449275362f;
     public static LatLng userLocation;
     private static GoogleApiClient googleApiClient;
-    private final int RC_SIGN_IN = 1;
     private final int LOCATION_REQUEST = 2;
     private final String STATE_FRAGMENT = "state_fragment";
     private final String STATE_KEY = "state_key";
@@ -122,17 +121,7 @@ public class MainActivity
                     if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                         openFragment(LISTING, null);
                     } else {
-                        startActivityForResult(
-                                // Get an instance of AuthUI based on the default app
-                                AuthUI.getInstance()
-                                      .createSignInIntentBuilder()
-                                      .setIsSmartLockEnabled(!BuildConfig.DEBUG)
-                                      .setProviders(Arrays.asList(
-                                              new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
-                                              new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build()))
-                                      .setTheme(R.style.AppTheme)
-                                      .build(),
-                                RC_SIGN_IN);
+                        ((LocalFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
                     }
                 } else if (CURRENT == LISTING) {
                     ((DropFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
