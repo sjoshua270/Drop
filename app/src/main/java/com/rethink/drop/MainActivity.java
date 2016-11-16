@@ -31,6 +31,8 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -54,11 +56,11 @@ public class MainActivity
                    ConnectionCallbacks,
                    LocationListener {
     public static final int GALLERY_REQUEST = 3;
+    public static final int RC_SIGN_IN = 1;
     public static final String EDITING = "editing";
     private final static float degreesPerMile = 0.01449275362f;
     public static LatLng userLocation;
     private static GoogleApiClient googleApiClient;
-    private final int RC_SIGN_IN = 1;
     private final int LOCATION_REQUEST = 2;
     private final String STATE_FRAGMENT = "state_fragment";
     private final String STATE_KEY = "state_key";
@@ -119,16 +121,7 @@ public class MainActivity
                     if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                         openFragment(LISTING, null);
                     } else {
-                        startActivityForResult(
-                                // Get an instance of AuthUI based on the default app
-                                AuthUI.getInstance()
-                                      .createSignInIntentBuilder()
-                                      .setProviders(
-                                              AuthUI.EMAIL_PROVIDER
-                                              // AuthUI.GOOGLE_PROVIDER
-                                      )
-                                      .build(),
-                                RC_SIGN_IN);
+                        ((LocalFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
                     }
                 } else if (CURRENT == LISTING) {
                     ((DropFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
@@ -263,6 +256,15 @@ public class MainActivity
                     getSupportFragmentManager().popBackStackImmediate();
                 }
                 break;
+            case R.id.log_out:
+                AuthUI.getInstance()
+                      .signOut(this)
+                      .addOnCompleteListener(new OnCompleteListener<Void>() {
+                          @Override
+                          public void onComplete(@NonNull Task<Void> task) {
+                              getSupportFragmentManager().popBackStackImmediate();
+                          }
+                      });
             case android.R.id.home:
                 getSupportFragmentManager().popBackStackImmediate();
                 return true;
