@@ -193,9 +193,11 @@ public class MainActivity
     }
 
     public void openListing(View listingView, Bitmap image, String key) {
+        fab.hide();
         try {
             fragmentJuggler.viewListing(listingView, image, key);
         } catch (IOException e) {
+            fab.show();
             e.printStackTrace();
         }
     }

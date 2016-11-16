@@ -63,7 +63,6 @@ final class FabManager {
             } else {
                 setDrawable(R.drawable.ic_send_white_24px);
             }
-            show();
         } else if (fragmentID == PROFILE) {
             if (isEditing) {
                 setDrawable(R.drawable.ic_save_white_24dp);
@@ -103,7 +102,7 @@ final class FabManager {
         fab.startAnimation(anim);
     }
 
-    private void show() {
+    void show() {
         fab.setClickable(true);
         Animation anim = AnimationUtils
                 .loadAnimation(context, R.anim.grow_fade_in);
