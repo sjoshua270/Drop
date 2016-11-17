@@ -63,11 +63,8 @@ public class DropFragment
     private Bitmap image;
     private Context context;
     private ImageView imageView;
-    private ViewSwitcher titleSwitcher;
     private ViewSwitcher descSwitcher;
-    private TextView title;
     private TextView desc;
-    private TextInputEditText inputTitle;
     private TextInputEditText inputDesc;
     private Boolean imageChanged;
     private CoordinatorLayout cLayout;
@@ -160,17 +157,12 @@ public class DropFragment
         ViewCompat.setTransitionName(imageView, "image");
         imageView.setOnClickListener(new ImageClickHandler());
 
-        titleSwitcher = (ViewSwitcher) fragmentView.findViewById(R.id.title_switcher);
         descSwitcher = (ViewSwitcher) fragmentView.findViewById(R.id.description_switcher);
 
-        title = (TextView) fragmentView.findViewById(R.id.listing_title);
         desc = (TextView) fragmentView.findViewById(R.id.listing_desc);
-        ViewCompat.setTransitionName(title, "title");
         ViewCompat.setTransitionName(desc, "desc");
 
-        inputTitle = (TextInputEditText) fragmentView.findViewById(R.id.listing_input_title);
         inputDesc = (TextInputEditText) fragmentView.findViewById(R.id.listing_input_desc);
-        ViewCompat.setTransitionName(inputTitle, "input_title");
         ViewCompat.setTransitionName(inputDesc, "input_desc");
 
         prepViews();
@@ -218,10 +210,8 @@ public class DropFragment
                         } else {
                             imageView.setVisibility(View.VISIBLE);
                         }
-                        title.setText(drop.getTitle());
-                        desc.setText(drop.getDescription());
-                        inputTitle.setText(drop.getTitle());
-                        inputDesc.setText(drop.getDescription());
+                        desc.setText(drop.getText());
+                        inputDesc.setText(drop.getText());
                     }
                 }
 
@@ -255,16 +245,10 @@ public class DropFragment
 
     private void prepViews() {
         if (editing) {
-            if (titleSwitcher.getNextView().getClass().equals(TextInputLayout.class)) {
-                titleSwitcher.showNext();
-            }
             if (descSwitcher.getNextView().getClass().equals(TextInputLayout.class)) {
                 descSwitcher.showNext();
             }
         } else {
-            if (titleSwitcher.getNextView().getClass().equals(AppCompatTextView.class)) {
-                titleSwitcher.showNext();
-            }
             if (descSwitcher.getNextView().getClass().equals(AppCompatTextView.class)) {
                 descSwitcher.showNext();
             }
@@ -285,43 +269,31 @@ public class DropFragment
      * then returns to the previous fragment
      */
     private void publishListing() {
-        String filename = inputTitle.getText()
-                                    .toString()
-                                    .replaceAll("[^A-Za-z]+", "")
-                                    .toLowerCase();
-        if (filename.equals("")) {
-            Snackbar.make(cLayout, R.string.title_cannot_be_empty, Snackbar
-                    .LENGTH_LONG)
-                    .show();
+        String key = getArguments().getString("KEY");
+        if (key == null) {
+            key = ref.push()
+                     .getKey();
+        }
+        ref = ref.child(key);
+        if (image != null && imageChanged) {
+            uploadImage(key);
         } else {
-            String key = getArguments().getString("KEY");
-            if (key == null) {
-                key = ref.push()
-                         .getKey();
-            }
-            ref = ref.child(key);
-            if (image != null && imageChanged) {
-                uploadImage(key, filename);
-            } else {
-                saveListing(key, new Drop(
-                        user.getUid(),
-                        Calendar.getInstance()
-                                .getTimeInMillis(),
-                        imageURL,
-                        inputTitle.getText()
-                                  .toString(),
-                        inputDesc.getText()
-                                 .toString()));
-                toggleState();
-            }
+            saveListing(key, new Drop(
+                    user.getUid(),
+                    Calendar.getInstance()
+                            .getTimeInMillis(),
+                    imageURL,
+                    inputDesc.getText()
+                             .toString()));
+            toggleState();
         }
     }
 
-    private void uploadImage(final String key, String filename) {
+    private void uploadImage(final String key) {
         Utilities.uploadImage(
                 getActivity(),
                 image,
-                user.getUid() + "/" + key + "/" + filename
+                user.getUid() + "/" + key
         ).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -331,7 +303,6 @@ public class DropFragment
                             user.getUid(),
                             Calendar.getInstance().getTimeInMillis(),
                             downloadUrl.toString(),
-                            inputTitle.getText().toString(),
                             inputDesc.getText().toString()));
                     toggleState();
                 } else {

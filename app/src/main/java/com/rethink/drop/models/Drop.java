@@ -5,16 +5,13 @@ public class Drop {
     private String userID;
     private long timestamp;
     private String imageURL;
-    private String title;
-    private String description;
+    private String text;
 
-    public Drop(String userID, long timestamp, String imageURL,
-                String title, String description) {
+    public Drop(String userID, long timestamp, String imageURL, String text) {
         this.userID = userID;
         this.timestamp = timestamp;
         this.imageURL = imageURL;
-        this.title = title;
-        this.description = description;
+        this.text = text;
     }
 
     public Drop() {
@@ -33,11 +30,7 @@ public class Drop {
         return imageURL;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public String getDescription() {
-        return description;
+    public String getText() {
+        return text;
     }
 }

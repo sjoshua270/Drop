@@ -46,7 +46,6 @@ public class DropAdapter
         final String key = keys.get(position);
         getPostData(key, holder);
         ViewCompat.setTransitionName(holder.imageView, "image_" + key);
-        ViewCompat.setTransitionName(holder.title, "title_" + key);
         ViewCompat.setTransitionName(holder.desc, "desc_" + key);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -80,8 +79,7 @@ public class DropAdapter
                                     getProfileImage(drop, holder.profile);
 
                                     holder.imageView.setPadding(0, 0, 0, 0);
-                                    holder.title.setText(drop.getTitle());
-                                    holder.desc.setText(drop.getDescription());
+                                    holder.desc.setText(drop.getText());
                                 } else {
                                     GeoFire geoFire = new GeoFire(
                                             FirebaseDatabase.getInstance()
@@ -181,7 +179,6 @@ public class DropAdapter
             extends RecyclerView.ViewHolder {
         final CircleImageView profile;
         final ImageView imageView;
-        final TextView title;
         final TextView desc;
         final TextView dist;
         final TextView timeStampTime;
@@ -191,7 +188,6 @@ public class DropAdapter
             super(itemView);
             profile = (CircleImageView) itemView.findViewById(R.id.item_prof_img);
             imageView = (ImageView) itemView.findViewById(R.id.item_image);
-            title = (TextView) itemView.findViewById(R.id.item_title);
             desc = (TextView) itemView.findViewById(R.id.item_desc);
             dist = (TextView) itemView.findViewById(R.id.item_distance);
             timeStampTime = (TextView) itemView.findViewById(R.id.item_timestamp_time);

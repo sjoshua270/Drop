@@ -79,7 +79,6 @@ class FragmentJuggler {
         transitionFragments(getCurrentFragment(), listingFragment,
                 new View[]{
                         listingView.findViewById(R.id.item_image),
-                        listingView.findViewById(R.id.item_title),
                         listingView.findViewById(R.id.item_desc)});
         CURRENT = LISTING;
     }
@@ -93,8 +92,7 @@ class FragmentJuggler {
         }
         fragmentManager.beginTransaction()
                        .addSharedElement(views[0], "image")
-                       .addSharedElement(views[1], "title")
-                       .addSharedElement(views[2], "desc")
+                       .addSharedElement(views[1], "desc")
                        .replace(R.id.main_fragment_container,
                                frag2)
                        .addToBackStack(null)
