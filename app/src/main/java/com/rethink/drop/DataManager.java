@@ -54,8 +54,9 @@ public class DataManager {
     }
 
     private void removeKey(String key) {
-        dropAdapter.notifyItemRemoved(keys.indexOf(key));
+        int index = keys.indexOf(key);
         keys.remove(key);
+        dropAdapter.notifyItemRemoved(index);
     }
 
     private class GeoQueryListener
