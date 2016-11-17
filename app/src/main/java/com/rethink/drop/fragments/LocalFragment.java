@@ -21,18 +21,15 @@ import com.rethink.drop.MyLayoutManager;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.DropAdapter;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
-import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
 import static com.rethink.drop.MainActivity.RC_SIGN_IN;
 
 
 public class LocalFragment
         extends Fragment {
-    private static final String KEYS = "keys";
     private DropAdapter dropAdapter;
-    private ScrollListener scrollListener;
+    private RecyclerView dropsRecycler;
     private DataManager dataManager;
 
     public static LocalFragment newInstance() {
@@ -48,7 +45,6 @@ public class LocalFragment
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         dropAdapter = new DropAdapter();
-        scrollListener = new ScrollListener();
         dataManager = new DataManager(dropAdapter);
         setHasOptionsMenu(true);
     }
@@ -58,18 +54,16 @@ public class LocalFragment
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup
             container, @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        View v = inflater.inflate(R.layout.fragment_local_listings,
-                container, false);
-        RecyclerView listingsRecycler = (RecyclerView) v.findViewById(R.id
-                .recycler_local_listings);
-        listingsRecycler.setLayoutManager(
-                new MyLayoutManager(
-                        getContext(),
-                        LinearLayoutManager.VERTICAL,
-                        false));
-        listingsRecycler.addOnScrollListener(scrollListener);
-        listingsRecycler.setAdapter(dropAdapter);
-        return v;
+        View rootView = inflater.inflate(R.layout.fragment_local_listings, container, false);
+        dropsRecycler = (RecyclerView) rootView.findViewById(R.id.recycler_local_listings);
+        return rootView;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        dropsRecycler.setLayoutManager(new MyLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+        dropsRecycler.setAdapter(dropAdapter);
     }
 
     @Override
@@ -101,35 +95,12 @@ public class LocalFragment
     @Override
     public void onPause() {
         dataManager.detachListeners();
-        getArguments().putStringArrayList(KEYS, dataManager.getKeys());
         super.onPause();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        ArrayList<String> keys = getArguments().getStringArrayList(KEYS);
-        if (keys == null) {
-            keys = new ArrayList<>();
-        }
-        dataManager.setKeys(keys);
         dataManager.attachListeners();
-    }
-
-    private class ScrollListener
-            extends RecyclerView.OnScrollListener {
-        @Override
-        public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-            super.onScrollStateChanged(recyclerView, newState);
-            if (newState == SCROLL_STATE_IDLE) {
-                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-                int visibleItemCount = layoutManager.getChildCount();
-                int totalItemCount = layoutManager.getItemCount();
-                int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
-                if (pastVisibleItems + visibleItemCount >= totalItemCount) {
-                    dataManager.expandRadius();
-                }
-            }
-        }
     }
 }
