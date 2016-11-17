@@ -14,6 +14,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.firebase.geofire.GeoFire;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -81,6 +82,12 @@ public class DropAdapter
                                     holder.imageView.setPadding(0, 0, 0, 0);
                                     holder.title.setText(drop.getTitle());
                                     holder.desc.setText(drop.getDescription());
+                                } else {
+                                    GeoFire geoFire = new GeoFire(
+                                            FirebaseDatabase.getInstance()
+                                                            .getReference()
+                                                            .child("geoFire"));
+                                    geoFire.removeLocation(key);
                                 }
                             }
 
