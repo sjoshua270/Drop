@@ -36,6 +36,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.rethink.drop.fragments.DropFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
@@ -80,6 +84,16 @@ public class MainActivity
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
+
+        // Config ImageLoader
+        ImageLoaderConfiguration loaderConfig = new ImageLoaderConfiguration.Builder(this)
+                .defaultDisplayImageOptions(new DisplayImageOptions.Builder()
+                        .cacheInMemory(true)
+                        .cacheOnDisk(true)
+                        .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
+                        .build())
+                .build();
+        ImageLoader.getInstance().init(loaderConfig);
 
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
         fab = new FabManager(
