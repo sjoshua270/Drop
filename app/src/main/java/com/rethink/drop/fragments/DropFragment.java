@@ -1,7 +1,6 @@
 package com.rethink.drop.fragments;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -58,7 +57,6 @@ public class DropFragment
 
     private static final String IMAGE = "image";
     private Bitmap image;
-    private Context context;
     private ImageView imageView;
     private ViewSwitcher descSwitcher;
     private TextView desc;
@@ -66,10 +64,11 @@ public class DropFragment
     private Boolean imageChanged;
     private CoordinatorLayout cLayout;
     private DatabaseReference ref;
+    private DropChangeListener changeListener;
     private FirebaseUser user;
     private Boolean editing;
     private String imageURL;
-    private DatabaseReference postRef;
+    private DatabaseReference dropRef;
 
     public static DropFragment newInstance(String key) {
         Bundle args = new Bundle();
@@ -106,6 +105,7 @@ public class DropFragment
                 .getReference()
                 .child("posts");
         imageChanged = false;
+        changeListener = new DropChangeListener();
         if (args != null) {
             byte[] imageBytes = args.getByteArray(IMAGE);
             if (imageBytes != null) {
@@ -114,7 +114,7 @@ public class DropFragment
             String key = args.getString(KEY);
             editing = key == null;
             if (key != null) {
-                getPostData(key);
+                updateRef(key);
             }
         }
     }
@@ -167,46 +167,12 @@ public class DropFragment
         return fragmentView;
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        this.context = context;
-        String key = getArguments().getString(KEY);
-        if (key != null) {
-            getPostData(key);
-        }
-    }
-
-    private void getPostData(String key) {
-        if (postRef == null) {
-            postRef = FirebaseDatabase.getInstance()
-                                      .getReference()
-                                      .child("posts")
-                                      .child(key);
-            postRef.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    Drop drop = dataSnapshot.getValue(Drop.class);
-                    if (drop != null) {
-                        imageURL = drop.getImageURL() == null ? "" : drop.getImageURL();
-                        if (!imageURL.equals("")) {
-                            ImageLoader.getInstance().displayImage(imageURL, imageView);
-                        } else if (!editing) {
-                            imageView.setVisibility(View.GONE);
-                        } else {
-                            imageView.setVisibility(View.VISIBLE);
-                        }
-                        desc.setText(drop.getText());
-                        inputDesc.setText(drop.getText());
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
-        }
+    private void updateRef(String key) {
+        dropRef = FirebaseDatabase.getInstance()
+                                  .getReference()
+                                  .child("posts")
+                                  .child(key);
+        dropRef.addValueEventListener(changeListener);
     }
 
     private void getImage() {
@@ -311,7 +277,7 @@ public class DropFragment
         ref.setValue(drop);
         Bundle args = getArguments();
         args.putString(KEY, key);
-        getPostData(key);
+        updateRef(key);
         ((MainActivity) getActivity()).dismissKeyboard();
     }
 
@@ -333,7 +299,21 @@ public class DropFragment
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if (dropRef == null) {
+            String key = getArguments().getString(KEY);
+            if (key != null) {
+                updateRef(key);
+            }
+        } else {
+            dropRef.addValueEventListener(changeListener);
+        }
+    }
+
+    @Override
     public void onPause() {
+        dropRef.removeEventListener(changeListener);
         super.onPause();
     }
 
@@ -361,6 +341,31 @@ public class DropFragment
             } else {
                 ((MainActivity) getActivity()).viewImage(getArguments().getString(KEY));
             }
+        }
+    }
+
+    private class DropChangeListener
+            implements ValueEventListener {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            Drop drop = dataSnapshot.getValue(Drop.class);
+            if (drop != null) {
+                imageURL = drop.getImageURL() == null ? "" : drop.getImageURL();
+                if (!imageURL.equals("")) {
+                    ImageLoader.getInstance().displayImage(imageURL, imageView);
+                } else if (!editing) {
+                    imageView.setVisibility(View.GONE);
+                } else {
+                    imageView.setVisibility(View.VISIBLE);
+                }
+                desc.setText(drop.getText());
+                inputDesc.setText(drop.getText());
+            }
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
         }
     }
 }
