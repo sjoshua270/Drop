@@ -103,4 +103,10 @@ public class LocalFragment
         super.onResume();
         dataManager.attachListeners();
     }
+
+    @Override
+    public void onDestroy() {
+        dataManager.detachLocationListener();
+        super.onDestroy();
+    }
 }
