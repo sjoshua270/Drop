@@ -15,7 +15,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.rethink.drop.R;
 import com.rethink.drop.models.Drop;
@@ -52,14 +51,13 @@ public class ImageFragment
                                     Drop drop = dataSnapshot.getValue(Drop.class);
                                     String imageUrl = drop.getImageURL() == null ? "" : drop.getImageURL();
                                     if (!imageUrl.equals("")) {
-                                        ImageLoader imageLoader = ImageLoader.getInstance();
-                                        imageLoader.init(ImageLoaderConfiguration.createDefault(getContext()));
-                                        imageLoader.loadImage(imageUrl, new SimpleImageLoadingListener() {
-                                            @Override
-                                            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                                                imageView.setImage(ImageSource.bitmap(loadedImage));
-                                            }
-                                        });
+                                        ImageLoader.getInstance()
+                                                   .loadImage(imageUrl, new SimpleImageLoadingListener() {
+                                                       @Override
+                                                       public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                                                           imageView.setImage(ImageSource.bitmap(loadedImage));
+                                                       }
+                                                   });
                                     }
                                 }
 

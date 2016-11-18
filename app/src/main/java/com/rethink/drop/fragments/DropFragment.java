@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Point;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -18,13 +17,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.AppCompatTextView;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
@@ -40,12 +37,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.UploadTask;
+import com.nostra13.universalimageloader.core.ImageLoader;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.Utilities;
 import com.rethink.drop.interfaces.ImageHandler;
 import com.rethink.drop.models.Drop;
-import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -193,18 +190,7 @@ public class DropFragment
                     if (drop != null) {
                         imageURL = drop.getImageURL() == null ? "" : drop.getImageURL();
                         if (!imageURL.equals("")) {
-                            WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-                            Display display = wm.getDefaultDisplay();
-                            Point size = new Point();
-                            display.getSize(size);
-                            int width = size.x;
-                            Picasso.with(context)
-                                   .load(imageURL)
-                                   .resize(width,
-                                           context.getResources()
-                                                  .getDimensionPixelSize(R.dimen.item_image_height))
-                                   .centerCrop()
-                                   .into(imageView);
+                            ImageLoader.getInstance().displayImage(imageURL, imageView);
                         } else if (!editing) {
                             imageView.setVisibility(View.GONE);
                         } else {

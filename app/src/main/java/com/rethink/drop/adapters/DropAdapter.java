@@ -1,16 +1,13 @@
 package com.rethink.drop.adapters;
 
 import android.content.Context;
-import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -19,6 +16,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.nostra13.universalimageloader.core.ImageLoader;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.models.Drop;
@@ -99,19 +97,7 @@ public class DropAdapter
     private void getPostImage(Drop drop, ImageView imageView) {
         String imageUrl = drop.getImageURL() == null ? "" : drop.getImageURL();
         if (!imageUrl.equals("")) {
-            WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-            Display display = wm.getDefaultDisplay();
-            Point size = new Point();
-            display.getSize(size);
-            int width = size.x;
-            Picasso.with(context)
-                   .load(imageUrl)
-                   .placeholder(R.drawable.ic_photo_camera_white_24px)
-                   .resize(width,
-                           context.getResources()
-                                  .getDimensionPixelSize(R.dimen.item_image_height))
-                   .centerCrop()
-                   .into(imageView);
+            ImageLoader.getInstance().displayImage(imageUrl, imageView);
         } else {
             imageView.setImageResource(R.drawable.ic_photo_camera_white_24px);
             int padding = context
