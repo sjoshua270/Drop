@@ -86,12 +86,13 @@ public class MainActivity
                 .build();
 
         // Config ImageLoader
+        DisplayImageOptions displayOptions = new DisplayImageOptions.Builder()
+                .cacheInMemory(true)
+                .cacheOnDisk(true)
+                .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
+                .build();
         ImageLoaderConfiguration loaderConfig = new ImageLoaderConfiguration.Builder(this)
-                .defaultDisplayImageOptions(new DisplayImageOptions.Builder()
-                        .cacheInMemory(true)
-                        .cacheOnDisk(true)
-                        .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
-                        .build())
+                .defaultDisplayImageOptions(displayOptions)
                 .build();
         ImageLoader.getInstance().init(loaderConfig);
 
