@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:app="http://schemas.android.com/apk/res-auto"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/item_image_height">
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/item_image_height">
 
     <ImageView
         android:id="@+id/item_image"
         android:layout_width="match_parent"
         android:layout_height="@dimen/item_image_height"
-        android:contentDescription="@string/image_description"/>
+        android:contentDescription="@string/image_description" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -16,7 +15,7 @@
         android:layout_alignParentBottom="true"
         android:background="@color/listing_item_details_background">
 
-        <de.hdodenhof.circleimageview.CircleImageView
+        <ImageView
             android:id="@+id/item_prof_img"
             android:layout_width="@dimen/listing_prof_dimen"
             android:layout_height="@dimen/listing_prof_dimen"
@@ -24,9 +23,9 @@
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:layout_margin="10dp"
-            android:src="@drawable/ic_person_black_24dp"
-            app:civ_border_color="#FFFFFF"
-            app:civ_border_width="2dp"/>
+            android:background="@color/prof_ppl"
+            android:contentDescription="@string/prof_img_desc"
+            android:src="@drawable/ic_face_white_24px" />
 
         <TextView
             android:id="@+id/item_desc"
@@ -36,7 +35,7 @@
             android:layout_toRightOf="@+id/item_prof_img"
             android:padding="@dimen/listing_padding"
             android:text="@string/hint_description"
-            android:textSize="@dimen/listing_desc_size"/>
+            android:textSize="@dimen/listing_desc_size" />
     </RelativeLayout>
 
     <TextView
@@ -47,7 +46,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:textSize="@dimen/item_distance_size"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -67,7 +66,7 @@
             android:paddingLeft="@dimen/item_timestamp_padding"
             android:paddingRight="@dimen/item_timestamp_padding"
             android:paddingStart="@dimen/item_timestamp_padding"
-            android:textSize="@dimen/item_timestamp_size"/>
+            android:textSize="@dimen/item_timestamp_size" />
 
         <TextView
             android:id="@+id/item_timestamp_day"
@@ -78,13 +77,13 @@
             android:paddingLeft="@dimen/item_timestamp_padding"
             android:paddingRight="@dimen/item_timestamp_padding"
             android:paddingStart="@dimen/item_timestamp_padding"
-            android:textSize="@dimen/item_timestamp_size"/>
+            android:textSize="@dimen/item_timestamp_size" />
     </LinearLayout>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_alignParentBottom="true"
-        android:background="@color/divider"/>
+        android:background="@color/divider" />
 
 </RelativeLayout>

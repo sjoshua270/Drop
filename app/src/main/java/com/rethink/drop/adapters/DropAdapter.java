@@ -23,8 +23,6 @@ import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
 import com.squareup.picasso.Picasso;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
 import static com.rethink.drop.DataManager.keys;
 
 public class DropAdapter
@@ -108,7 +106,7 @@ public class DropAdapter
         }
     }
 
-    private void getProfileImage(Drop drop, final CircleImageView circleImageView) {
+    private void getProfileImage(Drop drop, final ImageView profImageView) {
         String userID = drop.getUserID();
         FirebaseDatabase.getInstance()
                         .getReference()
@@ -121,12 +119,12 @@ public class DropAdapter
                                 if (profile != null) {
                                     String imageUrl = profile.getImageURL() == null ? "" : profile.getImageURL();
                                     if (!imageUrl.equals("")) {
-                                        setProfileImage(imageUrl, circleImageView);
+                                        setProfileImage(imageUrl, profImageView);
                                     } else {
-                                        setDefaultProfileImage(circleImageView);
+                                        setDefaultProfileImage(profImageView);
                                     }
                                 } else {
-                                    setDefaultProfileImage(circleImageView);
+                                    setDefaultProfileImage(profImageView);
                                 }
                             }
 
@@ -137,7 +135,7 @@ public class DropAdapter
                         });
     }
 
-    private void setProfileImage(String imageUrl, CircleImageView circleImageView) {
+    private void setProfileImage(String imageUrl, ImageView profImageView) {
         Picasso.with(context)
                .load(imageUrl)
                .placeholder(R.drawable.ic_photo_camera_white_24px)
@@ -146,14 +144,14 @@ public class DropAdapter
                        context.getResources()
                               .getDimensionPixelSize(R.dimen.listing_prof_dimen))
                .centerCrop()
-               .into(circleImageView);
+               .into(profImageView);
     }
 
-    private void setDefaultProfileImage(CircleImageView circleImageView) {
-        circleImageView.setImageDrawable(
+    private void setDefaultProfileImage(ImageView profImageView) {
+        profImageView.setImageDrawable(
                 ContextCompat.getDrawable(
                         context,
-                        R.drawable.ic_person_black_24dp));
+                        R.drawable.ic_face_white_24px));
     }
 
     @Override
@@ -163,7 +161,7 @@ public class DropAdapter
 
     static class ListingHolder
             extends RecyclerView.ViewHolder {
-        final CircleImageView profile;
+        final ImageView profile;
         final ImageView imageView;
         final TextView desc;
         final TextView dist;
@@ -172,7 +170,7 @@ public class DropAdapter
 
         ListingHolder(View itemView) {
             super(itemView);
-            profile = (CircleImageView) itemView.findViewById(R.id.item_prof_img);
+            profile = (ImageView) itemView.findViewById(R.id.item_prof_img);
             imageView = (ImageView) itemView.findViewById(R.id.item_image);
             desc = (TextView) itemView.findViewById(R.id.item_desc);
             dist = (TextView) itemView.findViewById(R.id.item_distance);

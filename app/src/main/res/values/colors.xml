@@ -7,4 +7,22 @@
     <color name="divider">#BDBDBD</color>
 
     <color name="listing_item_details_background">#afffffff</color>
+
+    <color name="prof_pnk">#D81B60</color>
+    <color name="prof_ppl">#4A148C</color>
+    <color name="prof_blu">#0D47A1</color>
+    <color name="prof_grn">#1B5E20</color>
+    <color name="prof_ylw">#F57F17</color>
+    <color name="prof_brn">#795548</color>
+    <color name="prof_gry">#9E9E9E</color>
+
+    <array name="prof_colors">
+        <item>@color/prof_pnk</item>
+        <item>@color/prof_ppl</item>
+        <item>@color/prof_blu</item>
+        <item>@color/prof_grn</item>
+        <item>@color/prof_ylw</item>
+        <item>@color/prof_brn</item>
+        <item>@color/prof_gry</item>
+    </array>
 </resources>
