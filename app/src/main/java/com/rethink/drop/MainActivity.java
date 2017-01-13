@@ -5,13 +5,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
@@ -43,29 +40,28 @@ import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.rethink.drop.fragments.DropFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
-import com.rethink.drop.interfaces.ImageHandler;
+import com.rethink.drop.tools.FragmentJuggler;
 
 import java.io.IOException;
 
-import static com.rethink.drop.FragmentJuggler.CURRENT;
-import static com.rethink.drop.FragmentJuggler.IMAGE;
-import static com.rethink.drop.FragmentJuggler.LISTING;
-import static com.rethink.drop.FragmentJuggler.LOCAL;
-import static com.rethink.drop.FragmentJuggler.PROFILE;
 import static com.rethink.drop.models.Drop.KEY;
+import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
+import static com.rethink.drop.tools.FragmentJuggler.IMAGE;
+import static com.rethink.drop.tools.FragmentJuggler.LISTING;
+import static com.rethink.drop.tools.FragmentJuggler.LOCAL;
+import static com.rethink.drop.tools.FragmentJuggler.PROFILE;
 
-public class MainActivity
-        extends AppCompatActivity
-        implements OnConnectionFailedListener,
-                   ConnectionCallbacks,
-                   LocationListener {
-    public static final int GALLERY_REQUEST = 3;
+public class MainActivity extends AppCompatActivity implements OnConnectionFailedListener,
+                                                               ConnectionCallbacks,
+                                                               LocationListener {
     public static final int RC_SIGN_IN = 1;
     public static final String EDITING = "editing";
     private final static float degreesPerMile = 0.01449275362f;
+    public static MainActivity instance;
     public static LatLng userLocation;
     private static GoogleApiClient googleApiClient;
     private final int LOCATION_REQUEST = 2;
+    public static final int STORAGE_REQUEST = 3;
     private final String STATE_FRAGMENT = "state_fragment";
     private final String STATE_KEY = "state_key";
     private final String STATE_LAT = "state_latitude";
@@ -73,35 +69,43 @@ public class MainActivity
     private FabManager fab;
     private FragmentJuggler fragmentJuggler;
 
+    public static MainActivity getInstance() {
+        if (instance != null) {
+            return instance;
+        } else {
+            return new MainActivity();
+        }
+    }
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        instance = this;
 
-        userLocation = new LatLng(0.0, 0.0);
-        googleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
+        userLocation = new LatLng(0.0,
+                                  0.0);
+        googleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this)
+                                                           .addOnConnectionFailedListener(this)
+                                                           .addApi(LocationServices.API)
+                                                           .build();
 
         // Config ImageLoader
-        DisplayImageOptions displayOptions = new DisplayImageOptions.Builder()
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
-                .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
-                .build();
-        ImageLoaderConfiguration loaderConfig = new ImageLoaderConfiguration.Builder(this)
-                .defaultDisplayImageOptions(displayOptions)
-                .build();
-        ImageLoader.getInstance().init(loaderConfig);
+        DisplayImageOptions displayOptions = new DisplayImageOptions.Builder().cacheInMemory(true)
+                                                                              .cacheOnDisk(true)
+                                                                              .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
+                                                                              .build();
+        ImageLoaderConfiguration loaderConfig = new ImageLoaderConfiguration.Builder(this).defaultDisplayImageOptions(displayOptions)
+                                                                                          .build();
+        ImageLoader.getInstance()
+                   .init(loaderConfig);
 
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
-        fab = new FabManager(
-                this,
-                (FloatingActionButton) findViewById(R.id.fab));
+        fab = new FabManager(this,
+                             (FloatingActionButton) findViewById(R.id.fab));
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
-            openFragment(LOCAL, null);
+            openFragment(LOCAL,
+                         null);
         }
 
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
@@ -112,19 +116,24 @@ public class MainActivity
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        openFragment(
-                savedInstanceState.getInt(STATE_FRAGMENT),
-                savedInstanceState.getString(STATE_KEY));
+        openFragment(savedInstanceState.getInt(STATE_FRAGMENT),
+                     savedInstanceState.getString(STATE_KEY));
         userLocation = new LatLng(savedInstanceState.getDouble(STATE_LAT),
-                savedInstanceState.getDouble(STATE_LON));
+                                  savedInstanceState.getDouble(STATE_LON));
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putInt(STATE_FRAGMENT, CURRENT);
-        outState.putString(STATE_KEY, fragmentJuggler.getCurrentFragment().getArguments().getString(KEY));
-        outState.putDouble(STATE_LAT, userLocation.latitude);
-        outState.putDouble(STATE_LON, userLocation.longitude);
+        outState.putInt(STATE_FRAGMENT,
+                        CURRENT);
+        outState.putString(STATE_KEY,
+                           fragmentJuggler.getCurrentFragment()
+                                          .getArguments()
+                                          .getString(KEY));
+        outState.putDouble(STATE_LAT,
+                           userLocation.latitude);
+        outState.putDouble(STATE_LON,
+                           userLocation.longitude);
         super.onSaveInstanceState(outState);
     }
 
@@ -133,8 +142,10 @@ public class MainActivity
             @Override
             public void onClick(View view) {
                 if (CURRENT == LOCAL) {
-                    if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-                        openFragment(LISTING, null);
+                    if (FirebaseAuth.getInstance()
+                                    .getCurrentUser() != null) {
+                        openFragment(LISTING,
+                                     null);
                     } else {
                         ((LocalFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
                     }
@@ -149,22 +160,27 @@ public class MainActivity
 
     private void openFragment(int id, String key) {
         fab.hide();
-        fragmentJuggler.openFragment(id, key);
+        fragmentJuggler.openFragment(id,
+                                     key);
     }
 
     public void syncUI() {
         syncUpNav();
-        Bundle args = fragmentJuggler.getCurrentFragment().getArguments();
+        Bundle args = fragmentJuggler.getCurrentFragment()
+                                     .getArguments();
         String key = args.getString(KEY);
         Boolean isEditing = args.getBoolean(EDITING);
-        fab.update(CURRENT, key, isEditing);
+        fab.update(CURRENT,
+                   key,
+                   isEditing);
     }
 
     public void dismissKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         View focused = getCurrentFocus();
         if (focused != null) {
-            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+                                        0);
         }
     }
 
@@ -173,19 +189,20 @@ public class MainActivity
             @Override
             public void onBackStackChanged() {
                 if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-                    Class currClass = getSupportFragmentManager()
-                            .findFragmentById(R.id.main_fragment_container)
-                            .getClass();
-                    if (currClass.equals(LocalFragment.class)) {
-                        CURRENT = LOCAL;
+                    Fragment frag = getSupportFragmentManager().findFragmentById(R.id.main_fragment_container);
+                    if (frag != null) {
+                        Class currClass = frag.getClass();
+                        if (currClass.equals(LocalFragment.class)) {
+                            CURRENT = LOCAL;
+                        }
+                        if (currClass.equals(DropFragment.class)) {
+                            CURRENT = LISTING;
+                        }
+                        if (currClass.equals(ProfileFragment.class)) {
+                            CURRENT = PROFILE;
+                        }
+                        syncUI();
                     }
-                    if (currClass.equals(DropFragment.class)) {
-                        CURRENT = LISTING;
-                    }
-                    if (currClass.equals(ProfileFragment.class)) {
-                        CURRENT = PROFILE;
-                    }
-                    syncUI();
                 } else {
                     finish();
                 }
@@ -195,15 +212,16 @@ public class MainActivity
 
     private void syncUpNav() {
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(
-                    getSupportFragmentManager().getBackStackEntryCount() > 1);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager().getBackStackEntryCount() > 1);
         }
     }
 
     public void openListing(View listingView, Bitmap image, String key) {
         fab.hide();
         try {
-            fragmentJuggler.viewListing(listingView, image, key);
+            fragmentJuggler.viewListing(listingView,
+                                        image,
+                                        key);
         } catch (IOException e) {
             fab.show();
             e.printStackTrace();
@@ -211,33 +229,18 @@ public class MainActivity
     }
 
     public void viewImage(String key) {
-        openFragment(IMAGE, key);
+        openFragment(IMAGE,
+                     key);
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode,
+                               resultCode,
+                               data);
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
-                openFragment(LISTING, null);
-            }
-        }
-        if (requestCode == GALLERY_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                if (data != null) {
-                    try {
-                        Uri selectedImageUri = data.getData();
-                        Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri);
-                        if (fragmentJuggler.getCurrentFragment().getClass().equals(DropFragment.class)) {
-                            ((ImageHandler) fragmentJuggler.getCurrentFragment()).OnImageReceived(imageBitmap);
-                        }
-                    } catch (IOException e) {
-                        Snackbar.make(
-                                findViewById(R.id.fab),
-                                getResources().getString(R.string.unexpected_error),
-                                Snackbar.LENGTH_SHORT
-                        ).show();
-                    }
-                }
+                openFragment(LISTING,
+                             null);
             }
         }
     }
@@ -251,15 +254,16 @@ public class MainActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.open_profile:
-                openFragment(PROFILE, null);
+                openFragment(PROFILE,
+                             null);
                 break;
             case R.id.delete_listing:
-                String key = getSupportFragmentManager()
-                        .findFragmentById(R.id.main_fragment_container)
-                        .getArguments()
-                        .getString("KEY");
+                String key = getSupportFragmentManager().findFragmentById(R.id.main_fragment_container)
+                                                        .getArguments()
+                                                        .getString("KEY");
                 if (key != null) {
-                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
+                    DatabaseReference ref = FirebaseDatabase.getInstance()
+                                                            .getReference();
                     ref.child("posts")
                        .child(key)
                        .removeValue();
@@ -299,10 +303,8 @@ public class MainActivity
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this,
+                                               android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             askForLocationPermission();
         } else {
             startLocationUpdates();
@@ -310,15 +312,13 @@ public class MainActivity
     }
 
     private void askForLocationPermission() {
-        ActivityCompat.requestPermissions(
-                this,
-                new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                LOCATION_REQUEST);
+        ActivityCompat.requestPermissions(this,
+                                          new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                                          LOCATION_REQUEST);
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[]
-            permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == LOCATION_REQUEST) {
             if (grantResults.length > 0) {
                 startLocationUpdates();
@@ -327,37 +327,31 @@ public class MainActivity
     }
 
     private void startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this,
+                                               android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             Location loc = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
             if (loc != null) {
-                userLocation = new LatLng(loc.getLatitude(), loc.getLongitude());
+                userLocation = new LatLng(loc.getLatitude(),
+                                          loc.getLongitude());
                 updateListings();
             }
             LocationRequest locationRequest = LocationRequest.create();
             locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             locationRequest.setInterval(5000);
-            LocationServices.FusedLocationApi.requestLocationUpdates(
-                    googleApiClient,
-                    locationRequest,
-                    this);
+            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient,
+                                                                     locationRequest,
+                                                                     this);
         }
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this,
+                                               android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             // If the location has changed by more than half a mile
-            if (Math.abs(location.getLatitude() - userLocation.latitude) > degreesPerMile / 2 ||
-                    Math.abs(location.getLongitude() - userLocation.longitude) > degreesPerMile / 2) {
-                userLocation = new LatLng(
-                        location.getLatitude(),
-                        location.getLongitude());
+            if (Math.abs(location.getLatitude() - userLocation.latitude) > degreesPerMile / 2 || Math.abs(location.getLongitude() - userLocation.longitude) > degreesPerMile / 2) {
+                userLocation = new LatLng(location.getLatitude(),
+                                          location.getLongitude());
                 updateListings();
             }
         }
@@ -365,15 +359,16 @@ public class MainActivity
 
     private void updateListings() {
         Fragment localFragment = fragmentJuggler.getCurrentFragment();
-        if (localFragment != null && localFragment.getClass().equals(LocalFragment.class)) {
+        if (localFragment != null && localFragment.getClass()
+                                                  .equals(LocalFragment.class)) {
             ((LocalFragment) localFragment).updateDBRef(userLocation);
         }
     }
 
     private void stopLocationUpdates() {
         if (googleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates
-                    (googleApiClient, this);
+            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient,
+                                                                    this);
         }
     }
 

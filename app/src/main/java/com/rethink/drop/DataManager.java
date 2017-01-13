@@ -50,11 +50,15 @@ public class DataManager {
     }
 
     public void detachListeners() {
-        geoQuery.removeAllListeners();
+        if (geoQuery != null) {
+            geoQuery.removeAllListeners();
+        }
     }
 
     public void detachLocationListener() {
-        geoFireRef.removeEventListener(locationsListener);
+        if (geoFireRef != null) {
+            geoFireRef.removeEventListener(locationsListener);
+        }
     }
 
     private void addKey(String key) {

@@ -1,6 +1,6 @@
 package com.rethink;
 
-import com.rethink.drop.Utilities;
+import com.rethink.drop.tools.Utilities;
 
 import org.junit.Test;
 

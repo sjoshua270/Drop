@@ -21,7 +21,6 @@ import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
-import com.squareup.picasso.Picasso;
 
 import static com.rethink.drop.DataManager.keys;
 
@@ -47,12 +46,12 @@ public class DropAdapter
             @Override
             public void onClick(View v) {
                 try {
-                    ((MainActivity) holder.itemView.getContext()).openListing(
+                    MainActivity.getInstance().openListing(
                             holder.itemView,
                             ((BitmapDrawable) holder.imageView.getDrawable()).getBitmap(),
                             keys.get(holder.getAdapterPosition()));
                 } catch (ClassCastException | NullPointerException e) {
-                    ((MainActivity) holder.itemView.getContext()).openListing(
+                    MainActivity.getInstance().openListing(
                             holder.itemView,
                             null,
                             keys.get(holder.getAdapterPosition()));
@@ -107,7 +106,7 @@ public class DropAdapter
     }
 
     private void getProfileImage(Drop drop, final ImageView profImageView) {
-        String userID = drop.getUserID();
+        final String userID = drop.getUserID();
         FirebaseDatabase.getInstance()
                         .getReference()
                         .child("profiles")
@@ -119,12 +118,12 @@ public class DropAdapter
                                 if (profile != null) {
                                     String imageUrl = profile.getImageURL() == null ? "" : profile.getImageURL();
                                     if (!imageUrl.equals("")) {
-                                        setProfileImage(imageUrl, profImageView);
+                                        ImageLoader.getInstance().displayImage(imageUrl, profImageView);
                                     } else {
-                                        setDefaultProfileImage(profImageView);
+                                        setDefaultProfileImage(userID, profImageView);
                                     }
                                 } else {
-                                    setDefaultProfileImage(profImageView);
+                                    setDefaultProfileImage(userID, profImageView);
                                 }
                             }
 
@@ -135,19 +134,20 @@ public class DropAdapter
                         });
     }
 
-    private void setProfileImage(String imageUrl, ImageView profImageView) {
-        Picasso.with(context)
-               .load(imageUrl)
-               .placeholder(R.drawable.ic_photo_camera_white_24px)
-               .resize(context.getResources()
-                              .getDimensionPixelSize(R.dimen.listing_prof_dimen),
-                       context.getResources()
-                              .getDimensionPixelSize(R.dimen.listing_prof_dimen))
-               .centerCrop()
-               .into(profImageView);
-    }
-
-    private void setDefaultProfileImage(ImageView profImageView) {
+    private void setDefaultProfileImage(String userID, ImageView profImageView) {
+        int[] profColors = context.getResources().getIntArray(R.array.prof_colors);
+        int firstCharValue = (int) userID.charAt(0);
+        if (47 < firstCharValue && firstCharValue <= 57){
+            firstCharValue -= 48;
+        }
+        else if (64 < firstCharValue && firstCharValue <= 90){
+            firstCharValue -= 55;
+        }
+        else if (96 < firstCharValue && firstCharValue <= 122){
+            firstCharValue -= 87;
+        }
+        int colorIndex = firstCharValue / profColors.length;
+        profImageView.setBackgroundColor(profColors[colorIndex]);
         profImageView.setImageDrawable(
                 ContextCompat.getDrawable(
                         context,

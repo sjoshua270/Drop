@@ -7,7 +7,7 @@
     <string name="image_description">Listing Image</string>
     <string name="title_cannot_be_empty">Please enter a title before saving</string>
     <string name="uploading">Uploading…</string>
-    <string name="unexpected_error">An unexpected error has occurred</string>
+    <string name="unexpected_error">An unexpected error occurred</string>
 
     <string name="full_image">Full screen image</string>
 

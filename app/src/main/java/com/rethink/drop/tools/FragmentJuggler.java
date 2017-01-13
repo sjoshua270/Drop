@@ -1,4 +1,4 @@
-package com.rethink.drop;
+package com.rethink.drop.tools;
 
 import android.graphics.Bitmap;
 import android.os.Build;
@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.rethink.drop.R;
 import com.rethink.drop.fragments.DropFragment;
 import com.rethink.drop.fragments.ImageFragment;
 import com.rethink.drop.fragments.LocalFragment;
@@ -23,20 +24,20 @@ import com.rethink.drop.fragments.ProfileFragment;
 
 import java.io.IOException;
 
-class FragmentJuggler {
+public class FragmentJuggler {
 
-    static final int LOCAL = 0;
-    static final int LISTING = 1;
-    static final int PROFILE = 2;
-    static final int IMAGE = 3;
-    static int CURRENT;
+    public static final int LOCAL = 0;
+    public static final int LISTING = 1;
+    public static final int PROFILE = 2;
+    public static final int IMAGE = 3;
+    public static int CURRENT;
     private final FragmentManager fragmentManager;
 
-    FragmentJuggler(FragmentManager fragmentManager) {
+    public FragmentJuggler(FragmentManager fragmentManager) {
         this.fragmentManager = fragmentManager;
     }
 
-    void openFragment(int fragmentID, @Nullable String key) {
+    public void openFragment(int fragmentID, @Nullable String key) {
         switch (fragmentID) {
             case LOCAL:
                 switchFragments(LocalFragment.newInstance());
@@ -59,7 +60,7 @@ class FragmentJuggler {
         CURRENT = fragmentID;
     }
 
-    Fragment getCurrentFragment() {
+    public Fragment getCurrentFragment() {
         return fragmentManager.findFragmentById(R.id.main_fragment_container);
     }
 
@@ -74,7 +75,7 @@ class FragmentJuggler {
                        .commit();
     }
 
-    void viewListing(View listingView, Bitmap image, String key) throws IOException {
+    public void viewListing(View listingView, Bitmap image, String key) throws IOException {
         Fragment listingFragment = DropFragment.newInstance(key, image);
         transitionFragments(getCurrentFragment(), listingFragment,
                 new View[]{

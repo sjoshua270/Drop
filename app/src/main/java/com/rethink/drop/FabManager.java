@@ -15,9 +15,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.models.Drop;
 
-import static com.rethink.drop.FragmentJuggler.LISTING;
-import static com.rethink.drop.FragmentJuggler.LOCAL;
-import static com.rethink.drop.FragmentJuggler.PROFILE;
+import static com.rethink.drop.tools.FragmentJuggler.LISTING;
+import static com.rethink.drop.tools.FragmentJuggler.LOCAL;
+import static com.rethink.drop.tools.FragmentJuggler.PROFILE;
 
 final class FabManager {
 

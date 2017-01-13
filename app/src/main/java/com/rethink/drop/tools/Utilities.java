@@ -1,4 +1,4 @@
-package com.rethink.drop;
+package com.rethink.drop.tools;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -8,6 +8,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.rethink.drop.R;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Locale;
