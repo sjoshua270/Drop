@@ -128,30 +128,6 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         super.onCreateView(inflater,
                            container,
                            savedInstanceState);
-
-        // TODO: Merge in this code
-        //            double distance;
-        //            if (useMetric(Locale.getDefault())) {
-        //                distance = distanceInKilometers(
-        //                        MainActivity.userLocation.latitude, post.getLatitude(),
-        //                        MainActivity.userLocation.longitude, post.getLongitude()
-        //                );
-        //            } else {
-        //                distance = distanceInMiles(
-        //                        MainActivity.userLocation.latitude, post.getLatitude(),
-        //                        MainActivity.userLocation.longitude, post.getLongitude()
-        //                );
-        //            }
-        //            distance = Math.round(distance * 100);
-        //            distance /= 100;
-        //            String formatString = getDistanceString(Locale.getDefault());
-        //            holder.dist.setText(String.format(formatString, String.valueOf(distance)));
-        //
-        //            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
-        //            holder.timeStampDay.setText(sdf.format(post.getTimestamp()));
-        //
-        //            sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
-        //            holder.timeStampTime.setText(sdf.format(post.getTimestamp()));
         View fragmentView = inflater.inflate(R.layout.fragment_drop,
                                              container,
                                              false);
@@ -303,7 +279,8 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         getArguments().putBoolean(EDITING,
                                   editing);
         prepViews();
-        ((MainActivity) getActivity()).syncUI();
+        MainActivity.getInstance()
+                    .syncUI();
     }
 
     @Override
