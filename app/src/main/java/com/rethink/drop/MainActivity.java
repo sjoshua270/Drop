@@ -14,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,10 +34,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.rethink.drop.fragments.DropFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
@@ -54,6 +51,7 @@ import static com.rethink.drop.tools.FragmentJuggler.PROFILE;
 public class MainActivity extends AppCompatActivity implements OnConnectionFailedListener,
                                                                ConnectionCallbacks,
                                                                LocationListener {
+    private static final String TAG = "MainActivity";
     public static final int RC_SIGN_IN = 1;
     public static final String EDITING = "editing";
     private final static float degreesPerMile = 0.01449275362f;
@@ -91,14 +89,14 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                                                            .build();
 
         // Config ImageLoader
-        DisplayImageOptions displayOptions = new DisplayImageOptions.Builder().cacheInMemory(true)
-                                                                              .cacheOnDisk(true)
-                                                                              .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
-                                                                              .build();
-        ImageLoaderConfiguration loaderConfig = new ImageLoaderConfiguration.Builder(this).defaultDisplayImageOptions(displayOptions)
-                                                                                          .build();
-        ImageLoader.getInstance()
-                   .init(loaderConfig);
+//        DisplayImageOptions displayOptions = new DisplayImageOptions.Builder().cacheInMemory(true)
+//                                                                              .cacheOnDisk(true)
+//                                                                              .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
+//                                                                              .build();
+//        ImageLoaderConfiguration loaderConfig = new ImageLoaderConfiguration.Builder(this).defaultDisplayImageOptions(displayOptions)
+//                                                                                          .build();
+//        ImageLoader.getInstance()
+//                   .init(loaderConfig);
 
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
         fab = new FabManager(this,
@@ -170,8 +168,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                                      .getArguments();
         String key = args.getString(KEY);
         Boolean isEditing = args.getBoolean(EDITING);
-        fab.update(CURRENT,
-                   key,
+        fab.update(key,
                    isEditing);
     }
 
@@ -201,6 +198,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                         if (currClass.equals(ProfileFragment.class)) {
                             CURRENT = PROFILE;
                         }
+                        Log.d(TAG, String.valueOf(CURRENT));
                         syncUI();
                     }
                 } else {
@@ -223,6 +221,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                                         image,
                                         key);
         } catch (IOException e) {
+            fragmentJuggler.openFragment(LOCAL, null);
             fab.show();
             e.printStackTrace();
         }

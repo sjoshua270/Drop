@@ -77,7 +77,7 @@ public class FragmentJuggler {
 
     public void viewListing(View listingView, Bitmap image, String key) throws IOException {
         CURRENT = LISTING;
-        Fragment listingFragment = DropFragment.newInstance(key, image);
+        Fragment listingFragment = DropFragment.newInstance(key);
         transitionFragments(getCurrentFragment(), listingFragment,
                 new View[]{
                         listingView.findViewById(R.id.item_image),

@@ -11,12 +11,12 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.firebase.geofire.GeoFire;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.nostra13.universalimageloader.core.ImageLoader;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.models.Drop;
@@ -94,7 +94,12 @@ public class DropAdapter
     private void getPostImage(Drop drop, ImageView imageView) {
         String imageUrl = drop.getImageURL() == null ? "" : drop.getImageURL();
         if (!imageUrl.equals("")) {
-            ImageLoader.getInstance().displayImage(imageUrl, imageView);
+            Glide.with(context)
+                 .load(imageUrl)
+                 .centerCrop()
+                 .placeholder(R.drawable.ic_photo_camera_white_24px)
+                 .crossFade()
+                 .into(imageView);
         } else {
             imageView.setImageResource(R.drawable.ic_photo_camera_white_24px);
             int padding = context
@@ -118,7 +123,12 @@ public class DropAdapter
                                 if (profile != null) {
                                     String imageUrl = profile.getImageURL() == null ? "" : profile.getImageURL();
                                     if (!imageUrl.equals("")) {
-                                        ImageLoader.getInstance().displayImage(imageUrl, profImageView);
+                                        Glide.with(context)
+                                             .load(imageUrl)
+                                             .centerCrop()
+                                             .placeholder(R.drawable.ic_photo_camera_white_24px)
+                                             .crossFade()
+                                             .into(profImageView);
                                     } else {
                                         setDefaultProfileImage(userID, profImageView);
                                     }

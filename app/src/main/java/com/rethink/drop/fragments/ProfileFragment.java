@@ -21,6 +21,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -28,9 +31,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.UploadTask;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.interfaces.ImageRecipient;
@@ -101,29 +101,15 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
 
     @Override
     public void receiveImage(String path) {
-        ImageLoader.getInstance()
-                   .loadImage(path,
-                              new ImageLoadingListener() {
-                                  @Override
-                                  public void onLoadingStarted(String imageUri, View view) {
-
-                                  }
-
-                                  @Override
-                                  public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-
-                                  }
-
-                                  @Override
-                                  public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                                      uploadImage(loadedImage);
-                                  }
-
-                                  @Override
-                                  public void onLoadingCancelled(String imageUri, View view) {
-
-                                  }
-                              });
+        Glide.with(getContext())
+             .load(path)
+             .asBitmap()
+             .into(new SimpleTarget<Bitmap>() {
+                 @Override
+                 public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                     uploadImage(resource);
+                 }
+             });
     }
 
     @Override
@@ -256,9 +242,12 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                 profNameEdit.setText(profile.getName());
                 String imageURL = profile.getImageURL() == null ? "" : profile.getImageURL();
                 if (!imageURL.equals("")) {
-                    ImageLoader.getInstance()
-                               .displayImage(imageURL,
-                                             profImage);
+                    Glide.with(getContext())
+                         .load(imageURL)
+                         .centerCrop()
+                         .placeholder(R.drawable.ic_photo_camera_white_24px)
+                         .crossFade()
+                         .into(profImage);
                 }
             }
             syncUI();

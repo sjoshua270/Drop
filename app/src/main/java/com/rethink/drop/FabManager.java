@@ -15,6 +15,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.models.Drop;
 
+import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
 import static com.rethink.drop.tools.FragmentJuggler.LISTING;
 import static com.rethink.drop.tools.FragmentJuggler.LOCAL;
 import static com.rethink.drop.tools.FragmentJuggler.PROFILE;
@@ -29,60 +30,65 @@ final class FabManager {
         this.fab = fab;
     }
 
-    void update(int fragmentID, String key, boolean isEditing) {
-        if (fragmentID == LOCAL) {
-            setDrawable(R.drawable.ic_add_white_24px);
-        } else if (fragmentID == LISTING) {
-            if (key != null) {
+    void update(String key, boolean isEditing) {
+        switch (CURRENT) {
+            case LOCAL:
+                setDrawable(R.drawable.ic_add_white_24px);
+                break;
+            case LISTING:
+                if (key != null) {
+                    if (isEditing) {
+                        setDrawable(R.drawable.ic_save_white_24dp);
+                    } else {
+                        FirebaseDatabase.getInstance()
+                                        .getReference()
+                                        .child("posts")
+                                        .child(key)
+                                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                Drop drop = dataSnapshot.getValue(Drop.class);
+                                                if (drop != null) {
+                                                    FirebaseUser user = FirebaseAuth.getInstance()
+                                                                                    .getCurrentUser();
+                                                    if (user != null && user.getUid()
+                                                                            .equals(drop.getUserID())) {
+                                                        setDrawable(R.drawable.ic_mode_edit_white_24px);
+                                                    }
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onCancelled(DatabaseError databaseError) {
+
+                                            }
+                                        });
+
+                    }
+                } else {
+                    setDrawable(R.drawable.ic_send_white_24px);
+                }
+                break;
+            case PROFILE:
                 if (isEditing) {
                     setDrawable(R.drawable.ic_save_white_24dp);
                 } else {
-                    FirebaseDatabase.getInstance()
-                                    .getReference()
-                                    .child("posts")
-                                    .child(key)
-                                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(DataSnapshot dataSnapshot) {
-                                            Drop drop = dataSnapshot.getValue(Drop.class);
-                                            if (drop != null) {
-                                                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                                                if (user != null && user.getUid().equals(drop.getUserID())) {
-                                                    setDrawable(R.drawable.ic_mode_edit_white_24px);
-                                                }
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onCancelled(DatabaseError databaseError) {
-
-                                        }
-                                    });
-
+                    setDrawable(R.drawable.ic_mode_edit_white_24px);
                 }
-            } else {
-                setDrawable(R.drawable.ic_send_white_24px);
-            }
-        } else if (fragmentID == PROFILE) {
-            if (isEditing) {
-                setDrawable(R.drawable.ic_save_white_24dp);
-            } else {
-                setDrawable(R.drawable.ic_mode_edit_white_24px);
-            }
+                break;
         }
     }
 
     private void setDrawable(int drawableID) {
-        fab.setImageDrawable(ContextCompat.getDrawable(
-                context,
-                drawableID));
+        fab.setImageDrawable(ContextCompat.getDrawable(context,
+                                                       drawableID));
         show();
     }
 
     void hide() {
         fab.setClickable(false);
-        Animation anim = AnimationUtils
-                .loadAnimation(context, R.anim.shrink_fade_out);
+        Animation anim = AnimationUtils.loadAnimation(context,
+                                                      R.anim.shrink_fade_out);
         anim.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
@@ -104,8 +110,8 @@ final class FabManager {
 
     void show() {
         fab.setClickable(true);
-        Animation anim = AnimationUtils
-                .loadAnimation(context, R.anim.grow_fade_in);
+        Animation anim = AnimationUtils.loadAnimation(context,
+                                                      R.anim.grow_fade_in);
         anim.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {

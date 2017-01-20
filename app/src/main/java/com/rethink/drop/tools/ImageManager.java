@@ -25,6 +25,7 @@ import static android.app.Activity.RESULT_OK;
 import static com.rethink.drop.MainActivity.STORAGE_REQUEST;
 
 public class ImageManager extends Fragment {
+    private static final String TAG = "ImageManager";
     public static final int GALLERY_REQUEST = 3;
     private static final int CAMERA_CAPTURE = 1;
     private ImageRecipient recipient;
@@ -124,7 +125,7 @@ public class ImageManager extends Fragment {
                 recipient.receiveImage(resultUri.toString());
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Exception error = result.getError();
-                Log.e("CropError",
+                Log.e(TAG,
                       "Error cropping image: ",
                       error);
             }

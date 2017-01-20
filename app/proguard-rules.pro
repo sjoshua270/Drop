@@ -18,6 +18,11 @@
 
 -keepattributes Signature
 -keepattributes *Annotation*
+-keep public class * implements com.bumptech.glide.module.GlideModule
+-keep public enum com.bumptech.glide.load.resource.bitmap.ImageHeaderParser$** {
+  **[] $VALUES;
+  public *;
+}
 
 # To keep models intact for Firebase Database
 -keepclassmembers class com.rethink.drop.models.** {

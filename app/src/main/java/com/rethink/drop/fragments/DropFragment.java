@@ -3,7 +3,6 @@ package com.rethink.drop.fragments;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -23,6 +22,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -34,9 +36,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.UploadTask;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.interfaces.ImageRecipient;
@@ -44,8 +43,6 @@ import com.rethink.drop.models.Drop;
 import com.rethink.drop.tools.ImageManager;
 import com.rethink.drop.tools.Utilities;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Calendar;
 
 import static com.rethink.drop.MainActivity.EDITING;
@@ -54,7 +51,7 @@ import static com.rethink.drop.models.Drop.KEY;
 
 public class DropFragment extends ImageManager implements ImageRecipient {
 
-    private static final String IMAGE = "image";
+    private static final String TAG = "DropFragment";
     private Bitmap image;
     private ImageView imageView;
     private ViewSwitcher descSwitcher;
@@ -78,25 +75,6 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         return fragment;
     }
 
-    public static DropFragment newInstance(String key, Bitmap image) throws IOException {
-        Bundle args = new Bundle();
-        args.putString(KEY,
-                       key);
-        if (image != null) {
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            image.compress(Bitmap.CompressFormat.PNG,
-                           100,
-                           stream);
-            byte[] byteArray = stream.toByteArray();
-            args.putByteArray(IMAGE,
-                              byteArray);
-            stream.close();
-        }
-        DropFragment fragment = new DropFragment();
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -109,12 +87,6 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         imageChanged = false;
         changeListener = new DropChangeListener();
         if (args != null) {
-            byte[] imageBytes = args.getByteArray(IMAGE);
-            if (imageBytes != null) {
-                image = BitmapFactory.decodeByteArray(imageBytes,
-                                                      0,
-                                                      imageBytes.length);
-            }
             String key = args.getString(KEY);
             editing = key == null;
             if (key != null) {
@@ -310,32 +282,18 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     }
 
     @Override
-    public void receiveImage(String path) {
-        ImageLoader.getInstance()
-                   .loadImage(path,
-                              new ImageLoadingListener() {
-                                  @Override
-                                  public void onLoadingStarted(String imageUri, View view) {
-
-                                  }
-
-                                  @Override
-                                  public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                                      failReason.getCause().printStackTrace();
-                                  }
-
-                                  @Override
-                                  public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                                      imageChanged = true;
-                                      image = loadedImage;
-                                      setImageView();
-                                  }
-
-                                  @Override
-                                  public void onLoadingCancelled(String imageUri, View view) {
-
-                                  }
-                              });
+    public void receiveImage(final String path) {
+        imageChanged = true;
+        Glide.with(getContext())
+             .load(path)
+             .asBitmap()
+             .into(new SimpleTarget<Bitmap>() {
+                 @Override
+                 public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                     image = resource;
+                     setImageView();
+                 }
+             });
     }
 
     private class ImageClickHandler implements View.OnClickListener {
@@ -363,9 +321,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
             if (drop != null) {
                 imageURL = drop.getImageURL() == null ? "" : drop.getImageURL();
                 if (!imageURL.equals("")) {
-                    ImageLoader.getInstance()
-                               .displayImage(imageURL,
-                                             imageView);
+                    Glide.with(getContext())
+                         .load(imageURL)
+                         .centerCrop()
+                         .placeholder(R.drawable.ic_photo_camera_white_24px)
+                         .crossFade()
+                         .into(imageView);
                 } else if (!editing) {
                     imageView.setVisibility(View.GONE);
                 } else {

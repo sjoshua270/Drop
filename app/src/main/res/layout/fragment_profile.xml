@@ -16,7 +16,6 @@
             android:layout_centerHorizontal="true"
             android:background="@color/primary"
             android:contentDescription="@string/prof_img_desc"
-            android:padding="@dimen/listing_padding"
             android:src="@drawable/ic_photo_camera_white_24px" />
 
         <ViewSwitcher
