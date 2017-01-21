@@ -31,6 +31,7 @@ final class FabManager {
     }
 
     void update(String key, boolean isEditing) {
+        hide();
         switch (CURRENT) {
             case LOCAL:
                 setDrawable(R.drawable.ic_add_white_24px);

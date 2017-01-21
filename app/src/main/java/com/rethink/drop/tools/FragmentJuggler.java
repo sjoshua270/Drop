@@ -1,6 +1,5 @@
 package com.rethink.drop.tools;
 
-import android.graphics.Bitmap;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -75,27 +74,22 @@ public class FragmentJuggler {
                        .commit();
     }
 
-    public void viewListing(View listingView, Bitmap image, String key) throws IOException {
+    public void viewListing(View listingView, String key) throws IOException {
         CURRENT = LISTING;
         Fragment listingFragment = DropFragment.newInstance(key);
-        transitionFragments(getCurrentFragment(), listingFragment,
-                new View[]{
-                        listingView.findViewById(R.id.item_image),
-                        listingView.findViewById(R.id.item_desc)});
-    }
-
-    private void transitionFragments(Fragment frag1, Fragment frag2, View[] views) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            frag2.setSharedElementEnterTransition(new FragmentJuggler.ViewTransition());
-            frag2.setEnterTransition(new Fade());
-            frag1.setReturnTransition(new Fade());
-            frag1.setSharedElementReturnTransition(new FragmentJuggler.ViewTransition());
+            listingFragment.setSharedElementEnterTransition(new FragmentJuggler.ViewTransition());
+            listingFragment.setSharedElementReturnTransition(new FragmentJuggler.ViewTransition());
+            listingFragment.setEnterTransition(new Fade());
+            listingFragment.setReturnTransition(new Fade());
         }
         fragmentManager.beginTransaction()
-                       .addSharedElement(views[0], "image")
-                       .addSharedElement(views[1], "desc")
+                       .addSharedElement(listingView.findViewById(R.id.item_image),
+                                         "image_" + key)
+                       .addSharedElement(listingView.findViewById(R.id.item_desc),
+                                         "desc_" + key)
                        .replace(R.id.main_fragment_container,
-                               frag2)
+                                listingFragment)
                        .addToBackStack(null)
                        .commit();
     }

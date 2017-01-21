@@ -13,6 +13,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/item_image_height"
             android:layout_alignParentTop="true"
+            android:src="@drawable/ic_photo_camera_black_24px"
             android:contentDescription="@string/image_description" />
 
         <ViewSwitcher

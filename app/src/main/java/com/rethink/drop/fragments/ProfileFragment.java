@@ -39,7 +39,6 @@ import com.rethink.drop.tools.ImageManager;
 import com.rethink.drop.tools.Utilities;
 
 import static com.rethink.drop.MainActivity.EDITING;
-import static com.rethink.drop.models.Drop.KEY;
 
 public class ProfileFragment extends ImageManager implements ImageRecipient {
     private static final String USER_ID = "user_id";
@@ -224,9 +223,6 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                                                       new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                                                       0);
                 }
-            } else {
-                MainActivity.getInstance()
-                            .viewImage(getArguments().getString(KEY));
             }
         }
     }

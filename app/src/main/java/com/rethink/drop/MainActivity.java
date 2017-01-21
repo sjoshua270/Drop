@@ -3,7 +3,6 @@ package com.rethink.drop;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -214,11 +213,10 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         }
     }
 
-    public void openListing(View listingView, Bitmap image, String key) {
+    public void openListing(View listingView, String key) {
         fab.hide();
         try {
             fragmentJuggler.viewListing(listingView,
-                                        image,
                                         key);
         } catch (IOException e) {
             fragmentJuggler.openFragment(LOCAL, null);

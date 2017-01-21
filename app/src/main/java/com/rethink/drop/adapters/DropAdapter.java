@@ -1,8 +1,6 @@
 package com.rethink.drop.adapters;
 
 import android.content.Context;
-import android.graphics.drawable.BitmapDrawable;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -45,17 +43,9 @@ public class DropAdapter
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    MainActivity.getInstance().openListing(
-                            holder.itemView,
-                            ((BitmapDrawable) holder.imageView.getDrawable()).getBitmap(),
-                            keys.get(holder.getAdapterPosition()));
-                } catch (ClassCastException | NullPointerException e) {
-                    MainActivity.getInstance().openListing(
-                            holder.itemView,
-                            null,
-                            keys.get(holder.getAdapterPosition()));
-                }
+                MainActivity.getInstance()
+                            .openListing(holder.itemView,
+                                         key);
             }
         });
     }
@@ -70,10 +60,15 @@ public class DropAdapter
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 Drop drop = dataSnapshot.getValue(Drop.class);
                                 if (drop != null) {
-                                    getPostImage(drop, holder.imageView);
+                                    Glide.with(context)
+                                         .load(drop.getImageURL())
+                                         .centerCrop()
+                                         .placeholder(R.drawable.ic_photo_camera_black_24px)
+                                         .crossFade()
+                                         .into(holder.imageView);
+
                                     getProfileImage(drop, holder.profile);
 
-                                    holder.imageView.setPadding(0, 0, 0, 0);
                                     holder.desc.setText(drop.getText());
                                 } else {
                                     GeoFire geoFire = new GeoFire(
@@ -91,25 +86,6 @@ public class DropAdapter
                         });
     }
 
-    private void getPostImage(Drop drop, ImageView imageView) {
-        String imageUrl = drop.getImageURL() == null ? "" : drop.getImageURL();
-        if (!imageUrl.equals("")) {
-            Glide.with(context)
-                 .load(imageUrl)
-                 .centerCrop()
-                 .placeholder(R.drawable.ic_photo_camera_white_24px)
-                 .crossFade()
-                 .into(imageView);
-        } else {
-            imageView.setImageResource(R.drawable.ic_photo_camera_white_24px);
-            int padding = context
-                    .getResources()
-                    .getDimensionPixelSize(
-                            R.dimen.listing_padding);
-            imageView.setPadding(padding, padding, padding, padding);
-        }
-    }
-
     private void getProfileImage(Drop drop, final ImageView profImageView) {
         final String userID = drop.getUserID();
         FirebaseDatabase.getInstance()
@@ -120,21 +96,12 @@ public class DropAdapter
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 Profile profile = dataSnapshot.getValue(Profile.class);
-                                if (profile != null) {
-                                    String imageUrl = profile.getImageURL() == null ? "" : profile.getImageURL();
-                                    if (!imageUrl.equals("")) {
-                                        Glide.with(context)
-                                             .load(imageUrl)
-                                             .centerCrop()
-                                             .placeholder(R.drawable.ic_photo_camera_white_24px)
-                                             .crossFade()
-                                             .into(profImageView);
-                                    } else {
-                                        setDefaultProfileImage(userID, profImageView);
-                                    }
-                                } else {
-                                    setDefaultProfileImage(userID, profImageView);
-                                }
+                                Glide.with(context)
+                                     .load(profile.getImageURL())
+                                     .centerCrop()
+                                     .placeholder(R.drawable.ic_face_white_24px)
+                                     .crossFade()
+                                     .into(profImageView);
                             }
 
                             @Override
@@ -142,26 +109,6 @@ public class DropAdapter
 
                             }
                         });
-    }
-
-    private void setDefaultProfileImage(String userID, ImageView profImageView) {
-        int[] profColors = context.getResources().getIntArray(R.array.prof_colors);
-        int firstCharValue = (int) userID.charAt(0);
-        if (47 < firstCharValue && firstCharValue <= 57){
-            firstCharValue -= 48;
-        }
-        else if (64 < firstCharValue && firstCharValue <= 90){
-            firstCharValue -= 55;
-        }
-        else if (96 < firstCharValue && firstCharValue <= 122){
-            firstCharValue -= 87;
-        }
-        int colorIndex = firstCharValue / profColors.length;
-        profImageView.setBackgroundColor(profColors[colorIndex]);
-        profImageView.setImageDrawable(
-                ContextCompat.getDrawable(
-                        context,
-                        R.drawable.ic_face_white_24px));
     }
 
     @Override

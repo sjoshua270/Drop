@@ -104,24 +104,21 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                              container,
                                              false);
         cLayout = (CoordinatorLayout) getActivity().findViewById(R.id.coordinator);
-
         imageView = (ImageView) fragmentView.findViewById(R.id.listing_image);
-        ViewCompat.setTransitionName(imageView,
-                                     "image");
         imageView.setOnClickListener(new ImageClickHandler());
-
         descSwitcher = (ViewSwitcher) fragmentView.findViewById(R.id.description_switcher);
-
         desc = (TextView) fragmentView.findViewById(R.id.listing_desc);
-        ViewCompat.setTransitionName(desc,
-                                     "desc");
-
         inputDesc = (TextInputEditText) fragmentView.findViewById(R.id.listing_input_desc);
-        ViewCompat.setTransitionName(inputDesc,
-                                     "input_desc");
+
+        String key = getArguments().getString(KEY);
+        if (key != null) {
+            ViewCompat.setTransitionName(imageView,
+                                         "image_" + key);
+            ViewCompat.setTransitionName(desc,
+                                         "desc_" + key);
+        }
 
         prepViews();
-
         return fragmentView;
     }
 
