@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
@@ -87,16 +88,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                                                            .addApi(LocationServices.API)
                                                            .build();
 
-        // Config ImageLoader
-//        DisplayImageOptions displayOptions = new DisplayImageOptions.Builder().cacheInMemory(true)
-//                                                                              .cacheOnDisk(true)
-//                                                                              .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
-//                                                                              .build();
-//        ImageLoaderConfiguration loaderConfig = new ImageLoaderConfiguration.Builder(this).defaultDisplayImageOptions(displayOptions)
-//                                                                                          .build();
-//        ImageLoader.getInstance()
-//                   .init(loaderConfig);
-
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
         fab = new FabManager(this,
                              (FloatingActionButton) findViewById(R.id.fab));
@@ -159,6 +150,10 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         fab.hide();
         fragmentJuggler.openFragment(id,
                                      key);
+    }
+
+    public void showMessage(final String message){
+        Snackbar.make(findViewById(R.id.fab), message, Snackbar.LENGTH_LONG);
     }
 
     public void syncUI() {

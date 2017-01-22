@@ -52,19 +52,16 @@ import static com.rethink.drop.models.Drop.KEY;
 public class DropFragment extends ImageManager implements ImageRecipient {
 
     private static final String TAG = "DropFragment";
-    private Bitmap image;
     private ImageView imageView;
-    private ViewSwitcher descSwitcher;
-    private TextView desc;
-    private TextInputEditText inputDesc;
-    private Boolean imageChanged;
+    private ViewSwitcher descriptionFieldSwitcher;
+    private TextView description;
+    private TextInputEditText descriptionField;
     private CoordinatorLayout cLayout;
-    private DatabaseReference ref;
-    private DropChangeListener changeListener;
+    private DatabaseReference dropReference;
+    private DropChangeListener dropListener;
     private FirebaseUser user;
     private Boolean editing;
-    private String imageURL;
-    private DatabaseReference dropRef;
+    private Drop drop;
 
     public static DropFragment newInstance(String key) {
         Bundle args = new Bundle();
@@ -78,21 +75,9 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Bundle args = getArguments();
         user = FirebaseAuth.getInstance()
                            .getCurrentUser();
-        ref = FirebaseDatabase.getInstance()
-                              .getReference()
-                              .child("posts");
-        imageChanged = false;
-        changeListener = new DropChangeListener();
-        if (args != null) {
-            String key = args.getString(KEY);
-            editing = key == null;
-            if (key != null) {
-                updateRef(key);
-            }
-        }
+        dropListener = new DropChangeListener();
     }
 
     @Override
@@ -106,28 +91,19 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         cLayout = (CoordinatorLayout) getActivity().findViewById(R.id.coordinator);
         imageView = (ImageView) fragmentView.findViewById(R.id.listing_image);
         imageView.setOnClickListener(new ImageClickHandler());
-        descSwitcher = (ViewSwitcher) fragmentView.findViewById(R.id.description_switcher);
-        desc = (TextView) fragmentView.findViewById(R.id.listing_desc);
-        inputDesc = (TextInputEditText) fragmentView.findViewById(R.id.listing_input_desc);
+        descriptionFieldSwitcher = (ViewSwitcher) fragmentView.findViewById(R.id.description_switcher);
+        description = (TextView) fragmentView.findViewById(R.id.listing_desc);
+        descriptionField = (TextInputEditText) fragmentView.findViewById(R.id.listing_input_desc);
 
         String key = getArguments().getString(KEY);
         if (key != null) {
             ViewCompat.setTransitionName(imageView,
                                          "image_" + key);
-            ViewCompat.setTransitionName(desc,
+            ViewCompat.setTransitionName(description,
                                          "desc_" + key);
         }
 
-        prepViews();
         return fragmentView;
-    }
-
-    private void updateRef(String key) {
-        dropRef = FirebaseDatabase.getInstance()
-                                  .getReference()
-                                  .child("posts")
-                                  .child(key);
-        dropRef.addValueEventListener(changeListener);
     }
 
     @Override
@@ -138,33 +114,6 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                   inflater);
     }
 
-    private void setImageView() {
-        if (image != null) {
-            imageView.setImageBitmap(Utilities.squareImage(image));
-            imageView.setPadding(0,
-                                 0,
-                                 0,
-                                 0);
-        }
-    }
-
-    private void prepViews() {
-        if (editing) {
-            if (descSwitcher.getNextView()
-                            .getClass()
-                            .equals(TextInputLayout.class)) {
-                descSwitcher.showNext();
-            }
-        } else {
-            if (descSwitcher.getNextView()
-                            .getClass()
-                            .equals(AppCompatTextView.class)) {
-                descSwitcher.showNext();
-            }
-        }
-        setHasOptionsMenu(editing);
-    }
-
     public void handleFabPress() {
         if (editing) {
             publishListing();
@@ -173,32 +122,48 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         }
     }
 
+    private DatabaseReference getDropReference(String key) {
+        DatabaseReference ref;
+        if (key == null) {
+            ref = FirebaseDatabase.getInstance()
+                                  .getReference()
+                                  .child("posts")
+                                  .push();
+            key = ref.getKey();
+            getArguments().putString(KEY,
+                                     key);
+            ref.setValue(new Drop(user.getUid(),
+                                  Calendar.getInstance()
+                                          .getTimeInMillis(),
+                                  "",
+                                  ""));
+        } else {
+            ref = FirebaseDatabase.getInstance()
+                                  .getReference()
+                                  .child("posts")
+                                  .child(key);
+        }
+        return ref;
+    }
+
     /**
      * Takes all values in the current layout and sends them off to Firebase,
      * then returns to the previous fragment
      */
     private void publishListing() {
         String key = getArguments().getString("KEY");
-        if (key == null) {
-            key = ref.push()
-                     .getKey();
-        }
-        ref = ref.child(key);
-        if (image != null && imageChanged) {
-            uploadImage(key);
-        } else {
-            saveListing(key,
-                        new Drop(user.getUid(),
-                                 Calendar.getInstance()
-                                         .getTimeInMillis(),
-                                 imageURL,
-                                 inputDesc.getText()
-                                          .toString()));
-            toggleState();
-        }
+        saveListing(key,
+                    new Drop(user.getUid(),
+                             Calendar.getInstance()
+                                     .getTimeInMillis(),
+                             drop.getImageURL(),
+                             descriptionField.getText()
+                                             .toString()));
+        toggleState();
+
     }
 
-    private void uploadImage(final String key) {
+    private void uploadImage(Bitmap image, final String key) {
         Utilities.uploadImage(getActivity(),
                               image,
                               user.getUid() + "/" + key)
@@ -207,14 +172,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                      public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                          Uri downloadUrl = taskSnapshot.getDownloadUrl();
                          if (downloadUrl != null) {
-                             saveListing(key,
-                                         new Drop(user.getUid(),
-                                                  Calendar.getInstance()
-                                                          .getTimeInMillis(),
-                                                  downloadUrl.toString(),
-                                                  inputDesc.getText()
-                                                           .toString()));
-                             toggleState();
+                             dropReference.setValue(new Drop(user.getUid(),
+                                                             Calendar.getInstance()
+                                                                     .getTimeInMillis(),
+                                                             downloadUrl.toString(),
+                                                             descriptionField.getText()
+                                                                             .toString()));
                          } else {
                              Snackbar.make(cLayout,
                                            R.string.unexpected_error,
@@ -226,28 +189,56 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     }
 
     private void saveListing(String key, Drop drop) {
+        GeoLocation location = new GeoLocation(userLocation.latitude,
+                                               userLocation.longitude);
         new GeoFire(FirebaseDatabase.getInstance()
                                     .getReference()
                                     .child("geoFire")).setLocation(key,
-                                                                   new GeoLocation(userLocation.latitude,
-                                                                                   userLocation.longitude));
-        ref.setValue(drop);
-        Bundle args = getArguments();
-        args.putString(KEY,
-                       key);
-        updateRef(key);
+                                                                   location);
+        dropReference.setValue(drop);
+        getArguments().putString(KEY,
+                                 key);
         MainActivity.getInstance()
                     .dismissKeyboard();
     }
 
+    private void updateData(Drop drop) {
+        Glide.with(getContext())
+             .load(drop.getImageURL())
+             .centerCrop()
+             .placeholder(R.drawable.ic_photo_camera_black_24px)
+             .crossFade()
+             .into(imageView);
+        description.setText(drop.getText());
+        descriptionField.setText(drop.getText());
+    }
+
     private void toggleState() {
-        if (editing) {
-            imageChanged = false;
-        }
         editing = !editing;
         getArguments().putBoolean(EDITING,
                                   editing);
-        prepViews();
+        syncUI();
+    }
+
+    private void syncUI() {
+        if (editing) {
+            imageView.setVisibility(View.VISIBLE);
+            if (descriptionFieldSwitcher.getNextView()
+                                        .getClass()
+                                        .equals(TextInputLayout.class)) {
+                descriptionFieldSwitcher.showNext();
+            }
+        } else {
+            if (getArguments().getString(KEY) == null) {
+                imageView.setVisibility(View.GONE);
+            }
+            if (descriptionFieldSwitcher.getNextView()
+                                        .getClass()
+                                        .equals(AppCompatTextView.class)) {
+                descriptionFieldSwitcher.showNext();
+            }
+        }
+        setHasOptionsMenu(editing);
         MainActivity.getInstance()
                     .syncUI();
     }
@@ -255,20 +246,19 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     @Override
     public void onResume() {
         super.onResume();
-        if (dropRef == null) {
+        if (dropReference == null) {
             String key = getArguments().getString(KEY);
-            if (key != null) {
-                updateRef(key);
-            }
-        } else {
-            dropRef.addValueEventListener(changeListener);
+            editing = key == null;
+            dropReference = getDropReference(key);
         }
+        dropReference.addValueEventListener(dropListener);
+        syncUI();
     }
 
     @Override
     public void onPause() {
-        if (dropRef != null) {
-            dropRef.removeEventListener(changeListener);
+        if (dropReference != null) {
+            dropReference.removeEventListener(dropListener);
         }
         super.onPause();
     }
@@ -280,15 +270,14 @@ public class DropFragment extends ImageManager implements ImageRecipient {
 
     @Override
     public void receiveImage(final String path) {
-        imageChanged = true;
         Glide.with(getContext())
              .load(path)
              .asBitmap()
              .into(new SimpleTarget<Bitmap>() {
                  @Override
                  public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                     image = resource;
-                     setImageView();
+                     uploadImage(resource,
+                                 getArguments().getString(KEY));
                  }
              });
     }
@@ -314,23 +303,13 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     private class DropChangeListener implements ValueEventListener {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
-            Drop drop = dataSnapshot.getValue(Drop.class);
+            drop = dataSnapshot.getValue(Drop.class);
             if (drop != null) {
-                imageURL = drop.getImageURL() == null ? "" : drop.getImageURL();
-                if (!imageURL.equals("")) {
-                    Glide.with(getContext())
-                         .load(imageURL)
-                         .centerCrop()
-                         .placeholder(R.drawable.ic_photo_camera_white_24px)
-                         .crossFade()
-                         .into(imageView);
-                } else if (!editing) {
-                    imageView.setVisibility(View.GONE);
-                } else {
-                    imageView.setVisibility(View.VISIBLE);
-                }
-                desc.setText(drop.getText());
-                inputDesc.setText(drop.getText());
+                updateData(drop);
+            } else {
+                MainActivity.getInstance()
+                            .showMessage("Drop deleted");
+                getFragmentManager().popBackStackImmediate();
             }
         }
 
