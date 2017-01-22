@@ -55,7 +55,7 @@ public class DropAdapter
                         .getReference()
                         .child("posts")
                         .child(key)
-                        .addValueEventListener(new ValueEventListener() {
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 Drop drop = dataSnapshot.getValue(Drop.class);
@@ -92,16 +92,18 @@ public class DropAdapter
                         .getReference()
                         .child("profiles")
                         .child(userID)
-                        .addValueEventListener(new ValueEventListener() {
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 Profile profile = dataSnapshot.getValue(Profile.class);
-                                Glide.with(context)
-                                     .load(profile.getImageURL())
-                                     .centerCrop()
-                                     .placeholder(R.drawable.ic_face_white_24px)
-                                     .crossFade()
-                                     .into(profImageView);
+                                if (profile != null) {
+                                    Glide.with(context)
+                                         .load(profile.getImageURL())
+                                         .centerCrop()
+                                         .placeholder(R.drawable.ic_face_white_24px)
+                                         .crossFade()
+                                         .into(profImageView);
+                                }
                             }
 
                             @Override

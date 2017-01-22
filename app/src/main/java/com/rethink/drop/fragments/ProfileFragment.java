@@ -94,22 +94,31 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     }
 
     private DatabaseReference getProfileReference(String userID) {
-        DatabaseReference ref;
+        DatabaseReference ref = null;
         if (userID == null) {
             FirebaseUser user = FirebaseAuth.getInstance()
                                             .getCurrentUser();
             if (user != null) {
                 userID = user.getUid();
+                ref = FirebaseDatabase.getInstance()
+                                      .getReference()
+                                      .child("profiles")
+                                      .child(userID);
+                ref.setValue(new Profile(userID,
+                                         "",
+                                         ""));
             } else {
                 MainActivity.getInstance()
                             .showMessage("Please log in");
                 getFragmentManager().popBackStackImmediate();
             }
         }
-        ref = FirebaseDatabase.getInstance()
-                              .getReference()
-                              .child("profiles")
-                              .child(userID);
+        if (ref == null) {
+            ref = FirebaseDatabase.getInstance()
+                                  .getReference()
+                                  .child("profiles")
+                                  .child(userID);
+        }
         return ref;
     }
 
@@ -261,7 +270,12 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
             profile = dataSnapshot.getValue(Profile.class);
-            updateData(profile);
+            if (profile != null) {
+                updateData(profile);
+            } else {
+                editing = true;
+                syncUI();
+            }
         }
 
         @Override
