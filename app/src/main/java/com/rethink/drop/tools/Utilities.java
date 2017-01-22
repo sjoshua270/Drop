@@ -81,15 +81,6 @@ public class Utilities {
 
     // ===== Image Magic =====
 
-    public static Bitmap squareImage(Bitmap toReturn) {
-        int dimen = Math.min(toReturn.getWidth(), toReturn.getHeight());
-        return Bitmap.createBitmap(
-                toReturn,
-                (toReturn.getWidth() - dimen) / 2,
-                (toReturn.getHeight() - dimen) / 2,
-                dimen, dimen);
-    }
-
     private static Bitmap scaleDown(Bitmap realImage, float maxImageSize) {
         float ratio = Math.min(
                 maxImageSize / realImage.getWidth(),
