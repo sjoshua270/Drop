@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     }
 
     public void showMessage(final String message){
-        Snackbar.make(findViewById(R.id.fab), message, Snackbar.LENGTH_LONG);
+        Snackbar.make(findViewById(R.id.fab), message, Snackbar.LENGTH_LONG).show();
     }
 
     public void syncUI() {
