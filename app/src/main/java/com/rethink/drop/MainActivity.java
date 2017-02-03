@@ -39,8 +39,6 @@ import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.tools.FragmentJuggler;
 
-import java.io.IOException;
-
 import static com.rethink.drop.models.Drop.KEY;
 import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
 import static com.rethink.drop.tools.FragmentJuggler.IMAGE;
@@ -205,14 +203,14 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
 
     public void openListing(View listingView, String key) {
         fab.hide();
-        try {
-            fragmentJuggler.viewListing(listingView,
-                                        key);
-        } catch (IOException e) {
-            fragmentJuggler.openFragment(LOCAL, null);
-            fab.show();
-            e.printStackTrace();
-        }
+        fragmentJuggler.viewListing(listingView,
+                                    key);
+    }
+
+    public void openProfile(View profile, String userID) {
+        fab.hide();
+        fragmentJuggler.viewProfile(profile,
+                                    userID);
     }
 
     public void viewImage(String key) {

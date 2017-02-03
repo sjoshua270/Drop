@@ -16,12 +16,25 @@
             android:src="@drawable/ic_photo_camera_black_24px"
             android:contentDescription="@string/image_description" />
 
+        <ImageView
+            android:id="@+id/drop_profile_image"
+            android:layout_width="@dimen/listing_prof_dimen"
+            android:layout_height="@dimen/listing_prof_dimen"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@id/listing_image"
+            android:layout_centerVertical="true"
+            android:layout_margin="10dp"
+            android:background="@color/prof_ppl"
+            android:contentDescription="@string/prof_img_desc"
+            android:src="@drawable/ic_face_white_24px" />
+
         <ViewSwitcher
             android:id="@+id/description_switcher"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
+            android:layout_toEndOf="@+id/drop_profile_image"
+            android:layout_toRightOf="@+id/drop_profile_image"
             android:layout_below="@id/listing_image"
             android:inAnimation="@anim/grow_fade_in"
             android:outAnimation="@anim/shrink_fade_out">

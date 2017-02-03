@@ -41,6 +41,7 @@ import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.interfaces.ImageRecipient;
 import com.rethink.drop.models.Drop;
+import com.rethink.drop.models.Profile;
 import com.rethink.drop.tools.ImageManager;
 import com.rethink.drop.tools.Utilities;
 
@@ -54,6 +55,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
 
     private static final String TAG = "DropFragment";
     private ImageView imageView;
+    private ImageView profileImage;
     private Menu menu;
     private ViewSwitcher descriptionFieldSwitcher;
     private TextView description;
@@ -96,6 +98,13 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         cLayout = (CoordinatorLayout) getActivity().findViewById(R.id.coordinator);
         imageView = (ImageView) fragmentView.findViewById(R.id.listing_image);
         imageView.setOnClickListener(new ImageClickHandler());
+        profileImage = (ImageView) fragmentView.findViewById(R.id.drop_profile_image);
+        profileImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MainActivity.getInstance().openProfile(profileImage, drop.getUserID());
+            }
+        });
         descriptionFieldSwitcher = (ViewSwitcher) fragmentView.findViewById(R.id.description_switcher);
         description = (TextView) fragmentView.findViewById(R.id.listing_desc);
         descriptionField = (TextInputEditText) fragmentView.findViewById(R.id.listing_input_desc);
@@ -106,6 +115,8 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                          "image_" + key);
             ViewCompat.setTransitionName(description,
                                          "desc_" + key);
+            ViewCompat.setTransitionName(profileImage,
+                                         "prof_" + key);
         }
 
         return fragmentView;
@@ -211,11 +222,40 @@ public class DropFragment extends ImageManager implements ImageRecipient {
              .placeholder(R.drawable.ic_photo_camera_black_24px)
              .crossFade()
              .into(imageView);
+        getProfileImage(drop,
+                        profileImage);
         description.setText(drop.getText());
         descriptionField.setText(drop.getText());
         userOwnsDrop = user != null && user.getUid()
                                            .equals(drop.getUserID());
         syncUI();
+    }
+
+    private void getProfileImage(Drop drop, final ImageView profImageView) {
+        final String userID = drop.getUserID();
+        FirebaseDatabase.getInstance()
+                        .getReference()
+                        .child("profiles")
+                        .child(userID)
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                Profile profile = dataSnapshot.getValue(Profile.class);
+                                if (profile != null) {
+                                    Glide.with(getContext())
+                                         .load(profile.getImageURL())
+                                         .centerCrop()
+                                         .placeholder(R.drawable.ic_face_white_24px)
+                                         .crossFade()
+                                         .into(profImageView);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
     }
 
     private void toggleState() {

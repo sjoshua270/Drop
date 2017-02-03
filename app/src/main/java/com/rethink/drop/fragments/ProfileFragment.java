@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.AppCompatTextView;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -90,6 +91,8 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                                   false);
         profileImageView = (ImageView) v.findViewById(R.id.prof_img);
         profileImageView.setOnClickListener(new ImageClickHandler());
+        ViewCompat.setTransitionName(profileImageView,
+                                     "image_" + userID);
 
         name = (TextView) v.findViewById(R.id.prof_name);
         nameField = (TextView) v.findViewById(R.id.prof_name_edit);

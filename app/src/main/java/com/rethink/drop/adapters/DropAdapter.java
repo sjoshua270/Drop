@@ -40,6 +40,7 @@ public class DropAdapter
         getPostData(key, holder);
         ViewCompat.setTransitionName(holder.imageView, "image_" + key);
         ViewCompat.setTransitionName(holder.desc, "desc_" + key);
+        ViewCompat.setTransitionName(holder.profile, "prof_" + key);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

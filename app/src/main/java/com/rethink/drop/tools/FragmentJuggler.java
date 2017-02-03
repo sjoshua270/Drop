@@ -21,8 +21,6 @@ import com.rethink.drop.fragments.ImageFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 
-import java.io.IOException;
-
 public class FragmentJuggler {
 
     public static final int LOCAL = 0;
@@ -74,7 +72,7 @@ public class FragmentJuggler {
                        .commit();
     }
 
-    public void viewListing(View listingView, String key) throws IOException {
+    public void viewListing(View listingView, String key) {
         CURRENT = LISTING;
         Fragment listingFragment = DropFragment.newInstance(key);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -88,8 +86,28 @@ public class FragmentJuggler {
                                          "image_" + key)
                        .addSharedElement(listingView.findViewById(R.id.item_desc),
                                          "desc_" + key)
+                       .addSharedElement(listingView.findViewById(R.id.item_prof_img),
+                                         "prof_" + key)
                        .replace(R.id.main_fragment_container,
                                 listingFragment)
+                       .addToBackStack(null)
+                       .commit();
+    }
+
+    public void viewProfile(View profileView, String userID) {
+        CURRENT = PROFILE;
+        Fragment profileFragment = ProfileFragment.newInstance(userID);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            profileFragment.setSharedElementEnterTransition(new FragmentJuggler.ViewTransition());
+            profileFragment.setSharedElementReturnTransition(new FragmentJuggler.ViewTransition());
+            profileFragment.setEnterTransition(new Fade());
+            profileFragment.setReturnTransition(new Fade());
+        }
+        fragmentManager.beginTransaction()
+                       .addSharedElement(profileView.findViewById(R.id.drop_profile_image),
+                                         "image_" + userID)
+                       .replace(R.id.main_fragment_container,
+                                profileFragment)
                        .addToBackStack(null)
                        .commit();
     }
