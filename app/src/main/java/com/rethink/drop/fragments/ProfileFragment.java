@@ -14,6 +14,7 @@ import android.support.v7.widget.AppCompatTextView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -53,6 +54,9 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     private ImageView profileImageView;
     private Profile profile;
     private View container;
+    private Menu menu;
+    private boolean userOwnsProfile;
+    private String userID;
 
     public static ProfileFragment newInstance(@Nullable String userID) {
         Bundle args = new Bundle();
@@ -66,7 +70,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String userID = getArguments().getString(USER_ID);
+        userID = getArguments().getString(USER_ID);
         if (userID != null) {
             profileListener = new ProfileListener();
         } else {
@@ -91,6 +95,11 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
         nameField = (TextView) v.findViewById(R.id.prof_name_edit);
         nameFieldSwitcher = (ViewSwitcher) v.findViewById(R.id.username_switcher);
         return v;
+    }
+
+    public void editProfile() {
+        editing = true;
+        syncUI();
     }
 
     private DatabaseReference getProfileReference(String userID) {
@@ -144,7 +153,6 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
             profileReference = getProfileReference(userID);
         }
         profileReference.addValueEventListener(profileListener);
-        syncUI();
     }
 
     @Override
@@ -158,10 +166,11 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     public void handleFabPress() {
         if (editing) {
             String imageURL = (profile != null && profile.getImageURL() != null) ? profile.getImageURL() : "";
-            saveProfile(new Profile(getArguments().getString(USER_ID),
-                                    imageURL,
-                                    nameField.getText()
-                                             .toString()));
+            profile = new Profile(getArguments().getString(USER_ID),
+                                  imageURL,
+                                  nameField.getText()
+                                           .toString());
+            saveProfile();
             toggleState();
         } else {
             toggleState();
@@ -187,9 +196,10 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                              if (profile != null) {
                                  userName = profile.getName();
                              }
-                             saveProfile(new Profile(getArguments().getString(USER_ID),
-                                                     downloadUrl.toString(),
-                                                     userName));
+                             profile = new Profile(getArguments().getString(USER_ID),
+                                                   downloadUrl.toString(),
+                                                   userName);
+                             saveProfile();
                          } else {
                              Snackbar.make(container,
                                            R.string.unexpected_error,
@@ -200,10 +210,14 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                  });
     }
 
-    private void saveProfile(Profile profile) {
-        profileReference.setValue(profile);
+    public void saveProfile() {
+        profileReference.setValue(new Profile(userID,
+                                              profile.getImageURL(),
+                                              nameField.getText()
+                                                       .toString()));
         MainActivity.getInstance()
                     .dismissKeyboard();
+        toggleState();
     }
 
     private void updateData(Profile profile) {
@@ -215,6 +229,11 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
              .into(profileImageView);
         name.setText(profile.getName());
         nameField.setText(profile.getName());
+        FirebaseUser user = FirebaseAuth.getInstance()
+                                        .getCurrentUser();
+        userOwnsProfile = user != null && user.getUid()
+                                              .equals(userID);
+        syncUI();
     }
 
     private void toggleState() {
@@ -238,14 +257,22 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                 nameFieldSwitcher.showNext();
             }
         }
+        MenuItem save = menu.findItem(R.id.save_profile);
+        MenuItem edit = menu.findItem(R.id.edit_profile);
+        MenuItem logOut = menu.findItem(R.id.log_out);
+        save.setVisible(userOwnsProfile && editing);
+        logOut.setVisible(userOwnsProfile);
+        edit.setVisible(userOwnsProfile && !editing);
         MainActivity.getInstance()
                     .syncUI();
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        this.menu = menu;
         inflater.inflate(R.menu.menu_profile,
                          menu);
+        syncUI();
         super.onCreateOptionsMenu(menu,
                                   inflater);
     }

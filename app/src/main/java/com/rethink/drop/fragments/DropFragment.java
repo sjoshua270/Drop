@@ -16,6 +16,7 @@ import android.support.v7.widget.AppCompatTextView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -53,6 +54,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
 
     private static final String TAG = "DropFragment";
     private ImageView imageView;
+    private Menu menu;
     private ViewSwitcher descriptionFieldSwitcher;
     private TextView description;
     private TextInputEditText descriptionField;
@@ -62,6 +64,8 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     private FirebaseUser user;
     private Boolean editing;
     private Drop drop;
+    private boolean newDrop;
+    private boolean userOwnsDrop;
 
     public static DropFragment newInstance(String key) {
         Bundle args = new Bundle();
@@ -78,6 +82,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         user = FirebaseAuth.getInstance()
                            .getCurrentUser();
         dropListener = new DropChangeListener();
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -108,18 +113,17 @@ public class DropFragment extends ImageManager implements ImageRecipient {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        this.menu = menu;
         inflater.inflate(R.menu.menu_edit,
                          menu);
+        syncUI();
         super.onCreateOptionsMenu(menu,
                                   inflater);
     }
 
-    public void handleFabPress() {
-        if (editing) {
-            publishListing();
-        } else {
-            toggleState();
-        }
+    public void editDrop() {
+        editing = true;
+        syncUI();
     }
 
     private DatabaseReference getDropReference(String key) {
@@ -150,15 +154,16 @@ public class DropFragment extends ImageManager implements ImageRecipient {
      * Takes all values in the current layout and sends them off to Firebase,
      * then returns to the previous fragment
      */
-    private void publishListing() {
+    public void publishDrop() {
+        dropReference.setValue(new Drop(user.getUid(),
+                                        Calendar.getInstance()
+                                                .getTimeInMillis(),
+                                        drop.getImageURL(),
+                                        descriptionField.getText()
+                                                        .toString()));
         String key = getArguments().getString("KEY");
-        saveListing(key,
-                    new Drop(user.getUid(),
-                             Calendar.getInstance()
-                                     .getTimeInMillis(),
-                             drop.getImageURL(),
-                             descriptionField.getText()
-                                             .toString()));
+        saveListing(key);
+        newDrop = false;
         toggleState();
 
     }
@@ -188,16 +193,13 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                  });
     }
 
-    private void saveListing(String key, Drop drop) {
+    private void saveListing(String key) {
         GeoLocation location = new GeoLocation(userLocation.latitude,
                                                userLocation.longitude);
         new GeoFire(FirebaseDatabase.getInstance()
                                     .getReference()
                                     .child("geoFire")).setLocation(key,
                                                                    location);
-        dropReference.setValue(drop);
-        getArguments().putString(KEY,
-                                 key);
         MainActivity.getInstance()
                     .dismissKeyboard();
     }
@@ -211,6 +213,9 @@ public class DropFragment extends ImageManager implements ImageRecipient {
              .into(imageView);
         description.setText(drop.getText());
         descriptionField.setText(drop.getText());
+        userOwnsDrop = user != null && user.getUid()
+                                           .equals(drop.getUserID());
+        syncUI();
     }
 
     private void toggleState() {
@@ -238,7 +243,14 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                 descriptionFieldSwitcher.showNext();
             }
         }
-        setHasOptionsMenu(editing);
+        MenuItem submit = menu.findItem(R.id.submit_drop);
+        MenuItem save = menu.findItem(R.id.save_drop);
+        MenuItem edit = menu.findItem(R.id.edit_drop);
+        MenuItem delete = menu.findItem(R.id.delete_drop);
+        submit.setVisible(newDrop);
+        save.setVisible(userOwnsDrop && !newDrop && editing);
+        delete.setVisible(userOwnsDrop && !newDrop);
+        edit.setVisible(userOwnsDrop && !editing);
         MainActivity.getInstance()
                     .syncUI();
     }
@@ -249,10 +261,10 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         if (dropReference == null) {
             String key = getArguments().getString(KEY);
             editing = key == null;
+            newDrop = key == null;
             dropReference = getDropReference(key);
         }
         dropReference.addValueEventListener(dropListener);
-        syncUI();
     }
 
     @Override
@@ -286,6 +298,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         @Override
         public void onClick(View v) {
             if (editing) {
+                dropReference.setValue(new Drop(user.getUid(),
+                                                Calendar.getInstance()
+                                                        .getTimeInMillis(),
+                                                drop.getImageURL(),
+                                                descriptionField.getText()
+                                                                .toString()));
                 if (ActivityCompat.checkSelfPermission(getContext(),
                                                        Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                     requestImage(DropFragment.this);

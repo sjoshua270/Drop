@@ -7,18 +7,8 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.rethink.drop.models.Drop;
-
 import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
-import static com.rethink.drop.tools.FragmentJuggler.LISTING;
 import static com.rethink.drop.tools.FragmentJuggler.LOCAL;
-import static com.rethink.drop.tools.FragmentJuggler.PROFILE;
 
 final class FabManager {
 
@@ -30,52 +20,11 @@ final class FabManager {
         this.fab = fab;
     }
 
-    void update(String key, boolean isEditing) {
+    void update() {
         hide();
         switch (CURRENT) {
             case LOCAL:
                 setDrawable(R.drawable.ic_add_white_24px);
-                break;
-            case LISTING:
-                if (key != null) {
-                    if (isEditing) {
-                        setDrawable(R.drawable.ic_save_white_24dp);
-                    } else {
-                        FirebaseDatabase.getInstance()
-                                        .getReference()
-                                        .child("posts")
-                                        .child(key)
-                                        .addListenerForSingleValueEvent(new ValueEventListener() {
-                                            @Override
-                                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                                Drop drop = dataSnapshot.getValue(Drop.class);
-                                                if (drop != null) {
-                                                    FirebaseUser user = FirebaseAuth.getInstance()
-                                                                                    .getCurrentUser();
-                                                    if (user != null && user.getUid()
-                                                                            .equals(drop.getUserID())) {
-                                                        setDrawable(R.drawable.ic_mode_edit_white_24px);
-                                                    }
-                                                }
-                                            }
-
-                                            @Override
-                                            public void onCancelled(DatabaseError databaseError) {
-
-                                            }
-                                        });
-
-                    }
-                } else {
-                    setDrawable(R.drawable.ic_send_white_24px);
-                }
-                break;
-            case PROFILE:
-                if (isEditing) {
-                    setDrawable(R.drawable.ic_save_white_24dp);
-                } else {
-                    setDrawable(R.drawable.ic_mode_edit_white_24px);
-                }
                 break;
         }
     }

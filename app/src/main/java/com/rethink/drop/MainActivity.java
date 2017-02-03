@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                         ((LocalFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
                     }
                 } else if (CURRENT == LISTING) {
-                    ((DropFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
+                    ((DropFragment) fragmentJuggler.getCurrentFragment()).editDrop();
                 } else if (CURRENT == PROFILE) {
                     ((ProfileFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
                 }
@@ -158,12 +158,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
 
     public void syncUI() {
         syncUpNav();
-        Bundle args = fragmentJuggler.getCurrentFragment()
-                                     .getArguments();
-        String key = args.getString(KEY);
-        Boolean isEditing = args.getBoolean(EDITING);
-        fab.update(key,
-                   isEditing);
+        fab.update();
     }
 
     public void dismissKeyboard() {
@@ -244,41 +239,76 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.open_profile:
-                openFragment(PROFILE,
-                             null);
-                break;
-            case R.id.delete_listing:
-                String key = getSupportFragmentManager().findFragmentById(R.id.main_fragment_container)
-                                                        .getArguments()
-                                                        .getString("KEY");
-                if (key != null) {
-                    DatabaseReference ref = FirebaseDatabase.getInstance()
-                                                            .getReference();
-                    ref.child("posts")
-                       .child(key)
-                       .removeValue();
-                    ref.child("geoFire")
-                       .child(key)
-                       .removeValue();
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.main_fragment_container);
+        Class fragmentClass = fragment.getClass();
+        int optionID = item.getItemId();
+
+        if (fragmentClass.equals(LocalFragment.class)) {
+            switch (optionID) {
+                case R.id.open_profile:
+                    openFragment(PROFILE,
+                                 null);
+                    break;
+            }
+        }
+        if (fragmentClass.equals(DropFragment.class)) {
+            DropFragment dropFragment = (DropFragment) fragment;
+            String key = getSupportFragmentManager().findFragmentById(R.id.main_fragment_container)
+                                                    .getArguments()
+                                                    .getString(KEY);
+            switch (optionID) {
+                case R.id.delete_drop:
+                    if (key != null) {
+                        DatabaseReference ref = FirebaseDatabase.getInstance()
+                                                                .getReference();
+                        ref.child("posts")
+                           .child(key)
+                           .removeValue();
+                        ref.child("geoFire")
+                           .child(key)
+                           .removeValue();
+                    }
+                    while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
+                        getSupportFragmentManager().popBackStackImmediate();
+                    }
+                    break;
+                case R.id.submit_drop:
+                    dropFragment.publishDrop();
+                    break;
+                case R.id.save_drop:
+                    dropFragment.publishDrop();
+                    break;
+                case R.id.edit_drop:
+                    dropFragment.editDrop();
+                    break;
+            }
+        }
+        if (fragmentClass.equals(ProfileFragment.class)) {
+            ProfileFragment profileFragment = (ProfileFragment) fragment;
+            switch (optionID) {
+                case R.id.log_out:
+                    AuthUI.getInstance()
+                          .signOut(this)
+                          .addOnCompleteListener(new OnCompleteListener<Void>() {
+                              @Override
+                              public void onComplete(@NonNull Task<Void> task) {
+                                  while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
+                                      getSupportFragmentManager().popBackStackImmediate();
+                                  }
+                              }
+                          });
+                    break;
+                case R.id.save_profile:
+                    profileFragment.saveProfile();
+                    break;
+                case R.id.edit_profile:
+                    profileFragment.editProfile();
+                    break;
                 }
-                while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
+        }
+        if (optionID == android.R.id.home) {
                     getSupportFragmentManager().popBackStackImmediate();
-                }
-                break;
-            case R.id.log_out:
-                AuthUI.getInstance()
-                      .signOut(this)
-                      .addOnCompleteListener(new OnCompleteListener<Void>() {
-                          @Override
-                          public void onComplete(@NonNull Task<Void> task) {
-                              getSupportFragmentManager().popBackStackImmediate();
-                          }
-                      });
-            case android.R.id.home:
-                getSupportFragmentManager().popBackStackImmediate();
-                return true;
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
