@@ -28,3 +28,6 @@
 -keepclassmembers class com.rethink.drop.models.** {
   *;
 }
+
+-dontwarn okio.**
+-dontwarn retrofit2.**
