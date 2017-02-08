@@ -4,6 +4,7 @@ import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -12,10 +13,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.rethink.drop.adapters.DropAdapter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class DataManager {
 
     public static ArrayList<String> keys;
+    public static HashMap<String, LatLng> keyLocations;
     private static Double scanRadius;
     private static LocationsListener locationsListener;
     private static GeoQueryListener geoQueryListener;
@@ -26,6 +29,7 @@ public class DataManager {
     public DataManager(DropAdapter dropAdapter) {
         scanRadius = 10.0;
         keys = new ArrayList<>();
+        keyLocations = new HashMap<>();
         locationsListener = new LocationsListener();
         geoQueryListener = new GeoQueryListener();
         this.dropAdapter = dropAdapter;
@@ -61,9 +65,11 @@ public class DataManager {
         }
     }
 
-    private void addKey(String key) {
+    private void addKey(String key, LatLng location) {
         if (keys.indexOf(key) < 0) {
             keys.add(key);
+            keyLocations.put(key,
+                             location);
             dropAdapter.notifyItemInserted(keys.indexOf(key));
         }
     }
@@ -71,6 +77,7 @@ public class DataManager {
     private void removeKey(String key) {
         int index = keys.indexOf(key);
         keys.remove(key);
+        keyLocations.remove(key);
         dropAdapter.notifyItemRemoved(index);
     }
 
@@ -106,7 +113,9 @@ public class DataManager {
             implements GeoQueryEventListener {
         @Override
         public void onKeyEntered(String key, GeoLocation location) {
-            addKey(key);
+            addKey(key,
+                   new LatLng(location.latitude,
+                              location.longitude));
         }
 
         @Override

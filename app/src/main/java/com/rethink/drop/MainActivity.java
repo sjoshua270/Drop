@@ -44,6 +44,7 @@ import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
 import static com.rethink.drop.tools.FragmentJuggler.IMAGE;
 import static com.rethink.drop.tools.FragmentJuggler.LISTING;
 import static com.rethink.drop.tools.FragmentJuggler.LOCAL;
+import static com.rethink.drop.tools.FragmentJuggler.MAP;
 import static com.rethink.drop.tools.FragmentJuggler.PROFILE;
 
 public class MainActivity extends AppCompatActivity implements OnConnectionFailedListener,
@@ -71,6 +72,10 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         } else {
             return new MainActivity();
         }
+    }
+
+    public static LatLng getUserLocation() {
+        return userLocation;
     }
 
     @Override
@@ -245,6 +250,10 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
             switch (optionID) {
                 case R.id.open_profile:
                     openFragment(PROFILE,
+                                 null);
+                    break;
+                case R.id.open_map:
+                    openFragment(MAP,
                                  null);
                     break;
             }

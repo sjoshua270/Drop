@@ -13,10 +13,13 @@ import android.transition.TransitionSet;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.fragments.DropFragment;
+import com.rethink.drop.fragments.DropMapFragment;
 import com.rethink.drop.fragments.ImageFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
@@ -27,6 +30,7 @@ public class FragmentJuggler {
     public static final int LISTING = 1;
     public static final int PROFILE = 2;
     public static final int IMAGE = 3;
+    public static final int MAP = 4;
     public static int CURRENT;
     private final FragmentManager fragmentManager;
 
@@ -43,15 +47,24 @@ public class FragmentJuggler {
                 switchFragments(DropFragment.newInstance(key));
                 break;
             case PROFILE:
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                FirebaseUser user = FirebaseAuth.getInstance()
+                                                .getCurrentUser();
                 if (user != null) {
                     switchFragments(ProfileFragment.newInstance(user.getUid()));
                 } else {
-                    Toast.makeText(getCurrentFragment().getContext(), "No userID", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getCurrentFragment().getContext(),
+                                   "No userID",
+                                   Toast.LENGTH_SHORT)
+                         .show();
                 }
                 break;
             case IMAGE:
                 switchFragments(ImageFragment.newInstance(key));
+                break;
+            case MAP:
+                LatLng userLocation = MainActivity.getUserLocation();
+                switchFragments(DropMapFragment.newInstance(userLocation.latitude,
+                                                            userLocation.longitude));
                 break;
         }
         CURRENT = fragmentID;
@@ -67,7 +80,8 @@ public class FragmentJuggler {
             newFragment.setExitTransition(new AutoTransition());
         }
         fragmentManager.beginTransaction()
-                       .replace(R.id.main_fragment_container, newFragment)
+                       .replace(R.id.main_fragment_container,
+                                newFragment)
                        .addToBackStack(null)
                        .commit();
     }
@@ -113,8 +127,7 @@ public class FragmentJuggler {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private static class ViewTransition
-            extends TransitionSet {
+    private static class ViewTransition extends TransitionSet {
         ViewTransition() {
             setOrdering(ORDERING_TOGETHER);
             addTransition(new ChangeBounds());
