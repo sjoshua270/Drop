@@ -10,7 +10,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.rethink.drop.adapters.DropAdapter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,24 +21,22 @@ public class DataManager {
     private static Double scanRadius;
     private static LocationsListener locationsListener;
     private static GeoQueryListener geoQueryListener;
-    private final DropAdapter dropAdapter;
     private GeoQuery geoQuery;
     private DatabaseReference geoFireRef;
 
-    public DataManager(DropAdapter dropAdapter) {
+    DataManager() {
         scanRadius = 10.0;
         keys = new ArrayList<>();
         keyLocations = new HashMap<>();
         locationsListener = new LocationsListener();
         geoQueryListener = new GeoQueryListener();
-        this.dropAdapter = dropAdapter;
         geoFireRef = FirebaseDatabase.getInstance()
                                      .getReference()
                                      .child("geoFire");
         geoFireRef.addChildEventListener(locationsListener);
     }
 
-    public void updateLocation(GeoLocation geoLocation) {
+    void updateLocation(GeoLocation geoLocation) {
         if (geoQuery == null) {
             geoQuery = new GeoFire(geoFireRef).queryAtLocation(geoLocation, scanRadius);
         } else {
@@ -47,19 +44,19 @@ public class DataManager {
         }
     }
 
-    public void attachListeners() {
+    void attachListeners() {
         if (geoQuery != null) {
             geoQuery.addGeoQueryEventListener(geoQueryListener);
         }
     }
 
-    public void detachListeners() {
+    void detachListeners() {
         if (geoQuery != null) {
             geoQuery.removeAllListeners();
         }
     }
 
-    public void detachLocationListener() {
+    void detachLocationListener() {
         if (geoFireRef != null) {
             geoFireRef.removeEventListener(locationsListener);
         }
@@ -70,7 +67,8 @@ public class DataManager {
             keys.add(key);
             keyLocations.put(key,
                              location);
-            dropAdapter.notifyItemInserted(keys.indexOf(key));
+            MainActivity.getInstance()
+                        .notifyDropAdded(key);
         }
     }
 
@@ -78,7 +76,9 @@ public class DataManager {
         int index = keys.indexOf(key);
         keys.remove(key);
         keyLocations.remove(key);
-        dropAdapter.notifyItemRemoved(index);
+        MainActivity.getInstance()
+                    .notifyDropRemoved(key,
+                                       index);
     }
 
     private class LocationsListener

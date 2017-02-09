@@ -11,12 +11,9 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.firebase.geofire.GeoLocation;
 import com.firebase.ui.auth.AuthUI;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.rethink.drop.BuildConfig;
-import com.rethink.drop.DataManager;
 import com.rethink.drop.MyLayoutManager;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.DropAdapter;
@@ -30,7 +27,6 @@ public class LocalFragment
         extends Fragment {
     private DropAdapter dropAdapter;
     private RecyclerView dropsRecycler;
-    private DataManager dataManager;
 
     public static LocalFragment newInstance() {
 
@@ -45,8 +41,11 @@ public class LocalFragment
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         dropAdapter = new DropAdapter();
-        dataManager = new DataManager(dropAdapter);
         setHasOptionsMenu(true);
+    }
+
+    public DropAdapter getDropAdapter() {
+        return dropAdapter;
     }
 
     @Nullable
@@ -86,27 +85,5 @@ public class LocalFragment
                       .setTheme(R.style.AppTheme)
                       .build(),
                 RC_SIGN_IN);
-    }
-
-    public void updateDBRef(LatLng userLocation) {
-        dataManager.updateLocation(new GeoLocation(userLocation.latitude, userLocation.longitude));
-    }
-
-    @Override
-    public void onPause() {
-        dataManager.detachListeners();
-        super.onPause();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        dataManager.attachListeners();
-    }
-
-    @Override
-    public void onDestroy() {
-        dataManager.detachLocationListener();
-        super.onDestroy();
     }
 }

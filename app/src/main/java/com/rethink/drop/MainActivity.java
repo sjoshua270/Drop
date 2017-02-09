@@ -20,6 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
+import com.firebase.geofire.GeoLocation;
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -35,10 +36,12 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.rethink.drop.fragments.DropFragment;
+import com.rethink.drop.fragments.DropMapFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.tools.FragmentJuggler;
 
+import static com.rethink.drop.DataManager.keys;
 import static com.rethink.drop.models.Drop.KEY;
 import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
 import static com.rethink.drop.tools.FragmentJuggler.IMAGE;
@@ -65,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     private final String STATE_LON = "state_longitude";
     private FabManager fab;
     private FragmentJuggler fragmentJuggler;
+    private DataManager dataManager;
 
     public static MainActivity getInstance() {
         if (instance != null) {
@@ -90,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                                                            .addOnConnectionFailedListener(this)
                                                            .addApi(LocationServices.API)
                                                            .build();
-
+        dataManager = new DataManager();
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
         fab = new FabManager(this,
                              (FloatingActionButton) findViewById(R.id.fab));
@@ -200,6 +204,29 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         });
     }
 
+    public void notifyDropAdded(String key) {
+        Fragment fragment = fragmentJuggler.getCurrentFragment();
+        Class fragmentClass = fragment.getClass();
+        if (fragmentClass.equals(LocalFragment.class)) {
+            int index = keys.indexOf(key);
+            ((LocalFragment) fragment).getDropAdapter()
+                                      .notifyItemInserted(index);
+        } else if (fragmentClass.equals(DropMapFragment.class)) {
+            ((DropMapFragment) fragment).addDrop(key);
+        }
+    }
+
+    public void notifyDropRemoved(String key, int index) {
+        Fragment fragment = fragmentJuggler.getCurrentFragment();
+        Class fragmentClass = fragment.getClass();
+        if (fragmentClass.equals(LocalFragment.class)) {
+            ((LocalFragment) fragment).getDropAdapter()
+                                      .notifyItemRemoved(index);
+        } else if (fragmentClass.equals(DropMapFragment.class)) {
+            ((DropMapFragment) fragment).removeDrop(key);
+        }
+    }
+
     private void syncUpNav() {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager().getBackStackEntryCount() > 1);
@@ -289,8 +316,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                     dropFragment.editDrop();
                     break;
             }
-        }
-        if (fragmentClass.equals(ProfileFragment.class)) {
+        } else if (fragmentClass.equals(ProfileFragment.class)) {
             ProfileFragment profileFragment = (ProfileFragment) fragment;
             switch (optionID) {
                 case R.id.log_out:
@@ -387,11 +413,8 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     }
 
     private void updateListings() {
-        Fragment localFragment = fragmentJuggler.getCurrentFragment();
-        if (localFragment != null && localFragment.getClass()
-                                                  .equals(LocalFragment.class)) {
-            ((LocalFragment) localFragment).updateDBRef(userLocation);
-        }
+        dataManager.updateLocation(new GeoLocation(userLocation.latitude,
+                                                   userLocation.longitude));
     }
 
     private void stopLocationUpdates() {
@@ -416,11 +439,13 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
             startLocationUpdates();
         }
         updateListings();
+        dataManager.attachListeners();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        dataManager.detachListeners();
         stopLocationUpdates();
     }
 
@@ -430,5 +455,11 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         if (googleApiClient != null) {
             googleApiClient.disconnect();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        dataManager.detachLocationListener();
+        super.onDestroy();
     }
 }
