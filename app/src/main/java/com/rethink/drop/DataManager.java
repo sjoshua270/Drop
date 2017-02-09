@@ -64,7 +64,17 @@ public class DataManager {
 
     private void addKey(String key, LatLng location) {
         if (keys.indexOf(key) < 0) {
-            keys.add(key);
+            for (int i = 0; i < keys.size(); i++) {
+                if (keys.get(i)
+                        .compareTo(key) < 0) {
+                    keys.add(i,
+                             key);
+                    break;
+                }
+            }
+            if (keys.indexOf(key) < 0) {
+                keys.add(key);
+            }
             keyLocations.put(key,
                              location);
             MainActivity.getInstance()
