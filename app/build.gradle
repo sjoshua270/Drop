@@ -10,8 +10,8 @@ android {
         minSdkVersion 16
         //noinspection OldTargetApi
         targetSdkVersion 23
-        versionCode 2017020200
-        versionName "0.0.6"
+        versionCode 2017020800
+        versionName "0.0.7"
         multiDexEnabled true
     }
     buildTypes {
