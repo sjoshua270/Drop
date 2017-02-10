@@ -272,18 +272,19 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         Class fragmentClass = fragment.getClass();
         int optionID = item.getItemId();
 
+        if (optionID == R.id.toggle_map) {
+            if (header.getVisibility() == View.VISIBLE) {
+                header.setVisibility(View.GONE);
+            } else {
+                header.setVisibility(View.VISIBLE);
+            }
+        }
+
         if (fragmentClass.equals(LocalFragment.class)) {
             switch (optionID) {
                 case R.id.open_profile:
                     openFragment(PROFILE,
                                  null);
-                    break;
-                case R.id.open_map:
-                    if (header.getVisibility() == View.VISIBLE) {
-                        header.setVisibility(View.GONE);
-                    } else {
-                        header.setVisibility(View.VISIBLE);
-                    }
                     break;
             }
         }
