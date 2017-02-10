@@ -19,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.FrameLayout;
 
 import com.firebase.geofire.GeoLocation;
 import com.firebase.ui.auth.AuthUI;
@@ -69,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     private FabManager fab;
     private FragmentJuggler fragmentJuggler;
     private DataManager dataManager;
+    private FrameLayout header;
 
     public static MainActivity getInstance() {
         if (instance != null) {
@@ -88,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         setContentView(R.layout.activity_main);
         instance = this;
 
+
         userLocation = new LatLng(0.0,
                                   0.0);
         googleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this)
@@ -103,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                          null);
         }
 
+        header = (FrameLayout) findViewById(R.id.header_fragment_container);
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         setFabListener((FloatingActionButton) findViewById(R.id.fab));
         setBackStackListener();
@@ -280,8 +284,11 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                                  null);
                     break;
                 case R.id.open_map:
-                    openFragment(MAP,
-                                 null);
+                    if (header.getVisibility() == View.VISIBLE) {
+                        header.setVisibility(View.GONE);
+                    } else {
+                        header.setVisibility(View.VISIBLE);
+                    }
                     break;
             }
         }
@@ -413,6 +420,13 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     }
 
     private void updateListings() {
+        Bundle args = new Bundle();
+        args.putDouble("LAT",
+                       userLocation.latitude);
+        args.putDouble("LNG",
+                       userLocation.longitude);
+        fragmentJuggler.setHeaderFragment(MAP,
+                                          args);
         dataManager.updateLocation(new GeoLocation(userLocation.latitude,
                                                    userLocation.longitude));
     }

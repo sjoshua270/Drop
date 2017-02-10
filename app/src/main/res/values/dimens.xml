@@ -1,5 +1,6 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
+    <dimen name="header_fragment_height">200dp</dimen>
 
     <!--Drop items-->
     <dimen name="listing_padding">8dp</dimen>

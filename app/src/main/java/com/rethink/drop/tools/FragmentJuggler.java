@@ -1,6 +1,7 @@
 package com.rethink.drop.tools;
 
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
@@ -36,6 +37,23 @@ public class FragmentJuggler {
 
     public FragmentJuggler(FragmentManager fragmentManager) {
         this.fragmentManager = fragmentManager;
+    }
+
+    public void setHeaderFragment(int fragmentID, Bundle args) {
+        switch (fragmentID) {
+            case MAP:
+                if (args != null) {
+                    DropMapFragment dmFragment = DropMapFragment.newInstance(args.getDouble("LAT"),
+                                                                             args.getDouble("LNG"));
+                    fragmentManager.beginTransaction()
+                                   .replace(R.id.header_fragment_container,
+                                            dmFragment)
+                                   .commit();
+                } else {
+                    throw new IllegalArgumentException("Missing map coordinates");
+                }
+                break;
+        }
     }
 
     public void openFragment(int fragmentID, @Nullable String key) {
