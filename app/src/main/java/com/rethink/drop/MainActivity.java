@@ -53,7 +53,6 @@ import static com.rethink.drop.tools.FragmentJuggler.PROFILE;
 public class MainActivity extends AppCompatActivity implements OnConnectionFailedListener,
                                                                ConnectionCallbacks,
                                                                LocationListener {
-    private static final String TAG = "MainActivity";
     public static final int RC_SIGN_IN = 1;
     public static final String EDITING = "editing";
     private final static float degreesPerMile = 0.01449275362f;
@@ -69,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     private FabManager fab;
     private FragmentJuggler fragmentJuggler;
     private DataManager dataManager;
-    private FrameLayout header;
 
     public static MainActivity getInstance() {
         if (instance != null) {
@@ -93,7 +91,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                                                            .addOnConnectionFailedListener(this)
                                                            .addApi(LocationServices.API)
                                                            .build();
-        header = (FrameLayout) findViewById(R.id.header_fragment_container);
         dataManager = new DataManager();
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
         fab = new FabManager(this,
@@ -273,6 +270,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         int optionID = item.getItemId();
 
         if (optionID == R.id.toggle_map) {
+            FrameLayout header = (FrameLayout) findViewById(R.id.header_fragment_container);
             if (header.getVisibility() == View.VISIBLE) {
                 header.setVisibility(View.GONE);
             } else {
