@@ -30,10 +30,24 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            def project = "drop"
+            def SEP = "_"
+            def buildType = variant.variantData.variantConfiguration.buildType.name
+            def version = variant.versionName
+            def formattedDate = getDate();
+
+            def newApkName = project + SEP + buildType + SEP + version + SEP + formattedDate + ".apk"
+
+            output.outputFile = new File(output.outputFile.parent, newApkName)
+        }
+    }
 }
 
 def getDate() {
-    new Date().format('yyyyMMddHHmmss')
+    new Date().format('yyyyMMdd_HHmm')
 }
 
 dependencies {
