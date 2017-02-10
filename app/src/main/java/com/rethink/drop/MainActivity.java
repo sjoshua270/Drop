@@ -14,7 +14,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -90,13 +89,11 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         setContentView(R.layout.activity_main);
         instance = this;
 
-
-        userLocation = new LatLng(0.0,
-                                  0.0);
         googleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this)
                                                            .addOnConnectionFailedListener(this)
                                                            .addApi(LocationServices.API)
                                                            .build();
+        header = (FrameLayout) findViewById(R.id.header_fragment_container);
         dataManager = new DataManager();
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
         fab = new FabManager(this,
@@ -106,7 +103,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                          null);
         }
 
-        header = (FrameLayout) findViewById(R.id.header_fragment_container);
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         setFabListener((FloatingActionButton) findViewById(R.id.fab));
         setBackStackListener();
@@ -198,7 +194,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                         if (currClass.equals(ProfileFragment.class)) {
                             CURRENT = PROFILE;
                         }
-                        Log.d(TAG, String.valueOf(CURRENT));
                         syncUI();
                     }
                 } else {
@@ -395,7 +390,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
             if (loc != null) {
                 userLocation = new LatLng(loc.getLatitude(),
                                           loc.getLongitude());
-                updateListings();
+                updateLocation();
             }
             LocationRequest locationRequest = LocationRequest.create();
             locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -414,21 +409,36 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
             if (Math.abs(location.getLatitude() - userLocation.latitude) > degreesPerMile / 2 || Math.abs(location.getLongitude() - userLocation.longitude) > degreesPerMile / 2) {
                 userLocation = new LatLng(location.getLatitude(),
                                           location.getLongitude());
-                updateListings();
+                updateLocation();
             }
         }
     }
 
-    private void updateListings() {
-        Bundle args = new Bundle();
-        args.putDouble("LAT",
-                       userLocation.latitude);
-        args.putDouble("LNG",
-                       userLocation.longitude);
-        fragmentJuggler.setHeaderFragment(MAP,
-                                          args);
-        dataManager.updateLocation(new GeoLocation(userLocation.latitude,
-                                                   userLocation.longitude));
+    private void updateLocation() {
+        if (userLocation != null) {
+            Fragment headerFragment = fragmentJuggler.getHeaderFragment();
+            Bundle args = new Bundle();
+            if (headerFragment != null) {
+                args = headerFragment.getArguments();
+            }
+            args.putDouble("LAT",
+                           userLocation.latitude);
+            args.putDouble("LNG",
+                           userLocation.longitude);
+            if (headerFragment != null) {
+                if (headerFragment.getClass()
+                                  .equals(DropMapFragment.class)) {
+                    headerFragment.getArguments();
+                    ((DropMapFragment) headerFragment).notifyLocationChanged();
+                }
+            } else {
+                fragmentJuggler.setHeaderFragment(MAP,
+                                                  args);
+            }
+            dataManager.updateLocation(new GeoLocation(userLocation.latitude,
+                                                       userLocation.longitude));
+            dataManager.attachListeners();
+        }
     }
 
     private void stopLocationUpdates() {
@@ -452,8 +462,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         if (googleApiClient.isConnected()) {
             startLocationUpdates();
         }
-        updateListings();
-        dataManager.attachListeners();
+        updateLocation();
     }
 
     @Override

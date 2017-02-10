@@ -46,6 +46,7 @@ public class DataManager {
 
     void attachListeners() {
         if (geoQuery != null) {
+            detachListeners();
             geoQuery.addGeoQueryEventListener(geoQueryListener);
         }
     }

@@ -88,6 +88,10 @@ public class FragmentJuggler {
         CURRENT = fragmentID;
     }
 
+    public Fragment getHeaderFragment() {
+        return fragmentManager.findFragmentById(R.id.header_fragment_container);
+    }
+
     public Fragment getCurrentFragment() {
         return fragmentManager.findFragmentById(R.id.main_fragment_container);
     }

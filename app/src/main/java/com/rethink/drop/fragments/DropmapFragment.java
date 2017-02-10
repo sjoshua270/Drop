@@ -76,6 +76,14 @@ public class DropMapFragment extends SupportMapFragment {
                .remove();
     }
 
+    public void notifyLocationChanged(){
+        if (userMarker != null) {
+            Bundle args = getArguments();
+            userMarker.setPosition(new LatLng(args.getDouble("LAT"),
+                                              args.getDouble("LNG")));
+        }
+    }
+
     private void placeMarkers() {
         userMarker = googleMap.addMarker(new MarkerOptions().position(userLocation)
                                                             .title("You are here"));
