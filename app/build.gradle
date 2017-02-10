@@ -10,24 +10,24 @@ android {
         minSdkVersion 16
         //noinspection OldTargetApi
         targetSdkVersion 23
-        versionCode 2017020800
-        versionName "0.0.7"
+        versionCode 2017021000
+        versionName "0.0.8"
         multiDexEnabled true
     }
     buildTypes {
         alpha {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             versionNameSuffix "-alpha" + "-build" + getDate()
         }
         beta {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             versionNameSuffix "-beta" + "-build" + getDate()
         }
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
