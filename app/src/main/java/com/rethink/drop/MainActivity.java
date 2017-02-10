@@ -201,15 +201,15 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     }
 
     public void notifyDropAdded(String key) {
-        Fragment fragment = fragmentJuggler.getCurrentFragment();
-        Class fragmentClass = fragment.getClass();
-        if (fragmentClass.equals(LocalFragment.class)) {
+        DropMapFragment dropMapfragment = (DropMapFragment) fragmentJuggler.getHeaderFragment();
+        try {
+            LocalFragment localFragment = (LocalFragment) fragmentJuggler.getCurrentFragment();
             int index = keys.indexOf(key);
-            ((LocalFragment) fragment).getDropAdapter()
-                                      .notifyItemInserted(index);
-        } else if (fragmentClass.equals(DropMapFragment.class)) {
-            ((DropMapFragment) fragment).addDrop(key);
+            localFragment.getDropAdapter()
+                         .notifyItemInserted(index);
+        } catch (ClassCastException ignored) {
         }
+        dropMapfragment.addDrop(key);
     }
 
     public void notifyDropRemoved(String key, int index) {
