@@ -404,12 +404,9 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     public void onLocationChanged(Location location) {
         if (ActivityCompat.checkSelfPermission(this,
                                                android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            // If the location has changed by more than half a mile
-            if (Math.abs(location.getLatitude() - userLocation.latitude) > degreesPerMile / 2 || Math.abs(location.getLongitude() - userLocation.longitude) > degreesPerMile / 2) {
-                userLocation = new LatLng(location.getLatitude(),
-                                          location.getLongitude());
-                updateLocation();
-            }
+            userLocation = new LatLng(location.getLatitude(),
+                                      location.getLongitude());
+            updateLocation();
         }
     }
 
