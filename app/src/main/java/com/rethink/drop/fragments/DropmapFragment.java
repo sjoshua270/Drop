@@ -14,7 +14,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.models.Drop;
+import com.rethink.drop.tools.Utilities;
 
+import java.util.Calendar;
 import java.util.HashMap;
 
 import static com.rethink.drop.DataManager.keyLocations;
@@ -22,9 +24,9 @@ import static com.rethink.drop.DataManager.keys;
 
 
 public class DropMapFragment extends SupportMapFragment {
+    private static DropMapFragment instance;
     public GoogleMap googleMap;
     private LatLng userLocation;
-    private static DropMapFragment instance;
     private Marker userMarker;
     private HashMap<String, Marker> markers;
 
@@ -76,7 +78,7 @@ public class DropMapFragment extends SupportMapFragment {
                .remove();
     }
 
-    public void notifyLocationChanged(){
+    public void notifyLocationChanged() {
         if (userMarker != null) {
             Bundle args = getArguments();
             userMarker.setPosition(new LatLng(args.getDouble("LAT"),
@@ -111,9 +113,30 @@ public class DropMapFragment extends SupportMapFragment {
         public void onDataChange(DataSnapshot dataSnapshot) {
             Drop drop = dataSnapshot.getValue(Drop.class);
             if (drop != null) {
+                LatLng dropLocation = keyLocations.get(key);
+                float distanceFromUser = (float) Utilities.distanceInKilometers(userLocation.latitude,
+                                                                                dropLocation.latitude,
+                                                                                userLocation.longitude,
+                                                                                dropLocation.longitude);
+                long dropAge = Calendar.getInstance()
+                                       .getTimeInMillis() - drop.getTimestamp();
+                float sec = 1000;
+                float min = sec * 60;
+                float hr = min * 60;
+                float day = hr * 24;
+                float fadeThreshold = day * 1;
+                float expireThreshold = day * 7;
+                float alpha = 1.0f;
+                if (dropAge > expireThreshold) {
+                    alpha = 0.0f;
+                } else if (dropAge > fadeThreshold) {
+                    alpha = 1 - dropAge / expireThreshold;
+                }
+                alpha /= distanceFromUser;
                 markers.put(key,
                             googleMap.addMarker(new MarkerOptions().position(keyLocations.get(key))
-                                                                   .title(drop.getText())));
+                                                                   .title(drop.getText())
+                                                                   .alpha(alpha)));
             }
         }
 
