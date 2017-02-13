@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     private final String STATE_LAT = "state_latitude";
     private final String STATE_LON = "state_longitude";
     private FabManager fab;
-    private FragmentJuggler fragmentJuggler;
+    private static FragmentJuggler fragmentJuggler;
     private DataManager dataManager;
 
     public static MainActivity getInstance() {
@@ -244,6 +244,11 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     public void viewImage(String key) {
         openFragment(IMAGE,
                      key);
+    }
+
+    public static void scrollToDrop(String key) {
+        LocalFragment localFragment = (LocalFragment) fragmentJuggler.getCurrentFragment();
+        localFragment.scrollToDrop(key);
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

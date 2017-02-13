@@ -13,6 +13,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.rethink.drop.MainActivity;
 import com.rethink.drop.models.Drop;
 import com.rethink.drop.tools.Utilities;
 
@@ -100,6 +101,22 @@ public class DropMapFragment extends SupportMapFragment {
                             .child(key)
                             .addValueEventListener(new DropListener(key));
         }
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                marker.showInfoWindow();
+                googleMap.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
+                for (String key : keys) {
+                    if (markers.containsKey(key) && markers.get(key)
+                                                           .getId()
+                                                           .equals(marker.getId())) {
+                        MainActivity.scrollToDrop(key);
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
     }
 
     private class DropListener implements ValueEventListener {
@@ -127,16 +144,18 @@ public class DropMapFragment extends SupportMapFragment {
                 float fadeThreshold = day * 1;
                 float expireThreshold = day * 7;
                 float alpha = 1.0f;
-                if (dropAge > expireThreshold) {
-                    alpha = 0.0f;
-                } else if (dropAge > fadeThreshold) {
-                    alpha = 1 - dropAge / expireThreshold;
+                if (dropAge < expireThreshold) {
+                    if (dropAge > fadeThreshold) {
+                        alpha = 1 - dropAge / expireThreshold;
+                        alpha /= distanceFromUser;
+                        alpha /= 100;
+                    }
+                    markers.put(key,
+                                googleMap.addMarker(new MarkerOptions().position(keyLocations.get(key))
+                                                                       .title(drop.getText())
+                                                                       .snippet("Alpha: " + alpha)
+                                                                       .alpha(alpha)));
                 }
-                alpha /= distanceFromUser;
-                markers.put(key,
-                            googleMap.addMarker(new MarkerOptions().position(keyLocations.get(key))
-                                                                   .title(drop.getText())
-                                                                   .alpha(alpha)));
             }
         }
 

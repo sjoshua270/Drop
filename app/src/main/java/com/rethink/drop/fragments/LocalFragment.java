@@ -20,6 +20,7 @@ import com.rethink.drop.adapters.DropAdapter;
 
 import java.util.Arrays;
 
+import static com.rethink.drop.DataManager.keys;
 import static com.rethink.drop.MainActivity.RC_SIGN_IN;
 
 
@@ -71,6 +72,10 @@ public class LocalFragment
             inflater.inflate(R.menu.menu_local, menu);
             super.onCreateOptionsMenu(menu, inflater);
         }
+    }
+
+    public void scrollToDrop(String key) {
+        dropsRecycler.smoothScrollToPosition(keys.indexOf(key));
     }
 
     public void handleFabPress() {
