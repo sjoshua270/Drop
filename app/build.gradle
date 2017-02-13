@@ -37,9 +37,8 @@ android {
             def SEP = "_"
             def buildType = variant.variantData.variantConfiguration.buildType.name
             def version = variant.versionName
-            def formattedDate = getDate();
 
-            def newApkName = project + SEP + buildType + SEP + version + SEP + formattedDate + ".apk"
+            def newApkName = project + SEP + buildType + SEP + version + ".apk"
 
             output.outputFile = new File(output.outputFile.parent, newApkName)
         }
