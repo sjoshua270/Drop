@@ -21,7 +21,9 @@ final class FabManager {
     }
 
     void update() {
-        hide();
+        if (fab.getVisibility() != View.GONE) {
+            hide();
+        }
         switch (CURRENT) {
             case LOCAL:
                 setDrawable(R.drawable.ic_add_white_24px);
@@ -35,7 +37,7 @@ final class FabManager {
         show();
     }
 
-    void hide() {
+    private void hide() {
         fab.setClickable(false);
         Animation anim = AnimationUtils.loadAnimation(context,
                                                       R.anim.shrink_fade_out);
@@ -58,7 +60,7 @@ final class FabManager {
         fab.startAnimation(anim);
     }
 
-    void show() {
+    private void show() {
         fab.setClickable(true);
         Animation anim = AnimationUtils.loadAnimation(context,
                                                       R.anim.grow_fade_in);

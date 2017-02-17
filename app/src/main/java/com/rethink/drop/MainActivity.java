@@ -152,7 +152,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     }
 
     private void openFragment(int id, Bundle args) {
-        fab.hide();
         fragmentJuggler.openFragment(id,
                                      args);
     }
@@ -232,13 +231,11 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     }
 
     public void openListing(View listingView, String key) {
-        fab.hide();
         fragmentJuggler.viewListing(listingView,
                                     key);
     }
 
     public void openProfile(View profile, String userID) {
-        fab.hide();
         fragmentJuggler.viewProfile(profile,
                                     userID);
     }
