@@ -119,6 +119,32 @@ public class DropMapFragment extends SupportMapFragment {
         });
     }
 
+    private float calculateAlpha(String key, Drop drop){
+        LatLng dropLocation = keyLocations.get(key);
+        float distanceFromUser = (float) Utilities.distanceInKilometers(userLocation.latitude,
+                                                                        dropLocation.latitude,
+                                                                        userLocation.longitude,
+                                                                        dropLocation.longitude);
+        long dropAge = Calendar.getInstance()
+                               .getTimeInMillis() - drop.getTimestamp();
+        float sec = 1000;
+        float min = sec * 60;
+        float hr = min * 60;
+        float day = hr * 24;
+        float fadeThreshold = day * 1;
+        float expireThreshold = day * 7;
+        if (dropAge < expireThreshold) {
+            if (dropAge > fadeThreshold) {
+                float alpha = 1 - dropAge / expireThreshold;
+                alpha /= distanceFromUser;
+                alpha /= 100;
+                return alpha;
+            }
+            return -1.0f;
+        }
+        return -1.0f;
+    }
+
     private class DropListener implements ValueEventListener {
         String key;
 
@@ -130,30 +156,11 @@ public class DropMapFragment extends SupportMapFragment {
         public void onDataChange(DataSnapshot dataSnapshot) {
             Drop drop = dataSnapshot.getValue(Drop.class);
             if (drop != null) {
-                LatLng dropLocation = keyLocations.get(key);
-                float distanceFromUser = (float) Utilities.distanceInKilometers(userLocation.latitude,
-                                                                                dropLocation.latitude,
-                                                                                userLocation.longitude,
-                                                                                dropLocation.longitude);
-                long dropAge = Calendar.getInstance()
-                                       .getTimeInMillis() - drop.getTimestamp();
-                float sec = 1000;
-                float min = sec * 60;
-                float hr = min * 60;
-                float day = hr * 24;
-                float fadeThreshold = day * 1;
-                float expireThreshold = day * 7;
-                float alpha = 1.0f;
-                if (dropAge < expireThreshold) {
-                    if (dropAge > fadeThreshold) {
-                        alpha = 1 - dropAge / expireThreshold;
-                        alpha /= distanceFromUser;
-                        alpha /= 100;
-                    }
+                float alpha = calculateAlpha(key, drop);
+                if (alpha > 0) {
                     markers.put(key,
                                 googleMap.addMarker(new MarkerOptions().position(keyLocations.get(key))
                                                                        .title(drop.getText())
-                                                                       .snippet("Alpha: " + alpha)
                                                                        .alpha(alpha)));
                 }
             }
