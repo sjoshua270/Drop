@@ -40,7 +40,7 @@ public class FragmentJuggler {
         this.fragmentManager = fragmentManager;
     }
 
-    public void openFragment(int fragmentID, Bundle args) {
+    public void setMainFragment(int fragmentID, Bundle args) {
         switch (fragmentID) {
             case LOCAL:
                 switchFragments(LocalFragment.newInstance());

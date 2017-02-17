@@ -152,8 +152,8 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     }
 
     private void openFragment(int id, Bundle args) {
-        fragmentJuggler.openFragment(id,
-                                     args);
+        fragmentJuggler.setMainFragment(id,
+                                        args);
     }
 
     public void showMessage(final String message){
