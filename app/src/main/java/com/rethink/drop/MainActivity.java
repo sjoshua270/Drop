@@ -18,7 +18,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.FrameLayout;
 
 import com.firebase.geofire.GeoLocation;
 import com.firebase.ui.auth.AuthUI;
@@ -41,7 +40,6 @@ import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.tools.FragmentJuggler;
 
-import static com.rethink.drop.DataManager.keys;
 import static com.rethink.drop.models.Drop.KEY;
 import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
 import static com.rethink.drop.tools.FragmentJuggler.IMAGE;
@@ -108,8 +106,11 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        Bundle args = new Bundle();
+        args.putString(KEY,
+                       savedInstanceState.getString(STATE_KEY));
         openFragment(savedInstanceState.getInt(STATE_FRAGMENT),
-                     savedInstanceState.getString(STATE_KEY));
+                     args);
         userLocation = new LatLng(savedInstanceState.getDouble(STATE_LAT),
                                   savedInstanceState.getDouble(STATE_LON));
     }
@@ -150,10 +151,10 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         });
     }
 
-    private void openFragment(int id, String key) {
+    private void openFragment(int id, Bundle args) {
         fab.hide();
         fragmentJuggler.openFragment(id,
-                                     key);
+                                     args);
     }
 
     public void showMessage(final String message){
@@ -201,23 +202,24 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     }
 
     public void notifyDropAdded(String key) {
-        DropMapFragment dropMapfragment = (DropMapFragment) fragmentJuggler.getHeaderFragment();
         try {
-            LocalFragment localFragment = (LocalFragment) fragmentJuggler.getCurrentFragment();
-            int index = keys.indexOf(key);
-            localFragment.getDropAdapter()
-                         .notifyItemInserted(index);
+            Fragment fragment = fragmentJuggler.getCurrentFragment();
+            Class fClass = fragment.getClass();
+            if (fClass.equals(LocalFragment.class)) {
+                ((LocalFragment) fragment).notifyDropInserted(key);
+            } else if (fClass.equals(DropMapFragment.class)) {
+                ((DropMapFragment) fragment).notifyDropInserted(key);
+            }
         } catch (ClassCastException ignored) {
         }
-        dropMapfragment.addDrop(key);
+
     }
 
-    public void notifyDropRemoved(String key, int index) {
+    public void notifyDropRemoved(String key) {
         Fragment fragment = fragmentJuggler.getCurrentFragment();
         Class fragmentClass = fragment.getClass();
         if (fragmentClass.equals(LocalFragment.class)) {
-            ((LocalFragment) fragment).getDropAdapter()
-                                      .notifyItemRemoved(index);
+            ((LocalFragment) fragment).notifyDropRemoved(key);
         } else if (fragmentClass.equals(DropMapFragment.class)) {
             ((DropMapFragment) fragment).removeDrop(key);
         }
@@ -242,8 +244,11 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     }
 
     public void viewImage(String key) {
+        Bundle args = new Bundle();
+        args.putString(KEY,
+                       key);
         openFragment(IMAGE,
-                     key);
+                     args);
     }
 
     public static void scrollToDrop(String key) {
@@ -275,12 +280,13 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         int optionID = item.getItemId();
 
         if (optionID == R.id.toggle_map) {
-            FrameLayout header = (FrameLayout) findViewById(R.id.header_fragment_container);
-            if (header.getVisibility() == View.VISIBLE) {
-                header.setVisibility(View.GONE);
-            } else {
-                header.setVisibility(View.VISIBLE);
-            }
+            Bundle args = new Bundle();
+            args.putDouble("LAT",
+                           userLocation.latitude);
+            args.putDouble("LNG",
+                           userLocation.longitude);
+            openFragment(MAP,
+                         args);
         }
 
         if (fragmentClass.equals(LocalFragment.class)) {
@@ -417,25 +423,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
 
     private void updateLocation() {
         if (userLocation != null) {
-            Fragment headerFragment = fragmentJuggler.getHeaderFragment();
-            Bundle args = new Bundle();
-            if (headerFragment != null) {
-                args = headerFragment.getArguments();
-            }
-            args.putDouble("LAT",
-                           userLocation.latitude);
-            args.putDouble("LNG",
-                           userLocation.longitude);
-            if (headerFragment != null) {
-                if (headerFragment.getClass()
-                                  .equals(DropMapFragment.class)) {
-                    headerFragment.getArguments();
-                    ((DropMapFragment) headerFragment).notifyLocationChanged();
-                }
-            } else {
-                fragmentJuggler.setHeaderFragment(MAP,
-                                                  args);
-            }
             dataManager.updateLocation(new GeoLocation(userLocation.latitude,
                                                        userLocation.longitude));
             dataManager.attachListeners();

@@ -66,7 +66,7 @@ public class DropMapFragment extends SupportMapFragment {
         markers = new HashMap<>();
     }
 
-    public void addDrop(String key) {
+    public void notifyDropInserted(String key) {
         FirebaseDatabase.getInstance()
                         .getReference()
                         .child("posts")

@@ -22,9 +22,7 @@ public class ImageFragment
         extends Fragment {
     private ImageView imageView;
 
-    public static ImageFragment newInstance(String key) {
-        Bundle args = new Bundle();
-        args.putString(KEY, key);
+    public static ImageFragment newInstance(Bundle args) {
         ImageFragment fragment = new ImageFragment();
         fragment.setArguments(args);
         return fragment;

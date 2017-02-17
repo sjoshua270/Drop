@@ -45,8 +45,14 @@ public class LocalFragment
         setHasOptionsMenu(true);
     }
 
-    public DropAdapter getDropAdapter() {
-        return dropAdapter;
+    public void notifyDropInserted(String key) {
+        int position = keys.indexOf(key);
+        dropAdapter.notifyItemInserted(position);
+    }
+
+    public void notifyDropRemoved(String key) {
+        int position = keys.indexOf(key);
+        dropAdapter.notifyItemRemoved(position);
     }
 
     @Nullable

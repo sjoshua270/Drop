@@ -31,16 +31,10 @@
         <FrameLayout
             android:id="@+id/main_fragment_container"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/item_image_height"
+            android:layout_height="match_parent"
             android:layout_alignParentTop="true"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-        <FrameLayout
-            android:id="@+id/header_fragment_container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/main_fragment_container"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
     </RelativeLayout>
 
     <android.support.design.widget.FloatingActionButton

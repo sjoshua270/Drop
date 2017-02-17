@@ -2,7 +2,6 @@ package com.rethink.drop.tools;
 
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -25,6 +24,8 @@ import com.rethink.drop.fragments.ImageFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 
+import static com.rethink.drop.models.Drop.KEY;
+
 public class FragmentJuggler {
 
     public static final int LOCAL = 0;
@@ -39,30 +40,13 @@ public class FragmentJuggler {
         this.fragmentManager = fragmentManager;
     }
 
-    public void setHeaderFragment(int fragmentID, Bundle args) {
-        switch (fragmentID) {
-            case MAP:
-                if (args != null) {
-                    DropMapFragment dmFragment = DropMapFragment.newInstance(args.getDouble("LAT"),
-                                                                             args.getDouble("LNG"));
-                    fragmentManager.beginTransaction()
-                                   .replace(R.id.header_fragment_container,
-                                            dmFragment)
-                                   .commit();
-                } else {
-                    throw new IllegalArgumentException("Missing map coordinates");
-                }
-                break;
-        }
-    }
-
-    public void openFragment(int fragmentID, @Nullable String key) {
+    public void openFragment(int fragmentID, Bundle args) {
         switch (fragmentID) {
             case LOCAL:
                 switchFragments(LocalFragment.newInstance());
                 break;
             case LISTING:
-                switchFragments(DropFragment.newInstance(key));
+                switchFragments(DropFragment.newInstance(args));
                 break;
             case PROFILE:
                 FirebaseUser user = FirebaseAuth.getInstance()
@@ -77,7 +61,7 @@ public class FragmentJuggler {
                 }
                 break;
             case IMAGE:
-                switchFragments(ImageFragment.newInstance(key));
+                switchFragments(ImageFragment.newInstance(args));
                 break;
             case MAP:
                 LatLng userLocation = MainActivity.getUserLocation();
@@ -86,10 +70,6 @@ public class FragmentJuggler {
                 break;
         }
         CURRENT = fragmentID;
-    }
-
-    public Fragment getHeaderFragment() {
-        return fragmentManager.findFragmentById(R.id.header_fragment_container);
     }
 
     public Fragment getCurrentFragment() {
@@ -110,7 +90,10 @@ public class FragmentJuggler {
 
     public void viewListing(View listingView, String key) {
         CURRENT = LISTING;
-        Fragment listingFragment = DropFragment.newInstance(key);
+        Bundle args = new Bundle();
+        args.putString(KEY,
+                       key);
+        Fragment listingFragment = DropFragment.newInstance(args);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             listingFragment.setSharedElementEnterTransition(new FragmentJuggler.ViewTransition());
             listingFragment.setSharedElementReturnTransition(new FragmentJuggler.ViewTransition());

@@ -84,12 +84,10 @@ public class DataManager {
     }
 
     private void removeKey(String key) {
-        int index = keys.indexOf(key);
         keys.remove(key);
         keyLocations.remove(key);
         MainActivity.getInstance()
-                    .notifyDropRemoved(key,
-                                       index);
+                    .notifyDropRemoved(key);
     }
 
     private class LocationsListener

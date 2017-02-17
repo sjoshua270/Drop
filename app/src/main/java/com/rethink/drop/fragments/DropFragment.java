@@ -69,10 +69,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     private boolean newDrop;
     private boolean userOwnsDrop;
 
-    public static DropFragment newInstance(String key) {
-        Bundle args = new Bundle();
-        args.putString(KEY,
-                       key);
+    public static DropFragment newInstance(Bundle args) {
         DropFragment fragment = new DropFragment();
         fragment.setArguments(args);
         return fragment;
