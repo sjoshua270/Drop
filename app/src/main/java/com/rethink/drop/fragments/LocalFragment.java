@@ -60,7 +60,7 @@ public class LocalFragment
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup
             container, @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        View rootView = inflater.inflate(R.layout.fragment_local_listings, container, false);
+        View rootView = inflater.inflate(R.layout.recycler_view, container, false);
         dropsRecycler = (RecyclerView) rootView.findViewById(R.id.recycler_local_listings);
         return rootView;
     }
