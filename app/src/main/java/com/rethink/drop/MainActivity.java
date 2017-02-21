@@ -236,6 +236,9 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     public void openListing(View listingView, String key) {
         fragmentJuggler.viewListing(listingView,
                                     key);
+    }
+
+    public void showSubFragment(){
         if (findViewById(R.id.sub_fragment_container).getVisibility() != View.VISIBLE) {
             findViewById(R.id.sub_fragment_container).setVisibility(View.VISIBLE);
         }

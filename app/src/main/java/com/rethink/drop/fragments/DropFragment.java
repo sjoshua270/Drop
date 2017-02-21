@@ -42,6 +42,7 @@ import com.rethink.drop.R;
 import com.rethink.drop.interfaces.ImageRecipient;
 import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
+import com.rethink.drop.tools.FragmentJuggler;
 import com.rethink.drop.tools.ImageManager;
 import com.rethink.drop.tools.Utilities;
 
@@ -50,6 +51,7 @@ import java.util.Calendar;
 import static com.rethink.drop.MainActivity.EDITING;
 import static com.rethink.drop.MainActivity.userLocation;
 import static com.rethink.drop.models.Drop.KEY;
+import static com.rethink.drop.tools.FragmentJuggler.COMMENTS;
 
 public class DropFragment extends ImageManager implements ImageRecipient {
 
@@ -302,6 +304,10 @@ public class DropFragment extends ImageManager implements ImageRecipient {
             dropReference = getDropReference(key);
         }
         dropReference.addValueEventListener(dropListener);
+        MainActivity.getInstance()
+                    .showSubFragment();
+        FragmentJuggler.setSubFragment(COMMENTS,
+                                       getArguments());
     }
 
     @Override

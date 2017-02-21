@@ -35,12 +35,12 @@ public class FragmentJuggler {
     public static final int PROFILE = 2;
     public static final int IMAGE = 3;
     public static final int MAP = 4;
-    private static final int COMMENTS = 5;
+    public static final int COMMENTS = 5;
     public static int CURRENT;
-    private final FragmentManager fragmentManager;
+    private static FragmentManager fragmentManager;
 
-    public FragmentJuggler(FragmentManager fragmentManager) {
-        this.fragmentManager = fragmentManager;
+    public FragmentJuggler(FragmentManager fManager) {
+        fragmentManager = fManager;
     }
 
     public void setMainFragment(int fragmentID, Bundle args) {
@@ -80,7 +80,7 @@ public class FragmentJuggler {
         CURRENT = fragmentID;
     }
 
-    private void setSubFragment(int fragmentID, Bundle args) {
+    public static void setSubFragment(int fragmentID, Bundle args) {
         switch (fragmentID) {
             case COMMENTS:
                 switchFragments(CommentsFragment.newInstance(args),
@@ -94,7 +94,7 @@ public class FragmentJuggler {
         return fragmentManager.findFragmentById(R.id.main_fragment_container);
     }
 
-    private void switchFragments(Fragment newFragment, int container, Boolean addToBackstack) {
+    private static void switchFragments(Fragment newFragment, int container, Boolean addToBackstack) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             newFragment.setEnterTransition(new AutoTransition());
             newFragment.setExitTransition(new AutoTransition());
@@ -131,8 +131,6 @@ public class FragmentJuggler {
                                 listingFragment)
                        .addToBackStack(null)
                        .commit();
-        setSubFragment(COMMENTS,
-                       args);
     }
 
     public void viewProfile(View profileView, String userID) {
