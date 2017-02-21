@@ -33,7 +33,7 @@ public class CommentAdapter extends FirebaseRecyclerAdapter<Comment, CommentAdap
     @Override
     protected void populateViewHolder(CommentHolder viewHolder, Comment model, int position) {
         viewHolder.text.setText(model.getText());
-        viewHolder.timeStamp.setText(model.getTimeStampString());
+        viewHolder.timeStamp.setText(Utilities.getTimeStampString(model.getTimeStamp()));
         Utilities.setProfileData(MainActivity.getInstance(),
                                  model.getCommenterID(),
                                  viewHolder.profile,

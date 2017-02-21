@@ -1,8 +1,5 @@
 package com.rethink.drop.models;
 
-import com.google.firebase.database.Exclude;
-import com.rethink.drop.tools.Utilities;
-
 public class Comment {
     private String commenterID;
     private String text;
@@ -26,12 +23,7 @@ public class Comment {
         return text;
     }
 
-    private long getTimeStamp() {
+    public long getTimeStamp() {
         return timeStamp;
-    }
-
-    @Exclude
-    public String getTimeStampString() {
-        return Utilities.getTimeStampString(getTimeStamp());
     }
 }
