@@ -21,4 +21,6 @@
     <string name="save">Save</string>
     <string name="edit">Edit</string>
     <string name="show_map">Show map</string>
+    <string name="comment">Comment</string>
+    <string name="send">Send</string>
 </resources>
