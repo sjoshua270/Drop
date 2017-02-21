@@ -3,14 +3,24 @@ package com.rethink.drop.tools;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.rethink.drop.R;
+import com.rethink.drop.models.Profile;
 
 import java.io.ByteArrayOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Locale;
 
 public class Utilities {
@@ -140,4 +150,65 @@ public class Utilities {
     }
 
     // ===== End Image Magic =====
+
+    public static String getTimeStampString(long time) {
+        long now = Calendar.getInstance()
+                           .getTimeInMillis();
+        long diff = now - time;
+        long sec = 1000;
+        long min = sec * 60;
+        long hr = min * 60;
+        long day = hr * 24;
+        long wk = day * 7;
+        long year = day * 365;
+        if (diff < min) {
+            return diff / sec + "s";
+        }
+        if (diff < hr) {
+            return diff / min + "m";
+        }
+        if (diff < day) {
+            return diff / hr + "h";
+        }
+        if (diff < wk) {
+            return diff / day + "d";
+        }
+        if (diff < year) {
+            return diff / wk + "w";
+        } else {
+            return new SimpleDateFormat("mm/dd/yyyy",
+                                        Locale.getDefault()).format(time);
+        }
+    }
+
+    public static void setProfileData(final Context context, String userID, final ImageView imageView, final TextView textView) {
+        FirebaseDatabase.getInstance()
+                        .getReference()
+                        .child("profiles")
+                        .child(userID)
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                Profile profile = dataSnapshot.getValue(Profile.class);
+                                if (profile != null) {
+                                    if (imageView != null) {
+                                        Glide.with(context)
+                                             .load(profile.getImageURL())
+                                             .centerCrop()
+                                             .placeholder(R.drawable.ic_face_white_24px)
+                                             .crossFade()
+                                             .into(imageView);
+                                    }
+                                    if (textView != null) {
+                                        textView.setText(profile.getName());
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+    }
 }

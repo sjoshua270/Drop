@@ -1,7 +1,6 @@
 package com.rethink.drop.tools;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -12,16 +11,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.rethink.drop.R;
 import com.rethink.drop.interfaces.ImageRecipient;
-import com.rethink.drop.models.Profile;
 import com.theartofdev.edmodo.cropper.CropImage;
 
 import java.io.File;
@@ -148,31 +139,5 @@ public class ImageManager extends Fragment {
         CropImage.activity(imageUri)
                  .start(getContext(),
                         this);
-    }
-
-    public static void setProfileImage(final Context context, String userID, final ImageView imageView) {
-        FirebaseDatabase.getInstance()
-                        .getReference()
-                        .child("profiles")
-                        .child(userID)
-                        .addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                Profile profile = dataSnapshot.getValue(Profile.class);
-                                if (profile != null) {
-                                    Glide.with(context)
-                                         .load(profile.getImageURL())
-                                         .centerCrop()
-                                         .placeholder(R.drawable.ic_face_white_24px)
-                                         .crossFade()
-                                         .into(imageView);
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
     }
 }
