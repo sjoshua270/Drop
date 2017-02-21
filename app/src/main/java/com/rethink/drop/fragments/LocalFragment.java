@@ -61,7 +61,7 @@ public class LocalFragment
             container, @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.recycler_view, container, false);
-        dropsRecycler = (RecyclerView) rootView.findViewById(R.id.recycler_local_listings);
+        dropsRecycler = (RecyclerView) rootView.findViewById(R.id.recycler_view);
         return rootView;
     }
 
