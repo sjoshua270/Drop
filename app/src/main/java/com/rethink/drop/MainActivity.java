@@ -154,6 +154,9 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     private void openFragment(int id, Bundle args) {
         fragmentJuggler.setMainFragment(id,
                                         args);
+        if (findViewById(R.id.sub_fragment_container).getVisibility() == View.VISIBLE) {
+            findViewById(R.id.sub_fragment_container).setVisibility(View.GONE);
+        }
     }
 
     public void showMessage(final String message){
@@ -233,6 +236,9 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     public void openListing(View listingView, String key) {
         fragmentJuggler.viewListing(listingView,
                                     key);
+        if (findViewById(R.id.sub_fragment_container).getVisibility() != View.VISIBLE) {
+            findViewById(R.id.sub_fragment_container).setVisibility(View.VISIBLE);
+        }
     }
 
     public void openProfile(View profile, String userID) {

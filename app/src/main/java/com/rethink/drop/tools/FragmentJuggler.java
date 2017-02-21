@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.transition.AutoTransition;
 import android.transition.ChangeBounds;
 import android.transition.ChangeTransform;
@@ -18,6 +19,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
+import com.rethink.drop.fragments.CommentsFragment;
 import com.rethink.drop.fragments.DropFragment;
 import com.rethink.drop.fragments.DropMapFragment;
 import com.rethink.drop.fragments.ImageFragment;
@@ -33,6 +35,7 @@ public class FragmentJuggler {
     public static final int PROFILE = 2;
     public static final int IMAGE = 3;
     public static final int MAP = 4;
+    private static final int COMMENTS = 5;
     public static int CURRENT;
     private final FragmentManager fragmentManager;
 
@@ -43,16 +46,17 @@ public class FragmentJuggler {
     public void setMainFragment(int fragmentID, Bundle args) {
         switch (fragmentID) {
             case LOCAL:
-                switchFragments(LocalFragment.newInstance());
-                break;
-            case LISTING:
-                switchFragments(DropFragment.newInstance(args));
+                switchFragments(LocalFragment.newInstance(),
+                                R.id.main_fragment_container,
+                                true);
                 break;
             case PROFILE:
                 FirebaseUser user = FirebaseAuth.getInstance()
                                                 .getCurrentUser();
                 if (user != null) {
-                    switchFragments(ProfileFragment.newInstance(user.getUid()));
+                    switchFragments(ProfileFragment.newInstance(user.getUid()),
+                                    R.id.main_fragment_container,
+                                    true);
                 } else {
                     Toast.makeText(getCurrentFragment().getContext(),
                                    "No userID",
@@ -61,31 +65,47 @@ public class FragmentJuggler {
                 }
                 break;
             case IMAGE:
-                switchFragments(ImageFragment.newInstance(args));
+                switchFragments(ImageFragment.newInstance(args),
+                                R.id.main_fragment_container,
+                                true);
                 break;
             case MAP:
                 LatLng userLocation = MainActivity.getUserLocation();
                 switchFragments(DropMapFragment.newInstance(userLocation.latitude,
-                                                            userLocation.longitude));
+                                                            userLocation.longitude),
+                                R.id.main_fragment_container,
+                                true);
                 break;
         }
         CURRENT = fragmentID;
+    }
+
+    private void setSubFragment(int fragmentID, Bundle args) {
+        switch (fragmentID) {
+            case COMMENTS:
+                switchFragments(CommentsFragment.newInstance(args),
+                                R.id.sub_fragment_container,
+                                false);
+                break;
+        }
     }
 
     public Fragment getCurrentFragment() {
         return fragmentManager.findFragmentById(R.id.main_fragment_container);
     }
 
-    private void switchFragments(Fragment newFragment) {
+    private void switchFragments(Fragment newFragment, int container, Boolean addToBackstack) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             newFragment.setEnterTransition(new AutoTransition());
             newFragment.setExitTransition(new AutoTransition());
         }
-        fragmentManager.beginTransaction()
-                       .replace(R.id.main_fragment_container,
-                                newFragment)
-                       .addToBackStack(null)
-                       .commit();
+        FragmentTransaction ft = fragmentManager.beginTransaction()
+                                                .replace(container,
+                                                         newFragment);
+        if (addToBackstack) {
+            ft.addToBackStack(null);
+        }
+        ft.commit();
     }
 
     public void viewListing(View listingView, String key) {
@@ -111,6 +131,8 @@ public class FragmentJuggler {
                                 listingFragment)
                        .addToBackStack(null)
                        .commit();
+        setSubFragment(COMMENTS,
+                       args);
     }
 
     public void viewProfile(View profileView, String userID) {
