@@ -9,8 +9,8 @@ android {
         applicationId "com.rethink.drop"
         minSdkVersion 16
         targetSdkVersion 25
-        versionCode 2017021000
-        versionName "0.0.8"
+        versionCode 2017022401
+        versionName "0.0.9"
         multiDexEnabled true
     }
     buildTypes {
@@ -34,10 +34,9 @@ android {
         variant.outputs.each { output ->
             def project = "drop"
             def SEP = "_"
-            def buildType = variant.variantData.variantConfiguration.buildType.name
             def version = variant.versionName
 
-            def newApkName = project + SEP + buildType + SEP + version + ".apk"
+            def newApkName = project + SEP + version + ".apk"
 
             output.outputFile = new File(output.outputFile.parent, newApkName)
         }
