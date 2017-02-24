@@ -1,5 +1,6 @@
 package com.rethink.drop;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,10 +19,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Toast;
 
 import com.firebase.geofire.GeoLocation;
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
@@ -85,10 +88,20 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         setContentView(R.layout.activity_main);
         instance = this;
 
-        googleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this)
-                                                           .addOnConnectionFailedListener(this)
-                                                           .addApi(LocationServices.API)
-                                                           .build();
+        int status = GoogleApiAvailability.getInstance()
+                                          .isGooglePlayServicesAvailable(this);
+        if (status == ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED) {
+            Dialog dialog = GoogleApiAvailability.getInstance()
+                                                 .getErrorDialog(MainActivity.getInstance(),
+                                                                 status,
+                                                                 1);
+            dialog.show();
+        } else {
+            googleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this)
+                                                               .addOnConnectionFailedListener(this)
+                                                               .addApi(LocationServices.API)
+                                                               .build();
+        }
         dataManager = new DataManager();
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
         fab = new FabManager(this,
@@ -123,10 +136,12 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                            fragmentJuggler.getCurrentFragment()
                                           .getArguments()
                                           .getString(KEY));
-        outState.putDouble(STATE_LAT,
-                           userLocation.latitude);
-        outState.putDouble(STATE_LON,
-                           userLocation.longitude);
+        if (userLocation != null) {
+            outState.putDouble(STATE_LAT,
+                               userLocation.latitude);
+            outState.putDouble(STATE_LON,
+                               userLocation.longitude);
+        }
         super.onSaveInstanceState(outState);
     }
 
@@ -366,12 +381,18 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        Toast.makeText(this,
+                       "Failed to connect to location service: " + connectionResult.getErrorCode(),
+                       Toast.LENGTH_LONG)
+             .show();
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        Toast.makeText(this,
+                       "Connection suspended",
+                       Toast.LENGTH_LONG)
+             .show();
     }
 
     @Override
@@ -436,7 +457,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     }
 
     private void stopLocationUpdates() {
-        if (googleApiClient.isConnected()) {
+        if (googleApiClient != null && googleApiClient.isConnected()) {
             LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient,
                                                                     this);
         }
@@ -453,7 +474,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     @Override
     protected void onResume() {
         super.onResume();
-        if (googleApiClient.isConnected()) {
+        if (googleApiClient != null && googleApiClient.isConnected()) {
             startLocationUpdates();
         }
         updateLocation();
