@@ -7,7 +7,7 @@ import android.widget.TextView;
 
 import com.rethink.drop.R;
 
-public class ListingHolder extends RecyclerView.ViewHolder {
+public class DropHolder extends RecyclerView.ViewHolder {
     public final ImageView profile;
     public final ImageView imageView;
     public final TextView desc;
@@ -15,7 +15,7 @@ public class ListingHolder extends RecyclerView.ViewHolder {
     public final TextView timeStampTime;
     public final TextView timeStampDay;
 
-    public ListingHolder(View itemView) {
+    public DropHolder(View itemView) {
         super(itemView);
         profile = (ImageView) itemView.findViewById(R.id.item_prof_img);
         imageView = (ImageView) itemView.findViewById(R.id.item_image);

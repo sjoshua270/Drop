@@ -18,23 +18,23 @@ import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
-import com.rethink.drop.viewholders.ListingHolder;
+import com.rethink.drop.viewholders.DropHolder;
 
 import static com.rethink.drop.DataManager.keys;
 
-public class DropAdapter extends RecyclerView.Adapter<ListingHolder> {
+public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
     private Context context;
 
     @Override
-    public ListingHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public DropHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         this.context = parent.getContext();
         View v = LayoutInflater.from(parent.getContext())
                                .inflate(R.layout.listing, parent, false);
-        return new ListingHolder(v);
+        return new DropHolder(v);
     }
 
     @Override
-    public void onBindViewHolder(final ListingHolder holder, final int position) {
+    public void onBindViewHolder(final DropHolder holder, final int position) {
         final String key = keys.get(position);
         getPostData(key, holder);
         ViewCompat.setTransitionName(holder.imageView, "image_" + key);
@@ -50,7 +50,7 @@ public class DropAdapter extends RecyclerView.Adapter<ListingHolder> {
         });
     }
 
-    private void getPostData(final String key, final ListingHolder holder) {
+    private void getPostData(final String key, final DropHolder holder) {
         FirebaseDatabase.getInstance()
                         .getReference()
                         .child("posts")
