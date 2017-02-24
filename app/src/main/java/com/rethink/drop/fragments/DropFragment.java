@@ -50,6 +50,7 @@ import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
 import com.rethink.drop.tools.ImageManager;
 import com.rethink.drop.tools.Utilities;
+import com.rethink.drop.viewholders.CommentHolder;
 
 import java.util.Calendar;
 
@@ -106,7 +107,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                                         .child(args.getString(KEY));
                 commentAdapter = new CommentAdapter(Comment.class,
                                                     R.layout.comment,
-                                                    CommentAdapter.CommentHolder.class,
+                                                    CommentHolder.class,
                                                     ref);
             }
         }

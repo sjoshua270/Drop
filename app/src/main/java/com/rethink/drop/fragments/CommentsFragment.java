@@ -18,6 +18,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.CommentAdapter;
 import com.rethink.drop.models.Comment;
+import com.rethink.drop.viewholders.CommentHolder;
 
 import java.util.Calendar;
 
@@ -46,7 +47,7 @@ public class CommentsFragment extends Fragment {
                                                 .child(dropKey);
         commentAdapter = new CommentAdapter(Comment.class,
                                             R.layout.comment,
-                                            CommentAdapter.CommentHolder.class,
+                                            CommentHolder.class,
                                             ref);
     }
 
