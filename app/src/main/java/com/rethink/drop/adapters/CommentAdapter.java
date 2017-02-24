@@ -1,19 +1,14 @@
 package com.rethink.drop.adapters;
 
 
-import android.support.v7.widget.RecyclerView;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
-
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.database.Query;
 import com.rethink.drop.MainActivity;
-import com.rethink.drop.R;
 import com.rethink.drop.models.Comment;
 import com.rethink.drop.tools.Utilities;
+import com.rethink.drop.viewholders.CommentHolder;
 
-public class CommentAdapter extends FirebaseRecyclerAdapter<Comment, CommentAdapter.CommentHolder> {
+public class CommentAdapter extends FirebaseRecyclerAdapter<Comment, CommentHolder> {
 
     /**
      * @param modelClass      Firebase will marshall the data at a location into an instance of a class that you provide
@@ -38,21 +33,6 @@ public class CommentAdapter extends FirebaseRecyclerAdapter<Comment, CommentAdap
                                  model.getCommenterID(),
                                  viewHolder.profile,
                                  viewHolder.username);
-    }
-
-    public static class CommentHolder extends RecyclerView.ViewHolder {
-        final ImageView profile;
-        final TextView timeStamp;
-        final TextView username;
-        final TextView text;
-
-        CommentHolder(View itemView) {
-            super(itemView);
-            profile = (ImageView) itemView.findViewById(R.id.comment_prof_image);
-            timeStamp = (TextView) itemView.findViewById(R.id.comment_timestamp);
-            username = (TextView) itemView.findViewById(R.id.comment_user_name);
-            text = (TextView) itemView.findViewById(R.id.comment_text);
-        }
     }
 }
 

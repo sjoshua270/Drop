@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.firebase.geofire.GeoFire;
@@ -19,11 +18,11 @@ import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
+import com.rethink.drop.viewholders.ListingHolder;
 
 import static com.rethink.drop.DataManager.keys;
 
-public class DropAdapter
-        extends RecyclerView.Adapter<DropAdapter.ListingHolder> {
+public class DropAdapter extends RecyclerView.Adapter<ListingHolder> {
     private Context context;
 
     @Override
@@ -117,25 +116,5 @@ public class DropAdapter
     @Override
     public int getItemCount() {
         return keys.size();
-    }
-
-    static class ListingHolder
-            extends RecyclerView.ViewHolder {
-        final ImageView profile;
-        final ImageView imageView;
-        final TextView desc;
-        final TextView dist;
-        final TextView timeStampTime;
-        final TextView timeStampDay;
-
-        ListingHolder(View itemView) {
-            super(itemView);
-            profile = (ImageView) itemView.findViewById(R.id.item_prof_img);
-            imageView = (ImageView) itemView.findViewById(R.id.item_image);
-            desc = (TextView) itemView.findViewById(R.id.item_desc);
-            dist = (TextView) itemView.findViewById(R.id.item_distance);
-            timeStampTime = (TextView) itemView.findViewById(R.id.item_timestamp_time);
-            timeStampDay = (TextView) itemView.findViewById(R.id.item_timestamp_day);
-        }
     }
 }

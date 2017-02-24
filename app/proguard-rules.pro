@@ -25,9 +25,8 @@
 }
 
 # To keep models intact for Firebase Database
--keepclassmembers class com.rethink.drop.models.** {
-  *;
-}
+-keepclassmembers class com.rethink.drop.models.** { *; }
+-keepclassmembers class com.rethink.drop.viewholders.** { *; }
 
 -dontwarn okio.**
 -dontwarn retrofit2.**
