@@ -48,7 +48,6 @@ import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
 import static com.rethink.drop.tools.FragmentJuggler.IMAGE;
 import static com.rethink.drop.tools.FragmentJuggler.LISTING;
 import static com.rethink.drop.tools.FragmentJuggler.LOCAL;
-import static com.rethink.drop.tools.FragmentJuggler.MAP;
 import static com.rethink.drop.tools.FragmentJuggler.PROFILE;
 
 public class MainActivity extends AppCompatActivity implements OnConnectionFailedListener,
@@ -300,15 +299,15 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         Class fragmentClass = fragment.getClass();
         int optionID = item.getItemId();
 
-        if (optionID == R.id.toggle_map) {
-            Bundle args = new Bundle();
-            args.putDouble("LAT",
-                           userLocation.latitude);
-            args.putDouble("LNG",
-                           userLocation.longitude);
-            openFragment(MAP,
-                         args);
-        }
+//        if (optionID == R.id.toggle_map) {
+//            Bundle args = new Bundle();
+//            args.putDouble("LAT",
+//                           userLocation.latitude);
+//            args.putDouble("LNG",
+//                           userLocation.longitude);
+//            openFragment(MAP,
+//                         args);
+//        }
 
         if (fragmentClass.equals(LocalFragment.class)) {
             switch (optionID) {
