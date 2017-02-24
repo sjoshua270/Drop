@@ -9,9 +9,11 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
+import com.rethink.drop.MainActivity;
 import com.rethink.drop.interfaces.ImageRecipient;
 import com.theartofdev.edmodo.cropper.CropImage;
 
@@ -82,7 +84,11 @@ public class ImageManager extends Fragment {
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                                      Uri.fromFile(photoFile));
+                                      FileProvider.getUriForFile(MainActivity.getInstance(),
+                                                                 MainActivity.getInstance()
+                                                                             .getApplicationContext()
+                                                                             .getPackageName() + ".provider",
+                                                                 photoFile));
                 startActivityForResult(cameraIntent,
                                        CAMERA_CAPTURE);
             }
