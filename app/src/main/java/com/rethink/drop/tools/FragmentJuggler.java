@@ -6,7 +6,6 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.transition.AutoTransition;
 import android.transition.ChangeBounds;
 import android.transition.ChangeTransform;
 import android.transition.Fade;
@@ -47,6 +46,11 @@ public class FragmentJuggler {
         switch (fragmentID) {
             case LOCAL:
                 switchFragments(LocalFragment.newInstance(),
+                                R.id.main_fragment_container,
+                                true);
+                break;
+            case LISTING:
+                switchFragments(DropFragment.newInstance(args),
                                 R.id.main_fragment_container,
                                 true);
                 break;
@@ -95,10 +99,6 @@ public class FragmentJuggler {
     }
 
     private static void switchFragments(Fragment newFragment, int container, Boolean addToBackstack) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            newFragment.setEnterTransition(new AutoTransition());
-            newFragment.setExitTransition(new AutoTransition());
-        }
         FragmentTransaction ft = fragmentManager.beginTransaction()
                                                 .replace(container,
                                                          newFragment);

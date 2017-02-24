@@ -22,6 +22,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
@@ -70,10 +72,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     private FirebaseUser user;
     private Boolean editing;
     private Drop drop;
-    private boolean newDrop;
+    private String key;
     private boolean userOwnsDrop;
     private CommentAdapter commentAdapter;
     private TextInputEditText textField;
+    private RelativeLayout commentsList;
+    private LinearLayout newCommentForm;
 
     public static DropFragment newInstance(Bundle args) {
         DropFragment fragment = new DropFragment();
@@ -91,14 +95,21 @@ public class DropFragment extends ImageManager implements ImageRecipient {
 
         // Comments
         Bundle args = getArguments();
-        DatabaseReference ref = FirebaseDatabase.getInstance()
-                                                .getReference()
-                                                .child("comments")
-                                                .child(args.getString(KEY));
-        commentAdapter = new CommentAdapter(Comment.class,
-                                            R.layout.comment,
-                                            CommentAdapter.CommentHolder.class,
-                                            ref);
+        if (args != null) {
+            key = args.getString(KEY);
+            editing = key == null;
+
+            if (key != null) {
+                DatabaseReference ref = FirebaseDatabase.getInstance()
+                                                        .getReference()
+                                                        .child("comments")
+                                                        .child(args.getString(KEY));
+                commentAdapter = new CommentAdapter(Comment.class,
+                                                    R.layout.comment,
+                                                    CommentAdapter.CommentHolder.class,
+                                                    ref);
+            }
+        }
     }
 
     @Override
@@ -136,6 +147,8 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         // Comments ============================
         final RecyclerView commentRecycler = (RecyclerView) fragmentView.findViewById(R.id.recycler_view);
         textField = (TextInputEditText) fragmentView.findViewById(R.id.comment_edit_text);
+        commentsList = (RelativeLayout) fragmentView.findViewById(R.id.comments_list);
+        newCommentForm = (LinearLayout) fragmentView.findViewById(R.id.new_comment_form);
 
         fragmentView.findViewById(R.id.comment_submit)
                     .setOnClickListener(new View.OnClickListener() {
@@ -169,6 +182,16 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         syncUI();
         super.onCreateOptionsMenu(menu,
                                   inflater);
+    }
+
+    private void toggleComments(String key) {
+        if (key != null && !editing) {
+            commentsList.setVisibility(View.VISIBLE);
+            newCommentForm.setVisibility(View.VISIBLE);
+        } else {
+            commentsList.setVisibility(View.GONE);
+            newCommentForm.setVisibility(View.GONE);
+        }
     }
 
     public void editDrop() {
@@ -211,9 +234,8 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                         drop.getImageURL(),
                                         descriptionField.getText()
                                                         .toString()));
-        String key = getArguments().getString("KEY");
+        key = getArguments().getString("KEY");
         saveListing(key);
-        newDrop = false;
         toggleState();
 
     }
@@ -305,6 +327,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     }
 
     private void syncUI() {
+        toggleComments(key);
         if (editing) {
             imageView.setVisibility(View.VISIBLE);
             if (descriptionFieldSwitcher.getNextView()
@@ -326,9 +349,9 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         MenuItem save = menu.findItem(R.id.save_drop);
         MenuItem edit = menu.findItem(R.id.edit_drop);
         MenuItem delete = menu.findItem(R.id.delete_drop);
-        submit.setVisible(newDrop);
-        save.setVisible(userOwnsDrop && !newDrop && editing);
-        delete.setVisible(userOwnsDrop && !newDrop);
+        submit.setVisible(key == null);
+        save.setVisible(userOwnsDrop && key != null && editing);
+        delete.setVisible(userOwnsDrop && key != null);
         edit.setVisible(userOwnsDrop && !editing);
         MainActivity.getInstance()
                     .syncUI();
@@ -340,7 +363,6 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         if (dropReference == null) {
             String key = getArguments().getString(KEY);
             editing = key == null;
-            newDrop = key == null;
             dropReference = getDropReference(key);
         }
         dropReference.addValueEventListener(dropListener);

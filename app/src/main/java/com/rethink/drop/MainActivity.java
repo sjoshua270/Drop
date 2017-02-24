@@ -151,8 +151,9 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                 if (CURRENT == LOCAL) {
                     if (FirebaseAuth.getInstance()
                                     .getCurrentUser() != null) {
+                        Bundle args = new Bundle();
                         openFragment(LISTING,
-                                     null);
+                                     args);
                     } else {
                         ((LocalFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
                     }
