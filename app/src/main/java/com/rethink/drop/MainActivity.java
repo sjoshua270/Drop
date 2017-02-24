@@ -334,6 +334,9 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                         ref.child("geoFire")
                            .child(key)
                            .removeValue();
+                        ref.child("comments")
+                           .child(key)
+                           .removeValue();
                     }
                     while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
                         getSupportFragmentManager().popBackStackImmediate();
