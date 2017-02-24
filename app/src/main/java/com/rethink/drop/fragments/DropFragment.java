@@ -13,6 +13,8 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.AppCompatTextView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -39,10 +41,11 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.UploadTask;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
+import com.rethink.drop.adapters.CommentAdapter;
 import com.rethink.drop.interfaces.ImageRecipient;
+import com.rethink.drop.models.Comment;
 import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
-import com.rethink.drop.tools.FragmentJuggler;
 import com.rethink.drop.tools.ImageManager;
 import com.rethink.drop.tools.Utilities;
 
@@ -51,7 +54,6 @@ import java.util.Calendar;
 import static com.rethink.drop.MainActivity.EDITING;
 import static com.rethink.drop.MainActivity.userLocation;
 import static com.rethink.drop.models.Drop.KEY;
-import static com.rethink.drop.tools.FragmentJuggler.COMMENTS;
 
 public class DropFragment extends ImageManager implements ImageRecipient {
 
@@ -70,6 +72,8 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     private Drop drop;
     private boolean newDrop;
     private boolean userOwnsDrop;
+    private CommentAdapter commentAdapter;
+    private TextInputEditText textField;
 
     public static DropFragment newInstance(Bundle args) {
         DropFragment fragment = new DropFragment();
@@ -84,6 +88,17 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                            .getCurrentUser();
         dropListener = new DropChangeListener();
         setHasOptionsMenu(true);
+
+        // Comments
+        Bundle args = getArguments();
+        DatabaseReference ref = FirebaseDatabase.getInstance()
+                                                .getReference()
+                                                .child("comments")
+                                                .child(args.getString(KEY));
+        commentAdapter = new CommentAdapter(Comment.class,
+                                            R.layout.comment,
+                                            CommentAdapter.CommentHolder.class,
+                                            ref);
     }
 
     @Override
@@ -117,6 +132,31 @@ public class DropFragment extends ImageManager implements ImageRecipient {
             ViewCompat.setTransitionName(profileImage,
                                          "prof_" + key);
         }
+
+        // Comments ============================
+        final RecyclerView commentRecycler = (RecyclerView) fragmentView.findViewById(R.id.recycler_view);
+        textField = (TextInputEditText) fragmentView.findViewById(R.id.comment_edit_text);
+
+        fragmentView.findViewById(R.id.comment_submit)
+                    .setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Comment comment = new Comment(user.getUid(),
+                                                          textField.getText()
+                                                                   .toString(),
+                                                          Calendar.getInstance()
+                                                                  .getTimeInMillis());
+                            comment.save(getArguments().getString(KEY),
+                                         null);
+                            textField.setText("");
+                            MainActivity.getInstance()
+                                        .dismissKeyboard();
+                        }
+                    });
+        commentRecycler.setLayoutManager(new LinearLayoutManager(getContext(),
+                                                                 LinearLayoutManager.VERTICAL,
+                                                                 false));
+        commentRecycler.setAdapter(commentAdapter);
 
         return fragmentView;
     }
@@ -304,10 +344,6 @@ public class DropFragment extends ImageManager implements ImageRecipient {
             dropReference = getDropReference(key);
         }
         dropReference.addValueEventListener(dropListener);
-        MainActivity.getInstance()
-                    .showSubFragment();
-        FragmentJuggler.setSubFragment(COMMENTS,
-                                       getArguments());
     }
 
     @Override
