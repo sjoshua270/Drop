@@ -60,7 +60,6 @@ import static com.rethink.drop.models.Drop.KEY;
 
 public class DropFragment extends ImageManager implements ImageRecipient {
 
-    private static final String TAG = "DropFragment";
     private ImageView imageView;
     private ImageView profileImage;
     private Menu menu;
@@ -73,7 +72,6 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     private FirebaseUser user;
     private Boolean editing;
     private Drop drop;
-    private String key;
     private boolean userOwnsDrop;
     private CommentAdapter commentAdapter;
     private TextInputEditText textField;
@@ -97,14 +95,14 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         // Comments
         Bundle args = getArguments();
         if (args != null) {
-            key = args.getString(KEY);
+            String key = args.getString(KEY);
             editing = key == null;
 
             if (key != null) {
                 DatabaseReference ref = FirebaseDatabase.getInstance()
                                                         .getReference()
                                                         .child("comments")
-                                                        .child(args.getString(KEY));
+                                                        .child(key);
                 commentAdapter = new CommentAdapter(Comment.class,
                                                     R.layout.comment,
                                                     CommentHolder.class,
@@ -229,7 +227,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
      * then returns to the previous fragment
      */
     public void publishDrop() {
-        key = getArguments().getString(KEY);
+        String key = getArguments().getString(KEY);
         new Drop(user.getUid(),
                  Calendar.getInstance()
                          .getTimeInMillis(),
@@ -328,6 +326,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     }
 
     private void syncUI() {
+        String key = getArguments().getString(KEY);
         toggleComments(key);
         if (editing) {
             imageView.setVisibility(View.VISIBLE);
