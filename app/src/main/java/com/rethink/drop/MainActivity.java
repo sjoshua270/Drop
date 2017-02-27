@@ -159,8 +159,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                     }
                 } else if (CURRENT == LISTING) {
                     ((DropFragment) fragmentJuggler.getCurrentFragment()).editDrop();
-                } else if (CURRENT == PROFILE) {
-                    ((ProfileFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
                 }
             }
         });

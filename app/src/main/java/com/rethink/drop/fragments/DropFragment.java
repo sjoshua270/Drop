@@ -3,7 +3,6 @@ package com.rethink.drop.fragments;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
@@ -25,12 +24,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
+import com.bumptech.glide.DrawableRequestBuilder;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -38,7 +37,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.UploadTask;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.CommentAdapter;
@@ -216,6 +214,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                      Calendar.getInstance()
                              .getTimeInMillis(),
                      "",
+                     "",
                      "").save(key);
         } else {
             ref = FirebaseDatabase.getInstance()
@@ -236,6 +235,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                  Calendar.getInstance()
                          .getTimeInMillis(),
                  drop.getImageURL(),
+                 drop.getThumbnailURL(),
                  descriptionField.getText()
                                  .toString()).save(key);
         saveListing(key);
@@ -246,24 +246,8 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     private void uploadImage(Bitmap image, final String key) {
         Utilities.uploadImage(getActivity(),
                               image,
-                              user.getUid() + "/" + key)
-                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                     @Override
-                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                         Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                         if (downloadUrl != null) {
-                             new Drop(user.getUid(),
-                                      Calendar.getInstance()
-                                              .getTimeInMillis(),
-                                      downloadUrl.toString(),
-                                      descriptionField.getText()
-                                                      .toString()).save(key);
-                         } else {
-                             MainActivity.getInstance()
-                                         .showMessage(getString(R.string.unexpected_error));
-                         }
-                     }
-                 });
+                              key,
+                              user.getUid());
     }
 
     private void saveListing(String key) {
@@ -278,11 +262,14 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     }
 
     private void updateData(Drop drop) {
+        DrawableRequestBuilder<String> thumbnailRequest = Glide.with(DropFragment.this)
+                                                               .load(drop.getThumbnailURL());
         Glide.with(getContext())
              .load(drop.getImageURL())
              .centerCrop()
              .placeholder(R.drawable.ic_photo_camera_black_24px)
              .crossFade()
+             .thumbnail(thumbnailRequest)
              .into(dropImage);
         getProfileImage(drop,
                         profileImage);
@@ -304,11 +291,14 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 Profile profile = dataSnapshot.getValue(Profile.class);
                                 if (profile != null) {
-                                    Glide.with(getContext())
+                                    DrawableRequestBuilder<String> thumbnailRequest = Glide.with(DropFragment.this)
+                                                                                           .load(profile.getThumbnailURL());
+                                    Glide.with(DropFragment.this)
                                          .load(profile.getImageURL())
                                          .centerCrop()
                                          .placeholder(R.drawable.ic_face_white_24px)
                                          .crossFade()
+                                         .thumbnail(thumbnailRequest)
                                          .into(profImageView);
                                 }
                             }
@@ -405,6 +395,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                          Calendar.getInstance()
                                  .getTimeInMillis(),
                          drop.getImageURL(),
+                         drop.getThumbnailURL(),
                          descriptionField.getText()
                                          .toString()).save(dropReference.getKey());
                 if (ActivityCompat.checkSelfPermission(getContext(),

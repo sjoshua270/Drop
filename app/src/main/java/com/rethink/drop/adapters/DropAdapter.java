@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.bumptech.glide.DrawableRequestBuilder;
 import com.bumptech.glide.Glide;
 import com.firebase.geofire.GeoFire;
 import com.google.firebase.database.DataSnapshot;
@@ -60,11 +61,14 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 Drop drop = dataSnapshot.getValue(Drop.class);
                                 if (drop != null) {
+                                    DrawableRequestBuilder<String> thumbnailRequest = Glide.with(context)
+                                                                                           .load(drop.getThumbnailURL());
                                     Glide.with(context)
                                          .load(drop.getImageURL())
                                          .centerCrop()
                                          .placeholder(R.drawable.ic_photo_camera_black_24px)
                                          .crossFade()
+                                         .thumbnail(thumbnailRequest)
                                          .into(holder.imageView);
 
                                     getProfileImage(drop, holder.profile);
@@ -97,11 +101,14 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 Profile profile = dataSnapshot.getValue(Profile.class);
                                 if (profile != null) {
+                                    DrawableRequestBuilder<String> thumbnailRequest = Glide.with(context)
+                                                                                           .load(profile.getThumbnailURL());
                                     Glide.with(context)
                                          .load(profile.getImageURL())
                                          .centerCrop()
                                          .placeholder(R.drawable.ic_face_white_24px)
                                          .crossFade()
+                                         .thumbnail(thumbnailRequest)
                                          .into(profImageView);
                                 }
                             }

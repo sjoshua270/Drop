@@ -11,12 +11,14 @@ public class Drop {
     private String userID;
     private long timestamp;
     private String imageURL;
+    private String thumbnailURL;
     private String text;
 
-    public Drop(String userID, long timestamp, String imageURL, String text) {
+    public Drop(String userID, long timestamp, String imageURL, String thumbnailURL, String text) {
         this.userID = userID;
         this.timestamp = timestamp;
         this.imageURL = imageURL;
+        this.thumbnailURL = thumbnailURL;
         this.text = text;
     }
 
@@ -34,6 +36,10 @@ public class Drop {
 
     public String getImageURL() {
         return imageURL;
+    }
+
+    public String getThumbnailURL() {
+       return thumbnailURL;
     }
 
     public String getText() {

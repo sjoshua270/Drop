@@ -4,10 +4,8 @@ package com.rethink.drop.fragments;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.ViewCompat;
@@ -22,10 +20,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
+import com.bumptech.glide.DrawableRequestBuilder;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -33,7 +31,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.UploadTask;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.interfaces.ImageRecipient;
@@ -44,7 +41,6 @@ import com.rethink.drop.tools.Utilities;
 import static com.rethink.drop.MainActivity.EDITING;
 
 public class ProfileFragment extends ImageManager implements ImageRecipient {
-    private static final String TAG = "ProfileFragment";
     private static final String USER_ID = "user_id";
     private DatabaseReference profileReference;
     private ProfileListener profileListener;
@@ -54,7 +50,6 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     private Boolean editing;
     private ImageView profileImageView;
     private Profile profile;
-    private View container;
     private Menu menu;
     private boolean userOwnsProfile;
     private String userID;
@@ -85,7 +80,6 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        this.container = container;
         View v = inflater.inflate(R.layout.fragment_profile,
                                   container,
                                   false);
@@ -117,6 +111,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                                       .child("profiles")
                                       .child(userID);
                 ref.setValue(new Profile(userID,
+                                         "",
                                          "",
                                          ""));
             } else {
@@ -166,56 +161,17 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
         super.onPause();
     }
 
-    public void handleFabPress() {
-        if (editing) {
-            String imageURL = (profile != null && profile.getImageURL() != null) ? profile.getImageURL() : "";
-            profile = new Profile(getArguments().getString(USER_ID),
-                                  imageURL,
-                                  nameField.getText()
-                                           .toString());
-            saveProfile();
-            toggleState();
-        } else {
-            toggleState();
-        }
-    }
-
     private void uploadImage(Bitmap image) {
-        String filename = nameField.getText()
-                                   .toString()
-                                   .replaceAll("[^A-Za-z]+",
-                                                  "")
-                                   .toLowerCase();
         Utilities.uploadImage(getActivity(),
                               image,
-                              "profile_images/" + getArguments().getString(USER_ID) + "/" + filename)
-                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                     @Override
-                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                         Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                         if (downloadUrl != null) {
-                             String userName = nameField.getText()
-                                                        .toString();
-                             if (profile != null) {
-                                 userName = profile.getName();
-                             }
-                             profile = new Profile(getArguments().getString(USER_ID),
-                                                   downloadUrl.toString(),
-                                                   userName);
-                             saveProfile();
-                         } else {
-                             Snackbar.make(container,
-                                           R.string.unexpected_error,
-                                           Snackbar.LENGTH_LONG)
-                                     .show();
-                         }
-                     }
-                 });
+                              null,
+                              getArguments().getString(USER_ID));
     }
 
     public void saveProfile() {
         profileReference.setValue(new Profile(userID,
                                               profile.getImageURL(),
+                                              profile.getThumbnailURL(),
                                               nameField.getText()
                                                        .toString()));
         MainActivity.getInstance()
@@ -224,11 +180,14 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     }
 
     private void updateData(Profile profile) {
+        DrawableRequestBuilder<String> thumbnailRequest = Glide.with(ProfileFragment.this)
+                                                               .load(profile.getThumbnailURL());
         Glide.with(getContext())
              .load(profile.getImageURL())
              .centerCrop()
              .placeholder(R.drawable.ic_photo_camera_white_24px)
              .crossFade()
+             .thumbnail(thumbnailRequest)
              .into(profileImageView);
         name.setText(profile.getName());
         nameField.setText(profile.getName());

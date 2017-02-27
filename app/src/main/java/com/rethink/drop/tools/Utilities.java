@@ -3,10 +3,12 @@ package com.rethink.drop.tools;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -104,7 +106,7 @@ public class Utilities {
         }
     }
 
-    public static UploadTask uploadImage(Context context, Bitmap bitmap, String path) {
+    public static UploadTask uploadImage(Context context, Bitmap bitmap, final String dropKey, final String userID) {
         final ProgressDialog progressDialog = new ProgressDialog(context);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setMax(100);
@@ -113,10 +115,12 @@ public class Utilities {
         progressDialog.show();
 
         Bitmap image = scaleDown(bitmap, 1024f);
+        Bitmap thumbnail = scaleDown(bitmap,
+                                     128f);
 
         StorageReference imageReference = FirebaseStorage.getInstance()
                                                          .getReferenceFromUrl("gs://drop-143619.appspot.com")
-                                                         .child(path);
+                                                         .child(userID + "/" + dropKey);
         final ByteArrayOutputStream imageStream = new ByteArrayOutputStream();
         image.compress(Bitmap.CompressFormat.JPEG, 50, imageStream);
         UploadTask uploadImage = imageReference.putBytes(imageStream.toByteArray());
@@ -127,6 +131,69 @@ public class Utilities {
                 progressDialog.setProgress(Math.round(progress));
                 if (progress == progressDialog.getMax()) {
                     progressDialog.cancel();
+                }
+            }
+        });
+        uploadImage.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Uri thumbnailUrl = taskSnapshot.getDownloadUrl();
+                if (thumbnailUrl != null) {
+                    String area;
+                    String ID;
+                    if (dropKey != null) {
+                        area = "posts";
+                        ID = dropKey;
+                    } else {
+                        area = "profiles";
+                        ID = userID;
+                    }
+                    FirebaseDatabase.getInstance()
+                                    .getReference()
+                                    .child(area)
+                                    .child(ID)
+                                    .child("imageURL")
+                                    .setValue(thumbnailUrl.toString());
+
+                }
+            }
+        });
+
+        final StorageReference thumbnailReference = FirebaseStorage.getInstance()
+                                                                   .getReferenceFromUrl("gs://drop-143619.appspot.com")
+                                                                   .child(userID + "/" + dropKey + "_thumbnail");
+        final ByteArrayOutputStream iconStream = new ByteArrayOutputStream();
+        thumbnail.compress(Bitmap.CompressFormat.JPEG,
+                           5,
+                           iconStream);
+        UploadTask uploadIcon = thumbnailReference.putBytes(iconStream.toByteArray());
+        uploadIcon.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                float progress = 100f * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount();
+                progressDialog.setSecondaryProgress(Math.round(progress));
+            }
+        });
+        uploadIcon.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Uri thumbnailUrl = taskSnapshot.getDownloadUrl();
+                if (thumbnailUrl != null) {
+                    String area;
+                    String ID;
+                    if (dropKey != null) {
+                        area = "posts";
+                        ID = dropKey;
+                    } else {
+                        area = "profiles";
+                        ID = userID;
+                    }
+                    FirebaseDatabase.getInstance()
+                                    .getReference()
+                                    .child(area)
+                                    .child(ID)
+                                    .child("thumbnailURL")
+                                    .setValue(thumbnailUrl.toString());
                 }
             }
         });
