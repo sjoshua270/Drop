@@ -4,6 +4,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.FirebaseDatabase;
 
+import static com.rethink.drop.tools.StringUtilities.parseHashTags;
+
 public class Comment {
     private String commenterID;
     private String text;
@@ -41,7 +43,21 @@ public class Comment {
             commentKey = ref.push()
                             .getKey();
         }
-        ref = ref.child(commentKey);
-        ref.setValue(this);
+        ref.child(commentKey)
+           .setValue(this);
+
+        ref = FirebaseDatabase.getInstance()
+                              .getReference();
+        for (String hashTag : parseHashTags(text)) {
+            ref.child("hashtags")
+               .child(hashTag)
+               .child(dropKey)
+               .setValue(dropKey);
+            ref.child("posts")
+               .child(dropKey)
+               .child("hashtags")
+               .push()
+               .setValue(hashTag);
+        }
     }
 }
