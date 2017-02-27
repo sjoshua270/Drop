@@ -210,11 +210,11 @@ public class DropFragment extends ImageManager implements ImageRecipient {
             key = ref.getKey();
             getArguments().putString(KEY,
                                      key);
-            ref.setValue(new Drop(user.getUid(),
-                                  Calendar.getInstance()
-                                          .getTimeInMillis(),
-                                  "",
-                                  ""));
+            new Drop(user.getUid(),
+                     Calendar.getInstance()
+                             .getTimeInMillis(),
+                     "",
+                     "").save(key);
         } else {
             ref = FirebaseDatabase.getInstance()
                                   .getReference()
@@ -229,13 +229,13 @@ public class DropFragment extends ImageManager implements ImageRecipient {
      * then returns to the previous fragment
      */
     public void publishDrop() {
-        dropReference.setValue(new Drop(user.getUid(),
-                                        Calendar.getInstance()
-                                                .getTimeInMillis(),
-                                        drop.getImageURL(),
-                                        descriptionField.getText()
-                                                        .toString()));
-        key = getArguments().getString("KEY");
+        key = getArguments().getString(KEY);
+        new Drop(user.getUid(),
+                 Calendar.getInstance()
+                         .getTimeInMillis(),
+                 drop.getImageURL(),
+                 descriptionField.getText()
+                                 .toString()).save(key);
         saveListing(key);
         toggleState();
 
@@ -250,12 +250,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                      public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                          Uri downloadUrl = taskSnapshot.getDownloadUrl();
                          if (downloadUrl != null) {
-                             dropReference.setValue(new Drop(user.getUid(),
-                                                             Calendar.getInstance()
-                                                                     .getTimeInMillis(),
-                                                             downloadUrl.toString(),
-                                                             descriptionField.getText()
-                                                                             .toString()));
+                             new Drop(user.getUid(),
+                                      Calendar.getInstance()
+                                              .getTimeInMillis(),
+                                      downloadUrl.toString(),
+                                      descriptionField.getText()
+                                                      .toString()).save(key);
                          } else {
                              Snackbar.make(cLayout,
                                            R.string.unexpected_error,
@@ -400,12 +400,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         @Override
         public void onClick(View v) {
             if (editing) {
-                dropReference.setValue(new Drop(user.getUid(),
-                                                Calendar.getInstance()
-                                                        .getTimeInMillis(),
-                                                drop.getImageURL(),
-                                                descriptionField.getText()
-                                                                .toString()));
+                new Drop(user.getUid(),
+                         Calendar.getInstance()
+                                 .getTimeInMillis(),
+                         drop.getImageURL(),
+                         descriptionField.getText()
+                                         .toString()).save(dropReference.getKey());
                 if (ActivityCompat.checkSelfPermission(getContext(),
                                                        Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                     requestImage(DropFragment.this);
