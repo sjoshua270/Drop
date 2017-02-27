@@ -6,8 +6,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
@@ -60,21 +58,21 @@ import static com.rethink.drop.models.Drop.KEY;
 
 public class DropFragment extends ImageManager implements ImageRecipient {
 
-    private ImageView imageView;
+    private ImageView dropImage;
     private ImageView profileImage;
     private Menu menu;
     private ViewSwitcher descriptionFieldSwitcher;
     private TextView description;
     private TextInputEditText descriptionField;
-    private CoordinatorLayout cLayout;
     private DatabaseReference dropReference;
     private DropChangeListener dropListener;
     private FirebaseUser user;
     private Boolean editing;
     private Drop drop;
     private boolean userOwnsDrop;
+    private RecyclerView commentRecycler;
     private CommentAdapter commentAdapter;
-    private TextInputEditText textField;
+    private TextInputEditText commentField;
     private RelativeLayout commentsList;
     private LinearLayout newCommentForm;
 
@@ -97,17 +95,6 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         if (args != null) {
             String key = args.getString(KEY);
             editing = key == null;
-
-            if (key != null) {
-                DatabaseReference ref = FirebaseDatabase.getInstance()
-                                                        .getReference()
-                                                        .child("comments")
-                                                        .child(key);
-                commentAdapter = new CommentAdapter(Comment.class,
-                                                    R.layout.comment,
-                                                    CommentHolder.class,
-                                                    ref);
-            }
         }
     }
 
@@ -119,9 +106,8 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         View fragmentView = inflater.inflate(R.layout.fragment_drop,
                                              container,
                                              false);
-        cLayout = (CoordinatorLayout) getActivity().findViewById(R.id.coordinator);
-        imageView = (ImageView) fragmentView.findViewById(R.id.listing_image);
-        imageView.setOnClickListener(new ImageClickHandler());
+        dropImage = (ImageView) fragmentView.findViewById(R.id.drop_image);
+        dropImage.setOnClickListener(new ImageClickHandler());
         profileImage = (ImageView) fragmentView.findViewById(R.id.drop_profile_image);
         profileImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -130,12 +116,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
             }
         });
         descriptionFieldSwitcher = (ViewSwitcher) fragmentView.findViewById(R.id.description_switcher);
-        description = (TextView) fragmentView.findViewById(R.id.listing_desc);
-        descriptionField = (TextInputEditText) fragmentView.findViewById(R.id.listing_input_desc);
+        description = (TextView) fragmentView.findViewById(R.id.drop_description);
+        descriptionField = (TextInputEditText) fragmentView.findViewById(R.id.drop_description_field);
 
         String key = getArguments().getString(KEY);
         if (key != null) {
-            ViewCompat.setTransitionName(imageView,
+            ViewCompat.setTransitionName(dropImage,
                                          "image_" + key);
             ViewCompat.setTransitionName(description,
                                          "desc_" + key);
@@ -144,31 +130,31 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         }
 
         // Comments ============================
-        final RecyclerView commentRecycler = (RecyclerView) fragmentView.findViewById(R.id.recycler_view);
-        textField = (TextInputEditText) fragmentView.findViewById(R.id.comment_edit_text);
+        commentRecycler = (RecyclerView) fragmentView.findViewById(R.id.recycler_view);
+        commentField = (TextInputEditText) fragmentView.findViewById(R.id.comment_edit_text);
         commentsList = (RelativeLayout) fragmentView.findViewById(R.id.comments_list);
         newCommentForm = (LinearLayout) fragmentView.findViewById(R.id.new_comment_form);
 
+        // Handle Submit button for new comment
         fragmentView.findViewById(R.id.comment_submit)
                     .setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Comment comment = new Comment(user.getUid(),
-                                                          textField.getText()
-                                                                   .toString(),
-                                                          Calendar.getInstance()
-                                                                  .getTimeInMillis());
-                            comment.save(getArguments().getString(KEY),
-                                         null);
-                            textField.setText("");
+                            new Comment(user.getUid(),
+                                        commentField.getText()
+                                                    .toString(),
+                                        Calendar.getInstance()
+                                                .getTimeInMillis()).save(getArguments().getString(KEY),
+                                                                         null);
+                            commentField.setText("");
                             MainActivity.getInstance()
                                         .dismissKeyboard();
                         }
                     });
-        commentRecycler.setLayoutManager(new LinearLayoutManager(getContext(),
-                                                                 LinearLayoutManager.VERTICAL,
-                                                                 false));
-        commentRecycler.setAdapter(commentAdapter);
+
+        if (key != null) {
+            prepComments(key);
+        }
 
         return fragmentView;
     }
@@ -185,12 +171,30 @@ public class DropFragment extends ImageManager implements ImageRecipient {
 
     private void toggleComments(String key) {
         if (key != null && !editing) {
+            if (commentRecycler.getAdapter() == null) {
+                prepComments(key);
+            }
             commentsList.setVisibility(View.VISIBLE);
             newCommentForm.setVisibility(View.VISIBLE);
         } else {
             commentsList.setVisibility(View.GONE);
             newCommentForm.setVisibility(View.GONE);
         }
+    }
+
+    private void prepComments(String dropKey) {
+        DatabaseReference ref = FirebaseDatabase.getInstance()
+                                                .getReference()
+                                                .child("comments")
+                                                .child(dropKey);
+        commentAdapter = new CommentAdapter(Comment.class,
+                                            R.layout.comment,
+                                            CommentHolder.class,
+                                            ref);
+        commentRecycler.setLayoutManager(new LinearLayoutManager(getContext(),
+                                                                 LinearLayoutManager.VERTICAL,
+                                                                 false));
+        commentRecycler.setAdapter(commentAdapter);
     }
 
     public void editDrop() {
@@ -255,10 +259,8 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                       descriptionField.getText()
                                                       .toString()).save(key);
                          } else {
-                             Snackbar.make(cLayout,
-                                           R.string.unexpected_error,
-                                           Snackbar.LENGTH_LONG)
-                                     .show();
+                             MainActivity.getInstance()
+                                         .showMessage(getString(R.string.unexpected_error));
                          }
                      }
                  });
@@ -281,7 +283,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
              .centerCrop()
              .placeholder(R.drawable.ic_photo_camera_black_24px)
              .crossFade()
-             .into(imageView);
+             .into(dropImage);
         getProfileImage(drop,
                         profileImage);
         description.setText(drop.getText());
@@ -329,7 +331,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         String key = getArguments().getString(KEY);
         toggleComments(key);
         if (editing) {
-            imageView.setVisibility(View.VISIBLE);
+            dropImage.setVisibility(View.VISIBLE);
             if (descriptionFieldSwitcher.getNextView()
                                         .getClass()
                                         .equals(TextInputLayout.class)) {
@@ -337,7 +339,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
             }
         } else {
             if (getArguments().getString(KEY) == null) {
-                imageView.setVisibility(View.GONE);
+                dropImage.setVisibility(View.GONE);
             }
             if (descriptionFieldSwitcher.getNextView()
                                         .getClass()

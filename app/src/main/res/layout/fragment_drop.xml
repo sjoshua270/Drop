@@ -19,7 +19,7 @@
                 android:layout_height="wrap_content">
 
                 <ImageView
-                    android:id="@+id/listing_image"
+                    android:id="@+id/drop_image"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/item_image_height"
                     android:layout_alignParentTop="true"
@@ -32,7 +32,7 @@
                     android:layout_height="@dimen/listing_prof_dimen"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true"
-                    android:layout_below="@id/listing_image"
+                    android:layout_below="@id/drop_image"
                     android:layout_centerVertical="true"
                     android:layout_margin="10dp"
                     android:background="@color/primary_light"
@@ -43,14 +43,14 @@
                     android:id="@+id/description_switcher"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/listing_image"
+                    android:layout_below="@id/drop_image"
                     android:layout_toEndOf="@+id/drop_profile_image"
                     android:layout_toRightOf="@+id/drop_profile_image"
                     android:inAnimation="@anim/grow_fade_in"
                     android:outAnimation="@anim/shrink_fade_out">
 
                     <TextView
-                        android:id="@+id/listing_desc"
+                        android:id="@+id/drop_description"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="@dimen/small_margin"
@@ -63,7 +63,7 @@
                         android:layout_margin="16dp">
 
                         <android.support.design.widget.TextInputEditText
-                            android:id="@+id/listing_input_desc"
+                            android:id="@+id/drop_description_field"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="@string/hint_description" />
