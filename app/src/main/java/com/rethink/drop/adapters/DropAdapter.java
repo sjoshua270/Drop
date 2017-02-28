@@ -30,7 +30,7 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
     public DropHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         this.context = parent.getContext();
         View v = LayoutInflater.from(parent.getContext())
-                               .inflate(R.layout.listing, parent, false);
+                               .inflate(R.layout.item_drop, parent, false);
         return new DropHolder(v);
     }
 

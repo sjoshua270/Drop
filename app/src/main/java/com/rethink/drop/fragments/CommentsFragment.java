@@ -46,7 +46,7 @@ public class CommentsFragment extends Fragment {
                                                 .child("comments")
                                                 .child(dropKey);
         commentAdapter = new CommentAdapter(Comment.class,
-                                            R.layout.comment,
+                                            R.layout.item_comment,
                                             CommentHolder.class,
                                             ref);
     }
