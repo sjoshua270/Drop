@@ -41,6 +41,7 @@ import com.rethink.drop.fragments.DropFragment;
 import com.rethink.drop.fragments.DropMapFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
+import com.rethink.drop.managers.DataManager;
 import com.rethink.drop.tools.FragmentJuggler;
 
 import static com.rethink.drop.models.Drop.KEY;
@@ -55,18 +56,18 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                                                                LocationListener {
     public static final int RC_SIGN_IN = 1;
     public static final String EDITING = "editing";
+    public static final int STORAGE_REQUEST = 3;
     private final static float degreesPerMile = 0.01449275362f;
     public static MainActivity instance;
     public static LatLng userLocation;
     private static GoogleApiClient googleApiClient;
+    private static FragmentJuggler fragmentJuggler;
     private final int LOCATION_REQUEST = 2;
-    public static final int STORAGE_REQUEST = 3;
     private final String STATE_FRAGMENT = "state_fragment";
     private final String STATE_KEY = "state_key";
     private final String STATE_LAT = "state_latitude";
     private final String STATE_LON = "state_longitude";
     private FabManager fab;
-    private static FragmentJuggler fragmentJuggler;
     private DataManager dataManager;
 
     public static MainActivity getInstance() {
@@ -79,6 +80,11 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
 
     public static LatLng getUserLocation() {
         return userLocation;
+    }
+
+    public static void scrollToDrop(String key) {
+        LocalFragment localFragment = (LocalFragment) fragmentJuggler.getCurrentFragment();
+        localFragment.scrollToDrop(key);
     }
 
     @Override
@@ -268,11 +274,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                        key);
         openFragment(IMAGE,
                      args);
-    }
-
-    public static void scrollToDrop(String key) {
-        LocalFragment localFragment = (LocalFragment) fragmentJuggler.getCurrentFragment();
-        localFragment.scrollToDrop(key);
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

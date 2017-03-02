@@ -20,8 +20,8 @@ import com.rethink.drop.adapters.DropAdapter;
 
 import java.util.Arrays;
 
-import static com.rethink.drop.DataManager.keys;
 import static com.rethink.drop.MainActivity.RC_SIGN_IN;
+import static com.rethink.drop.managers.DataManager.keys;
 
 
 public class LocalFragment

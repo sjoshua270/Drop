@@ -20,8 +20,8 @@ import com.rethink.drop.tools.Utilities;
 import java.util.Calendar;
 import java.util.HashMap;
 
-import static com.rethink.drop.DataManager.keyLocations;
-import static com.rethink.drop.DataManager.keys;
+import static com.rethink.drop.managers.DataManager.keyLocations;
+import static com.rethink.drop.managers.DataManager.keys;
 
 
 public class DropMapFragment extends SupportMapFragment {
