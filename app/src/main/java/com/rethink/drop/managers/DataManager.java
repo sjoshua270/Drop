@@ -1,4 +1,4 @@
-package com.rethink.drop;
+package com.rethink.drop.managers;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -10,6 +10,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.rethink.drop.MainActivity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,17 +18,21 @@ import java.util.HashMap;
 public class DataManager {
 
     public static ArrayList<String> keys;
+    public static HashMap<String, String> profileKeys;
     public static HashMap<String, LatLng> keyLocations;
+    public static HashMap<String, String> dropImageUrls;
     private static Double scanRadius;
     private static LocationsListener locationsListener;
     private static GeoQueryListener geoQueryListener;
     private GeoQuery geoQuery;
     private DatabaseReference geoFireRef;
 
-    DataManager() {
+    public DataManager() {
         scanRadius = 10.0;
         keys = new ArrayList<>();
+        profileKeys = new HashMap<>();
         keyLocations = new HashMap<>();
+        dropImageUrls = new HashMap<>();
         locationsListener = new LocationsListener();
         geoQueryListener = new GeoQueryListener();
         geoFireRef = FirebaseDatabase.getInstance()
@@ -36,7 +41,7 @@ public class DataManager {
         geoFireRef.addChildEventListener(locationsListener);
     }
 
-    void updateLocation(GeoLocation geoLocation) {
+    public void updateLocation(GeoLocation geoLocation) {
         if (geoQuery == null) {
             geoQuery = new GeoFire(geoFireRef).queryAtLocation(geoLocation, scanRadius);
         } else {
@@ -44,20 +49,20 @@ public class DataManager {
         }
     }
 
-    void attachListeners() {
+    public void attachListeners() {
         if (geoQuery != null) {
             detachListeners();
             geoQuery.addGeoQueryEventListener(geoQueryListener);
         }
     }
 
-    void detachListeners() {
+    public void detachListeners() {
         if (geoQuery != null) {
             geoQuery.removeAllListeners();
         }
     }
 
-    void detachLocationListener() {
+    public void detachLocationListener() {
         if (geoFireRef != null) {
             geoFireRef.removeEventListener(locationsListener);
         }

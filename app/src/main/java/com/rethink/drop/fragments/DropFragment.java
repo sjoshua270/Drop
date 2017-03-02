@@ -52,6 +52,8 @@ import java.util.Calendar;
 
 import static com.rethink.drop.MainActivity.EDITING;
 import static com.rethink.drop.MainActivity.userLocation;
+import static com.rethink.drop.managers.DataManager.dropImageUrls;
+import static com.rethink.drop.managers.DataManager.profileKeys;
 import static com.rethink.drop.models.Drop.KEY;
 
 public class DropFragment extends ImageManager implements ImageRecipient {
@@ -106,6 +108,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                              false);
         dropImage = (ImageView) fragmentView.findViewById(R.id.drop_image);
         dropImage.setOnClickListener(new ImageClickHandler());
+        Glide.with(DropFragment.this)
+             .load(dropImageUrls.get(getArguments().getString(KEY)))
+             .centerCrop()
+             .placeholder(R.drawable.ic_photo_camera_black_24px)
+             .crossFade()
+             .into(dropImage);
         profileImage = (ImageView) fragmentView.findViewById(R.id.drop_profile_image);
         profileImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -113,6 +121,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                 MainActivity.getInstance().openProfile(profileImage, drop.getUserID());
             }
         });
+        Glide.with(DropFragment.this)
+             .load(dropImageUrls.get(profileKeys.get(getArguments().getString(KEY))))
+             .centerCrop()
+             .placeholder(R.drawable.ic_face_white_24px)
+             .crossFade()
+             .into(profileImage);
         descriptionFieldSwitcher = (ViewSwitcher) fragmentView.findViewById(R.id.description_switcher);
         description = (TextView) fragmentView.findViewById(R.id.drop_description);
         descriptionField = (TextInputEditText) fragmentView.findViewById(R.id.drop_description_field);

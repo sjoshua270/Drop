@@ -21,7 +21,9 @@ import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
 import com.rethink.drop.viewholders.DropHolder;
 
-import static com.rethink.drop.DataManager.keys;
+import static com.rethink.drop.managers.DataManager.dropImageUrls;
+import static com.rethink.drop.managers.DataManager.keys;
+import static com.rethink.drop.managers.DataManager.profileKeys;
 
 public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
     private Context context;
@@ -37,6 +39,25 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
     @Override
     public void onBindViewHolder(final DropHolder holder, final int position) {
         final String key = keys.get(position);
+        // If we already have a cached URL, use it!
+        String imageUrl = dropImageUrls.get(keys.get(position));
+        if (imageUrl != null) {
+            Glide.with(context)
+                 .load(imageUrl)
+                 .centerCrop()
+                 .placeholder(R.drawable.ic_photo_camera_black_24px)
+                 .crossFade()
+                 .into(holder.imageView);
+        }
+        String profImageUrl = dropImageUrls.get(profileKeys.get(keys.get(position)));
+        if (profImageUrl != null) {
+            Glide.with(context)
+                 .load(profImageUrl)
+                 .centerCrop()
+                 .placeholder(R.drawable.ic_face_white_24px)
+                 .crossFade()
+                 .into(holder.profile);
+        }
         getPostData(key, holder);
         ViewCompat.setTransitionName(holder.imageView, "image_" + key);
         ViewCompat.setTransitionName(holder.desc, "desc_" + key);
@@ -70,6 +91,11 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                                          .crossFade()
                                          .thumbnail(thumbnailRequest)
                                          .into(holder.imageView);
+
+                                    dropImageUrls.put(dataSnapshot.getKey(),
+                                                      drop.getImageURL());
+                                    profileKeys.put(dataSnapshot.getKey(),
+                                                    drop.getUserID());
 
                                     getProfileImage(drop, holder.profile);
 
@@ -110,6 +136,9 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                                          .crossFade()
                                          .thumbnail(thumbnailRequest)
                                          .into(profImageView);
+
+                                    dropImageUrls.put(dataSnapshot.getKey(),
+                                                      profile.getImageURL());
                                 }
                             }
 
