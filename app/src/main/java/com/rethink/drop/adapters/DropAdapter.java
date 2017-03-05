@@ -6,24 +6,17 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
-import com.bumptech.glide.DrawableRequestBuilder;
 import com.bumptech.glide.Glide;
-import com.firebase.geofire.GeoFire;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
 import com.rethink.drop.viewholders.DropHolder;
 
-import static com.rethink.drop.managers.DataManager.dropImageUrls;
+import static com.rethink.drop.managers.DataManager.getDrop;
 import static com.rethink.drop.managers.DataManager.keys;
-import static com.rethink.drop.managers.DataManager.profileKeys;
+import static com.rethink.drop.managers.DataManager.profiles;
 
 public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
     private Context context;
@@ -39,26 +32,35 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
     @Override
     public void onBindViewHolder(final DropHolder holder, final int position) {
         final String key = keys.get(position);
-        // If we already have a cached URL, use it!
-        String imageUrl = dropImageUrls.get(keys.get(position));
-        if (imageUrl != null) {
-            Glide.with(context)
-                 .load(imageUrl)
-                 .centerCrop()
-                 .placeholder(R.drawable.ic_photo_camera_black_24px)
-                 .crossFade()
-                 .into(holder.imageView);
+        Drop drop = getDrop(key);
+        if (drop != null) {
+            // Set the Drop image
+            String dropImageUrl = drop.getImageURL();
+            if (dropImageUrl != null) {
+                Glide.with(context)
+                     .load(dropImageUrl)
+                     .centerCrop()
+                     .placeholder(R.drawable.ic_photo_camera_black_24px)
+                     .crossFade()
+                     .into(holder.imageView);
+            }
+            // Set the Drop text
+            holder.desc.setText(drop.getText());
+
+            // Set the Profile image
+            Profile profile = profiles.get(drop.getUserID());
+            if (profile != null) {
+                String profileImageUrl = profile.getImageURL();
+                if (profileImageUrl != null) {
+                    Glide.with(context)
+                         .load(profileImageUrl)
+                         .centerCrop()
+                         .placeholder(R.drawable.ic_face_white_24px)
+                         .crossFade()
+                         .into(holder.profile);
+                }
+            }
         }
-        String profImageUrl = dropImageUrls.get(profileKeys.get(keys.get(position)));
-        if (profImageUrl != null) {
-            Glide.with(context)
-                 .load(profImageUrl)
-                 .centerCrop()
-                 .placeholder(R.drawable.ic_face_white_24px)
-                 .crossFade()
-                 .into(holder.profile);
-        }
-        getPostData(key, holder);
         ViewCompat.setTransitionName(holder.imageView, "image_" + key);
         ViewCompat.setTransitionName(holder.desc, "desc_" + key);
         ViewCompat.setTransitionName(holder.profile, "prof_" + key);
@@ -70,83 +72,6 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                                          key);
             }
         });
-    }
-
-    private void getPostData(final String key, final DropHolder holder) {
-        FirebaseDatabase.getInstance()
-                        .getReference()
-                        .child("posts")
-                        .child(key)
-                        .addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                Drop drop = dataSnapshot.getValue(Drop.class);
-                                if (drop != null) {
-                                    DrawableRequestBuilder<String> thumbnailRequest = Glide.with(context)
-                                                                                           .load(drop.getThumbnailURL());
-                                    Glide.with(context)
-                                         .load(drop.getImageURL())
-                                         .centerCrop()
-                                         .placeholder(R.drawable.ic_photo_camera_black_24px)
-                                         .crossFade()
-                                         .thumbnail(thumbnailRequest)
-                                         .into(holder.imageView);
-
-                                    dropImageUrls.put(dataSnapshot.getKey(),
-                                                      drop.getImageURL());
-                                    profileKeys.put(dataSnapshot.getKey(),
-                                                    drop.getUserID());
-
-                                    getProfileImage(drop, holder.profile);
-
-                                    holder.desc.setText(drop.getText());
-                                } else {
-                                    GeoFire geoFire = new GeoFire(
-                                            FirebaseDatabase.getInstance()
-                                                            .getReference()
-                                                            .child("geoFire"));
-                                    geoFire.removeLocation(key);
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
-    }
-
-    private void getProfileImage(Drop drop, final ImageView profImageView) {
-        final String userID = drop.getUserID();
-        FirebaseDatabase.getInstance()
-                        .getReference()
-                        .child("profiles")
-                        .child(userID)
-                        .addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                Profile profile = dataSnapshot.getValue(Profile.class);
-                                if (profile != null) {
-                                    DrawableRequestBuilder<String> thumbnailRequest = Glide.with(context)
-                                                                                           .load(profile.getThumbnailURL());
-                                    Glide.with(context)
-                                         .load(profile.getImageURL())
-                                         .centerCrop()
-                                         .placeholder(R.drawable.ic_face_white_24px)
-                                         .crossFade()
-                                         .thumbnail(thumbnailRequest)
-                                         .into(profImageView);
-
-                                    dropImageUrls.put(dataSnapshot.getKey(),
-                                                      profile.getImageURL());
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
     }
 
     @Override

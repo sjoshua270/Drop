@@ -21,6 +21,7 @@ import com.rethink.drop.adapters.DropAdapter;
 import java.util.Arrays;
 
 import static com.rethink.drop.MainActivity.RC_SIGN_IN;
+import static com.rethink.drop.managers.DataManager.getDropIndex;
 import static com.rethink.drop.managers.DataManager.keys;
 
 
@@ -46,13 +47,15 @@ public class LocalFragment
     }
 
     public void notifyDropInserted(String key) {
-        int position = keys.indexOf(key);
-        dropAdapter.notifyItemInserted(position);
+        dropAdapter.notifyItemInserted(getDropIndex(key));
+    }
+
+    public void notifyDropChanged(String key) {
+        dropAdapter.notifyItemChanged(getDropIndex(key));
     }
 
     public void notifyDropRemoved(String key) {
-        int position = keys.indexOf(key);
-        dropAdapter.notifyItemRemoved(position);
+        dropAdapter.notifyItemRemoved(getDropIndex(key));
     }
 
     @Nullable

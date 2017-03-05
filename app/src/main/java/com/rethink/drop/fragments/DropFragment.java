@@ -52,29 +52,27 @@ import java.util.Calendar;
 
 import static com.rethink.drop.MainActivity.EDITING;
 import static com.rethink.drop.MainActivity.userLocation;
-import static com.rethink.drop.managers.DataManager.dropImageUrls;
-import static com.rethink.drop.managers.DataManager.profileKeys;
+import static com.rethink.drop.managers.DataManager.getDrop;
+import static com.rethink.drop.managers.DataManager.profiles;
 import static com.rethink.drop.models.Drop.KEY;
 
 public class DropFragment extends ImageManager implements ImageRecipient {
 
-    private ImageView dropImage;
-    private ImageView profileImage;
-    private Menu menu;
-    private ViewSwitcher descriptionFieldSwitcher;
-    private TextView description;
-    private TextInputEditText descriptionField;
-    private DatabaseReference dropReference;
-    private DropChangeListener dropListener;
-    private FirebaseUser user;
-    private Boolean editing;
-    private Drop drop;
-    private boolean userOwnsDrop;
-    private RecyclerView commentRecycler;
-    private CommentAdapter commentAdapter;
-    private TextInputEditText commentField;
-    private RelativeLayout commentsList;
-    private LinearLayout newCommentForm;
+    private Drop drop; // The Drop with all the data to display
+    private DatabaseReference dropRef; // This is where our Drop's data is
+    private ImageView dropImage; // Image for the Drop
+    private ImageView profileImage; // Image of the Profile who posted it
+    private Menu menu; // The menu that shows in the toolbar
+    private TextView description; // The text of the Drop. Read only
+    private TextInputEditText descriptionField; // The Field to enter/edit text of the Drop
+    private ViewSwitcher descriptionFieldSwitcher; // Helps switch between the previous two views
+    private FirebaseUser user; // The current user who will be attached to the post
+    private Boolean editing; // To determine whether or not we are in edit mode
+    private boolean userOwnsDrop; // To decide whether or not to show editing options
+    private RecyclerView commentRecycler; // The list of comments on the post
+    private TextInputEditText commentField; // This is where a comment can be typed out
+    private RelativeLayout commentsList; // The surrounding layout for comments
+    private LinearLayout newCommentForm; // The surrounding layout for the new comment field
 
     public static DropFragment newInstance(Bundle args) {
         DropFragment fragment = new DropFragment();
@@ -82,22 +80,45 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         return fragment;
     }
 
+    /**
+     * Let's set everything up before we start
+     *
+     * @param savedInstanceState This has all the previous arguments that we want to resume with
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         user = FirebaseAuth.getInstance()
                            .getCurrentUser();
-        dropListener = new DropChangeListener();
         setHasOptionsMenu(true);
 
-        // Comments
         Bundle args = getArguments();
         if (args != null) {
             String key = args.getString(KEY);
-            editing = key == null;
+            drop = getDrop(key);
+            editing = drop == null;
+            if (editing) {
+                drop = new Drop(user.getUid(),
+                                Calendar.getInstance()
+                                        .getTimeInMillis(),
+                                "",
+                                "",
+                                "");
+                key = drop.save(key);
+                getArguments().putString(KEY,
+                                         key);
+            }
+            dropRef = FirebaseDatabase.getInstance()
+                                      .getReference()
+                                      .child("posts")
+                                      .child(key);
         }
     }
 
+    /**
+     * Let's set all of our view variables and attach the listeners we need
+     * @return Our prepared view to display
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater,
@@ -108,38 +129,18 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                              false);
         dropImage = (ImageView) fragmentView.findViewById(R.id.drop_image);
         dropImage.setOnClickListener(new ImageClickHandler());
-        Glide.with(DropFragment.this)
-             .load(dropImageUrls.get(getArguments().getString(KEY)))
-             .centerCrop()
-             .placeholder(R.drawable.ic_photo_camera_black_24px)
-             .crossFade()
-             .into(dropImage);
         profileImage = (ImageView) fragmentView.findViewById(R.id.drop_profile_image);
         profileImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MainActivity.getInstance().openProfile(profileImage, drop.getUserID());
+                MainActivity.getInstance()
+                            .openProfile(profileImage,
+                                         drop.getUserID());
             }
         });
-        Glide.with(DropFragment.this)
-             .load(dropImageUrls.get(profileKeys.get(getArguments().getString(KEY))))
-             .centerCrop()
-             .placeholder(R.drawable.ic_face_white_24px)
-             .crossFade()
-             .into(profileImage);
         descriptionFieldSwitcher = (ViewSwitcher) fragmentView.findViewById(R.id.description_switcher);
         description = (TextView) fragmentView.findViewById(R.id.drop_description);
         descriptionField = (TextInputEditText) fragmentView.findViewById(R.id.drop_description_field);
-
-        String key = getArguments().getString(KEY);
-        if (key != null) {
-            ViewCompat.setTransitionName(dropImage,
-                                         "image_" + key);
-            ViewCompat.setTransitionName(description,
-                                         "desc_" + key);
-            ViewCompat.setTransitionName(profileImage,
-                                         "prof_" + key);
-        }
 
         // Comments ============================
         commentRecycler = (RecyclerView) fragmentView.findViewById(R.id.recycler_view);
@@ -164,9 +165,31 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                         }
                     });
 
+
+        String key = getArguments().getString(KEY);
         if (key != null) {
-            prepComments(key);
+            ViewCompat.setTransitionName(dropImage,
+                                         "image_" + key);
+            ViewCompat.setTransitionName(description,
+                                         "desc_" + key);
+            ViewCompat.setTransitionName(profileImage,
+                                         "prof_" + key);
         }
+
+        notifyDataChanged(drop);
+
+        dropRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                drop = dataSnapshot.getValue(Drop.class);
+                notifyDataChanged(drop);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         return fragmentView;
     }
@@ -199,10 +222,10 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                                 .getReference()
                                                 .child("comments")
                                                 .child(dropKey);
-        commentAdapter = new CommentAdapter(Comment.class,
-                                            R.layout.item_comment,
-                                            CommentHolder.class,
-                                            ref);
+        CommentAdapter commentAdapter = new CommentAdapter(Comment.class,
+                                                           R.layout.item_comment,
+                                                           CommentHolder.class,
+                                                           ref);
         commentRecycler.setLayoutManager(new LinearLayoutManager(getContext(),
                                                                  LinearLayoutManager.VERTICAL,
                                                                  false));
@@ -214,57 +237,30 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         syncUI();
     }
 
-    private DatabaseReference getDropReference(String key) {
-        DatabaseReference ref;
-        if (key == null) {
-            ref = FirebaseDatabase.getInstance()
-                                  .getReference()
-                                  .child("posts")
-                                  .push();
-            key = ref.getKey();
-            getArguments().putString(KEY,
-                                     key);
-            new Drop(user.getUid(),
-                     Calendar.getInstance()
-                             .getTimeInMillis(),
-                     "",
-                     "",
-                     "").save(key);
-        } else {
-            ref = FirebaseDatabase.getInstance()
-                                  .getReference()
-                                  .child("posts")
-                                  .child(key);
-        }
-        return ref;
-    }
-
     /**
-     * Takes all values in the current layout and sends them off to Firebase,
-     * then returns to the previous fragment
+     * Takes all values in the current layout and sends them off to Firebase
      */
     public void publishDrop() {
+        if (drop != null) {
+            drop = new Drop(user.getUid(),
+                            Calendar.getInstance()
+                                    .getTimeInMillis(),
+                            drop.getImageURL(),
+                            drop.getThumbnailURL(),
+                            descriptionField.getText()
+                                            .toString());
+        } else {
+            drop = new Drop(user.getUid(),
+                            Calendar.getInstance()
+                                    .getTimeInMillis(),
+                            "",
+                            "",
+                            descriptionField.getText()
+                                            .toString());
+        }
         String key = getArguments().getString(KEY);
-        new Drop(user.getUid(),
-                 Calendar.getInstance()
-                         .getTimeInMillis(),
-                 drop.getImageURL(),
-                 drop.getThumbnailURL(),
-                 descriptionField.getText()
-                                 .toString()).save(key);
-        saveListing(key);
-        toggleState();
-
-    }
-
-    private void uploadImage(Bitmap image, final String key) {
-        Utilities.uploadImage(getActivity(),
-                              image,
-                              key,
-                              user.getUid());
-    }
-
-    private void saveListing(String key) {
+        // If the key is null, the Drop.save() function saves with a new key and returns the new key
+        key = drop.save(key);
         GeoLocation location = new GeoLocation(userLocation.latitude,
                                                userLocation.longitude);
         new GeoFire(FirebaseDatabase.getInstance()
@@ -273,55 +269,42 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                                                    location);
         MainActivity.getInstance()
                     .dismissKeyboard();
+        toggleState();
     }
 
-    private void updateData(Drop drop) {
+    /**
+     * Take in a new Drop and update the relevant data in the UI
+     *
+     * @param drop The Drop that will replace our current data
+     */
+    public void notifyDataChanged(Drop drop) {
         DrawableRequestBuilder<String> thumbnailRequest = Glide.with(DropFragment.this)
                                                                .load(drop.getThumbnailURL());
-        Glide.with(getContext())
+        Glide.with(DropFragment.this)
              .load(drop.getImageURL())
              .centerCrop()
              .placeholder(R.drawable.ic_photo_camera_black_24px)
              .crossFade()
              .thumbnail(thumbnailRequest)
              .into(dropImage);
-        getProfileImage(drop,
-                        profileImage);
+
         description.setText(drop.getText());
         descriptionField.setText(drop.getText());
+
+        Profile profile = profiles.get(drop.getUserID());
+        if (profile != null) {
+            DrawableRequestBuilder<String> profThumbnailRequest = Glide.with(DropFragment.this)
+                                                                       .load(profile.getThumbnailURL());
+            Glide.with(DropFragment.this)
+                 .load(profile.getImageURL())
+                 .centerCrop()
+                 .placeholder(R.drawable.ic_face_white_24px)
+                 .crossFade()
+                 .thumbnail(profThumbnailRequest)
+                 .into(profileImage);
+        }
         userOwnsDrop = user != null && user.getUid()
                                            .equals(drop.getUserID());
-        syncUI();
-    }
-
-    private void getProfileImage(Drop drop, final ImageView profImageView) {
-        final String userID = drop.getUserID();
-        FirebaseDatabase.getInstance()
-                        .getReference()
-                        .child("profiles")
-                        .child(userID)
-                        .addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                Profile profile = dataSnapshot.getValue(Profile.class);
-                                if (profile != null) {
-                                    DrawableRequestBuilder<String> thumbnailRequest = Glide.with(DropFragment.this)
-                                                                                           .load(profile.getThumbnailURL());
-                                    Glide.with(DropFragment.this)
-                                         .load(profile.getImageURL())
-                                         .centerCrop()
-                                         .placeholder(R.drawable.ic_face_white_24px)
-                                         .crossFade()
-                                         .thumbnail(thumbnailRequest)
-                                         .into(profImageView);
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
     }
 
     private void toggleState() {
@@ -366,25 +349,11 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     @Override
     public void onResume() {
         super.onResume();
-        if (dropReference == null) {
+        if (drop == null) {
             String key = getArguments().getString(KEY);
-            editing = key == null;
-            dropReference = getDropReference(key);
+            drop = getDrop(key);
+            editing = drop == null;
         }
-        dropReference.addValueEventListener(dropListener);
-    }
-
-    @Override
-    public void onPause() {
-        if (dropReference != null) {
-            dropReference.removeEventListener(dropListener);
-        }
-        super.onPause();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
     }
 
     @Override
@@ -401,17 +370,38 @@ public class DropFragment extends ImageManager implements ImageRecipient {
              });
     }
 
+    private void uploadImage(Bitmap image, final String key) {
+        Utilities.uploadImage(getActivity(),
+                              image,
+                              key,
+                              user.getUid());
+    }
+
     private class ImageClickHandler implements View.OnClickListener {
         @Override
         public void onClick(View v) {
             if (editing) {
-                new Drop(user.getUid(),
-                         Calendar.getInstance()
-                                 .getTimeInMillis(),
-                         drop.getImageURL(),
-                         drop.getThumbnailURL(),
-                         descriptionField.getText()
-                                         .toString()).save(dropReference.getKey());
+                String dropKey = getArguments().getString(KEY);
+                if (drop != null) {
+                    drop = new Drop(user.getUid(),
+                                    Calendar.getInstance()
+                                            .getTimeInMillis(),
+                                    drop.getImageURL(),
+                                    drop.getThumbnailURL(),
+                                    descriptionField.getText()
+                                                    .toString());
+                } else {
+                    drop = new Drop(user.getUid(),
+                                    Calendar.getInstance()
+                                            .getTimeInMillis(),
+                                    "",
+                                    "",
+                                    descriptionField.getText()
+                                                    .toString());
+
+                }
+                getArguments().putString(KEY,
+                                         drop.save(dropKey));
                 if (ActivityCompat.checkSelfPermission(getContext(),
                                                        Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                     requestImage(DropFragment.this);
@@ -423,25 +413,6 @@ public class DropFragment extends ImageManager implements ImageRecipient {
             } else {
                 ((MainActivity) getActivity()).viewImage(getArguments().getString(KEY));
             }
-        }
-    }
-
-    private class DropChangeListener implements ValueEventListener {
-        @Override
-        public void onDataChange(DataSnapshot dataSnapshot) {
-            drop = dataSnapshot.getValue(Drop.class);
-            if (drop != null) {
-                updateData(drop);
-            } else {
-                MainActivity.getInstance()
-                            .showMessage("Drop deleted");
-                getFragmentManager().popBackStackImmediate();
-            }
-        }
-
-        @Override
-        public void onCancelled(DatabaseError databaseError) {
-
         }
     }
 }

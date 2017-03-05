@@ -15,6 +15,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -37,8 +38,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.rethink.drop.exceptions.FragmentArgsMismatch;
 import com.rethink.drop.fragments.DropFragment;
-import com.rethink.drop.fragments.DropMapFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.managers.DataManager;
@@ -46,6 +47,7 @@ import com.rethink.drop.tools.FragmentJuggler;
 
 import static com.rethink.drop.models.Drop.KEY;
 import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
+import static com.rethink.drop.tools.FragmentJuggler.FRIENDS;
 import static com.rethink.drop.tools.FragmentJuggler.IMAGE;
 import static com.rethink.drop.tools.FragmentJuggler.LISTING;
 import static com.rethink.drop.tools.FragmentJuggler.LOCAL;
@@ -57,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     public static final int RC_SIGN_IN = 1;
     public static final String EDITING = "editing";
     public static final int STORAGE_REQUEST = 3;
-    private final static float degreesPerMile = 0.01449275362f;
     public static MainActivity instance;
     public static LatLng userLocation;
     private static GoogleApiClient googleApiClient;
@@ -80,11 +81,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
 
     public static LatLng getUserLocation() {
         return userLocation;
-    }
-
-    public static void scrollToDrop(String key) {
-        LocalFragment localFragment = (LocalFragment) fragmentJuggler.getCurrentFragment();
-        localFragment.scrollToDrop(key);
     }
 
     @Override
@@ -171,15 +167,24 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     }
 
     private void openFragment(int id, Bundle args) {
-        fragmentJuggler.setMainFragment(id,
-                                        args);
+        try {
+            fragmentJuggler.setMainFragment(id,
+                                            args);
+        } catch (FragmentArgsMismatch fam) {
+            Log.e("openFragment",
+                  fam.getMessage());
+            showMessage(getString(R.string.unexpected_error));
+        }
         if (findViewById(R.id.sub_fragment_container).getVisibility() == View.VISIBLE) {
             findViewById(R.id.sub_fragment_container).setVisibility(View.GONE);
         }
     }
 
-    public void showMessage(final String message){
-        Snackbar.make(findViewById(R.id.fab), message, Snackbar.LENGTH_LONG).show();
+    public void showMessage(final String message) {
+        Snackbar.make(findViewById(R.id.fab),
+                      message,
+                      Snackbar.LENGTH_LONG)
+                .show();
     }
 
     public void syncUI() {
@@ -222,18 +227,20 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         });
     }
 
-    public void notifyDropAdded(String key) {
-        try {
-            Fragment fragment = fragmentJuggler.getCurrentFragment();
-            Class fClass = fragment.getClass();
-            if (fClass.equals(LocalFragment.class)) {
-                ((LocalFragment) fragment).notifyDropInserted(key);
-            } else if (fClass.equals(DropMapFragment.class)) {
-                ((DropMapFragment) fragment).notifyDropInserted(key);
-            }
-        } catch (ClassCastException ignored) {
+    public void notifyDropInserted(String key) {
+        Fragment fragment = fragmentJuggler.getCurrentFragment();
+        Class fragmentClass = fragment.getClass();
+        if (fragmentClass.equals(LocalFragment.class)) {
+            ((LocalFragment) fragment).notifyDropInserted(key);
         }
+    }
 
+    public void notifyDropChanged(String key) {
+        Fragment fragment = fragmentJuggler.getCurrentFragment();
+        Class fragmentClass = fragment.getClass();
+        if (fragmentClass.equals(LocalFragment.class)) {
+            ((LocalFragment) fragment).notifyDropChanged(key);
+        }
     }
 
     public void notifyDropRemoved(String key) {
@@ -241,8 +248,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         Class fragmentClass = fragment.getClass();
         if (fragmentClass.equals(LocalFragment.class)) {
             ((LocalFragment) fragment).notifyDropRemoved(key);
-        } else if (fragmentClass.equals(DropMapFragment.class)) {
-            ((DropMapFragment) fragment).removeDrop(key);
         }
     }
 
@@ -255,12 +260,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     public void openListing(View listingView, String key) {
         fragmentJuggler.viewListing(listingView,
                                     key);
-    }
-
-    public void showSubFragment(){
-        if (findViewById(R.id.sub_fragment_container).getVisibility() != View.VISIBLE) {
-            findViewById(R.id.sub_fragment_container).setVisibility(View.VISIBLE);
-        }
     }
 
     public void openProfile(View profile, String userID) {
@@ -299,15 +298,15 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         Class fragmentClass = fragment.getClass();
         int optionID = item.getItemId();
 
-//        if (optionID == R.id.toggle_map) {
-//            Bundle args = new Bundle();
-//            args.putDouble("LAT",
-//                           userLocation.latitude);
-//            args.putDouble("LNG",
-//                           userLocation.longitude);
-//            openFragment(MAP,
-//                         args);
-//        }
+        //        if (optionID == R.id.toggle_map) {
+        //            Bundle args = new Bundle();
+        //            args.putDouble("LAT",
+        //                           userLocation.latitude);
+        //            args.putDouble("LNG",
+        //                           userLocation.longitude);
+        //            openFragment(MAP,
+        //                         args);
+        //        }
 
         if (fragmentClass.equals(LocalFragment.class)) {
             switch (optionID) {
@@ -372,10 +371,14 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                 case R.id.edit_profile:
                     profileFragment.editProfile();
                     break;
-                }
+                case R.id.friends:
+                    openFragment(FRIENDS,
+                                 profileFragment.getArguments());
+                    break;
+            }
         }
         if (optionID == android.R.id.home) {
-                    getSupportFragmentManager().popBackStackImmediate();
+            getSupportFragmentManager().popBackStackImmediate();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -454,7 +457,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         if (userLocation != null) {
             dataManager.updateLocation(new GeoLocation(userLocation.latitude,
                                                        userLocation.longitude));
-            dataManager.attachListeners();
+            dataManager.onResume();
         }
     }
 
@@ -485,7 +488,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     @Override
     protected void onPause() {
         super.onPause();
-        dataManager.detachListeners();
+        dataManager.onPause();
         stopLocationUpdates();
     }
 
@@ -495,11 +498,5 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         if (googleApiClient != null) {
             googleApiClient.disconnect();
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        dataManager.detachLocationListener();
-        super.onDestroy();
     }
 }
