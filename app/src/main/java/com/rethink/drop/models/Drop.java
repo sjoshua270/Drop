@@ -47,7 +47,7 @@ public class Drop {
     }
 
     @Exclude
-    public void save(String dropKey) {
+    public String save(String dropKey) {
         DatabaseReference ref = FirebaseDatabase.getInstance()
                                                 .getReference()
                                                 .child("posts");
@@ -71,5 +71,6 @@ public class Drop {
                .push()
                .setValue(hashTag);
         }
+        return dropKey;
     }
 }
