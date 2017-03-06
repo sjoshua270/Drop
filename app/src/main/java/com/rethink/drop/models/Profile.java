@@ -3,6 +3,7 @@ package com.rethink.drop.models;
 import com.google.firebase.database.Exclude;
 
 public class Profile {
+    public static final String PROFILE_KEY = "profile_key";
     private String userID;
     private String imageURL;
     private String thumbnailURL;

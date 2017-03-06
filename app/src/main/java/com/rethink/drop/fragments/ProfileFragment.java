@@ -39,9 +39,9 @@ import com.rethink.drop.tools.ImageManager;
 import com.rethink.drop.tools.Utilities;
 
 import static com.rethink.drop.MainActivity.EDITING;
+import static com.rethink.drop.models.Profile.PROFILE_KEY;
 
 public class ProfileFragment extends ImageManager implements ImageRecipient {
-    private static final String USER_ID = "user_id";
     private DatabaseReference profileReference;
     private ProfileListener profileListener;
     private TextView name;
@@ -56,7 +56,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
 
     public static ProfileFragment newInstance(@Nullable String userID) {
         Bundle args = new Bundle();
-        args.putString(USER_ID,
+        args.putString(PROFILE_KEY,
                        userID);
         ProfileFragment fragment = new ProfileFragment();
         fragment.setArguments(args);
@@ -66,7 +66,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        userID = getArguments().getString(USER_ID);
+        userID = getArguments().getString(PROFILE_KEY);
         if (userID != null) {
             profileListener = new ProfileListener();
         } else {
@@ -120,7 +120,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                 getFragmentManager().popBackStackImmediate();
             }
         }
-        if (ref == null) {
+        if (ref == null && userID != null) {
             ref = FirebaseDatabase.getInstance()
                                   .getReference()
                                   .child("profiles")
@@ -146,7 +146,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     public void onResume() {
         super.onResume();
         if (profileReference == null) {
-            String userID = getArguments().getString(USER_ID);
+            String userID = getArguments().getString(PROFILE_KEY);
             editing = false;
             profileReference = getProfileReference(userID);
         }
@@ -165,7 +165,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
         Utilities.uploadImage(getActivity(),
                               image,
                               null,
-                              getArguments().getString(USER_ID));
+                              getArguments().getString(PROFILE_KEY));
     }
 
     public void saveProfile() {
