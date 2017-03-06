@@ -23,15 +23,15 @@
     </android.support.design.widget.AppBarLayout>
 
     <RelativeLayout
-        android:animateLayoutChanges="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:animateLayoutChanges="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <FrameLayout
             android:id="@+id/main_fragment_container"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_alignParentTop="true"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
