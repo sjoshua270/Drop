@@ -1,32 +1,52 @@
-package com.rethink.drop;
+package com.rethink.drop.tools;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.rethink.drop.R;
+
+import static com.rethink.drop.models.Profile.PROFILE_KEY;
 import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
 import static com.rethink.drop.tools.FragmentJuggler.LOCAL;
+import static com.rethink.drop.tools.FragmentJuggler.PROFILE;
 
-final class FabManager {
+public class FabManager {
 
     private final Context context;
     private final FloatingActionButton fab;
 
-    FabManager(Context context, FloatingActionButton fab) {
+    public FabManager(Context context, FloatingActionButton fab) {
         this.context = context;
         this.fab = fab;
     }
 
-    void update() {
+    public void update(Bundle args) {
         if (fab.getVisibility() != View.GONE) {
             hide();
         }
         switch (CURRENT) {
             case LOCAL:
                 setDrawable(R.drawable.ic_add_white_24px);
+                break;
+            case PROFILE:
+                FirebaseUser user = FirebaseAuth.getInstance()
+                                                .getCurrentUser();
+                if (user != null) {
+                    String userID = user.getUid();
+                    String profileKey = args.getString(PROFILE_KEY);
+                    if (profileKey != null) {
+                        if (!profileKey.equals(userID)) {
+                            setDrawable(R.drawable.ic_person_add_white_24dp);
+                        }
+                    }
+                }
                 break;
         }
     }

@@ -23,4 +23,6 @@
     <string name="show_map">Show map</string>
     <string name="comment">Comment</string>
     <string name="send">Send</string>
+    <string name="friends">Friends</string>
+    <string name="name">Name</string>
 </resources>

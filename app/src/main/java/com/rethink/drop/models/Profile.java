@@ -1,16 +1,16 @@
 package com.rethink.drop.models;
 
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class Profile {
     public static final String PROFILE_KEY = "profile_key";
-    private String userID;
     private String imageURL;
     private String thumbnailURL;
     private String name;
 
-    public Profile(String userID, String imageURL, String thumbnailURL, String name) {
-        this.userID = userID;
+    public Profile(String imageURL, String thumbnailURL, String name) {
         this.imageURL = imageURL;
         this.thumbnailURL = thumbnailURL;
         this.name = name;
@@ -19,13 +19,19 @@ public class Profile {
     public Profile() {
     }
 
-    public String getUserID() {
-        return userID;
+    @Exclude
+    public static void addFriend(String profileKey, String friendKey, Profile friendProfile) {
+        getFriendsRef(profileKey).child(friendKey)
+                                 .setValue(friendProfile);
     }
 
     @Exclude
-    public String getIconURL() {
-        return imageURL + "_icon";
+    public static DatabaseReference getFriendsRef(String profileKey) {
+        return FirebaseDatabase.getInstance()
+                               .getReference()
+                               .child("profiles")
+                               .child(profileKey)
+                               .child("friends");
     }
 
     public String getImageURL() {

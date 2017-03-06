@@ -99,6 +99,16 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
         syncUI();
     }
 
+    public void addToFriends() {
+        FirebaseUser user = FirebaseAuth.getInstance()
+                                        .getCurrentUser();
+        if (user != null) {
+            Profile.addFriend(user.getUid(),
+                              getArguments().getString(PROFILE_KEY),
+                              profile);
+        }
+    }
+
     private DatabaseReference getProfileReference(String userID) {
         DatabaseReference ref = null;
         if (userID == null) {
@@ -110,8 +120,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                                       .getReference()
                                       .child("profiles")
                                       .child(userID);
-                ref.setValue(new Profile(userID,
-                                         "",
+                ref.setValue(new Profile("",
                                          "",
                                          ""));
             } else {
@@ -169,8 +178,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     }
 
     public void saveProfile() {
-        profileReference.setValue(new Profile(userID,
-                                              profile.getImageURL(),
+        profileReference.setValue(new Profile(profile.getImageURL(),
                                               profile.getThumbnailURL(),
                                               nameField.getText()
                                                        .toString()));

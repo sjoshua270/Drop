@@ -7,6 +7,11 @@
         <!--android:title="@string/show_map"-->
         <!--app:showAsAction="always" />-->
     <item
+        android:id="@+id/friends"
+        android:icon="@drawable/ic_group_white_24dp"
+        android:title="@string/friends"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/save_profile"
         android:icon="@drawable/ic_save_white_24dp"
         android:title="@string/save"

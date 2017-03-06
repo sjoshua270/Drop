@@ -43,6 +43,7 @@ import com.rethink.drop.fragments.DropFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.managers.DataManager;
+import com.rethink.drop.tools.FabManager;
 import com.rethink.drop.tools.FragmentJuggler;
 
 import static com.rethink.drop.fragments.ImageFragment.IMAGE_URL;
@@ -152,17 +153,24 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (CURRENT == LOCAL) {
-                    if (FirebaseAuth.getInstance()
-                                    .getCurrentUser() != null) {
-                        Bundle args = new Bundle();
-                        openFragment(LISTING,
-                                     args);
-                    } else {
-                        ((LocalFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
-                    }
-                } else if (CURRENT == LISTING) {
-                    ((DropFragment) fragmentJuggler.getCurrentFragment()).editDrop();
+                switch (CURRENT) {
+                    case LOCAL:
+                        if (FirebaseAuth.getInstance()
+                                        .getCurrentUser() != null) {
+                            Bundle args = new Bundle();
+                            openFragment(LISTING,
+                                         args);
+                        } else {
+                            ((LocalFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
+                        }
+                        break;
+                    case PROFILE:
+                        Fragment profileFragment = fragmentJuggler.getCurrentFragment();
+                        if (profileFragment.getClass()
+                                           .equals(ProfileFragment.class)) {
+                            ((ProfileFragment) profileFragment).addToFriends();
+                        }
+                        break;
                 }
             }
         });
@@ -191,7 +199,8 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
 
     public void syncUI() {
         syncUpNav();
-        fab.update();
+        fab.update(fragmentJuggler.getCurrentFragment()
+                                  .getArguments());
     }
 
     public void dismissKeyboard() {
