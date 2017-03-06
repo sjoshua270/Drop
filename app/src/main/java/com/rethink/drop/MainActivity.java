@@ -45,6 +45,8 @@ import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.managers.DataManager;
 import com.rethink.drop.tools.FragmentJuggler;
 
+import static com.rethink.drop.fragments.ImageFragment.IMAGE_URL;
+import static com.rethink.drop.managers.DataManager.getDrop;
 import static com.rethink.drop.models.Drop.KEY;
 import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
 import static com.rethink.drop.tools.FragmentJuggler.FRIENDS;
@@ -269,8 +271,8 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
 
     public void viewImage(String key) {
         Bundle args = new Bundle();
-        args.putString(KEY,
-                       key);
+        args.putString(IMAGE_URL,
+                       getDrop(key).getImageURL());
         openFragment(IMAGE,
                      args);
     }
@@ -281,8 +283,9 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                                data);
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
+                Bundle args = new Bundle();
                 openFragment(LISTING,
-                             null);
+                             args);
             }
         }
     }
