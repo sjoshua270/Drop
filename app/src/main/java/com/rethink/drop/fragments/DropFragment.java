@@ -95,16 +95,17 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         Bundle args = getArguments();
         if (args != null) {
             String key = args.getString(KEY);
-            drop = getDrop(key);
-            editing = drop == null;
-            if (editing) {
+            editing = key == null;
+            if (key != null) {
+                drop = getDrop(key);
+            } else {
                 drop = new Drop(user.getUid(),
                                 Calendar.getInstance()
                                         .getTimeInMillis(),
                                 "",
                                 "",
                                 "");
-                key = drop.save(key);
+                key = drop.save(null);
                 getArguments().putString(KEY,
                                          key);
             }
@@ -182,7 +183,9 @@ public class DropFragment extends ImageManager implements ImageRecipient {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 drop = dataSnapshot.getValue(Drop.class);
-                notifyDataChanged(drop);
+                if (drop != null) {
+                    notifyDataChanged(drop);
+                }
             }
 
             @Override
