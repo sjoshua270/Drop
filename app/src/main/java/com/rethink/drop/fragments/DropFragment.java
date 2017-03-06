@@ -53,6 +53,7 @@ import java.util.Calendar;
 import static com.rethink.drop.MainActivity.EDITING;
 import static com.rethink.drop.MainActivity.userLocation;
 import static com.rethink.drop.managers.DataManager.getDrop;
+import static com.rethink.drop.managers.DataManager.keys;
 import static com.rethink.drop.managers.DataManager.profiles;
 import static com.rethink.drop.models.Drop.KEY;
 
@@ -186,6 +187,9 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         return fragmentView;
     }
 
+    /**
+     * Attach and remember our new Drop listener
+     */
     @Override
     public void onResume() {
         super.onResume();
@@ -205,6 +209,9 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         });
     }
 
+    /**
+     * Set our options menu. Here, we have a menu with many options that are switched out in syncUI()
+     */
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         this.menu = menu;
@@ -215,16 +222,36 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                   inflater);
     }
 
+    /**
+     * Remove the Drop listener so we don't get calls back to the app
+     */
     @Override
     public void onPause() {
         dropRef.removeEventListener(dropListener);
         super.onPause();
     }
 
-    private void toggleComments(String key) {
-        if (key != null && !editing) {
+    /**
+     * Using the dropKey, fetch the relevant comments thread. This method hides or shows our
+     * Comments Views and calls prepComments() if the adapter is not set yet
+     *
+     * @param dropKey The key of our current Drop
+     */
+    private void toggleComments(String dropKey) {
+        if (dropKey != null && !editing) {
             if (commentRecycler.getAdapter() == null) {
-                prepComments(key);
+                DatabaseReference ref = FirebaseDatabase.getInstance()
+                                                        .getReference()
+                                                        .child("comments")
+                                                        .child(dropKey);
+                CommentAdapter commentAdapter = new CommentAdapter(Comment.class,
+                                                                   R.layout.item_comment,
+                                                                   CommentHolder.class,
+                                                                   ref);
+                commentRecycler.setLayoutManager(new LinearLayoutManager(getContext(),
+                                                                         LinearLayoutManager.VERTICAL,
+                                                                         false));
+                commentRecycler.setAdapter(commentAdapter);
             }
             commentsList.setVisibility(View.VISIBLE);
             newCommentForm.setVisibility(View.VISIBLE);
@@ -234,56 +261,37 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         }
     }
 
-    private void prepComments(String dropKey) {
-        DatabaseReference ref = FirebaseDatabase.getInstance()
-                                                .getReference()
-                                                .child("comments")
-                                                .child(dropKey);
-        CommentAdapter commentAdapter = new CommentAdapter(Comment.class,
-                                                           R.layout.item_comment,
-                                                           CommentHolder.class,
-                                                           ref);
-        commentRecycler.setLayoutManager(new LinearLayoutManager(getContext(),
-                                                                 LinearLayoutManager.VERTICAL,
-                                                                 false));
-        commentRecycler.setAdapter(commentAdapter);
-    }
-
+    /**
+     * Allows a quick switch to Edit mode
+     */
     public void editDrop() {
         editing = true;
         syncUI();
     }
 
     /**
-     * Takes all values in the current layout and sends them off to Firebase
+     * Saves the descriptionField text and puts the current key into GeoFire for location tracking
      */
     public void publishDrop() {
-        if (drop != null) {
-            drop = new Drop(user.getUid(),
-                            Calendar.getInstance()
-                                    .getTimeInMillis(),
-                            drop.getImageURL(),
-                            drop.getThumbnailURL(),
-                            descriptionField.getText()
-                                            .toString());
-        } else {
-            drop = new Drop(user.getUid(),
-                            Calendar.getInstance()
-                                    .getTimeInMillis(),
-                            "",
-                            "",
-                            descriptionField.getText()
-                                            .toString());
-        }
+        drop = new Drop(user.getUid(),
+                        drop.getTimestamp(),
+                        drop.getImageURL(),
+                        drop.getThumbnailURL(),
+                        descriptionField.getText()
+                                        .toString());
+
         String key = getArguments().getString(KEY);
-        // If the key is null, the Drop.save() function saves with a new key and returns the new key
-        key = drop.save(key);
-        GeoLocation location = new GeoLocation(userLocation.latitude,
-                                               userLocation.longitude);
-        new GeoFire(FirebaseDatabase.getInstance()
-                                    .getReference()
-                                    .child("geoFire")).setLocation(key,
-                                                                   location);
+        drop.save(key);
+        // If we don't yet have this key...
+        if (!keys.contains(key)) {
+            // ...then it is new and we can add it to GeoFire, our locations record
+            GeoLocation location = new GeoLocation(userLocation.latitude,
+                                                   userLocation.longitude);
+            new GeoFire(FirebaseDatabase.getInstance()
+                                        .getReference()
+                                        .child("geoFire")).setLocation(key,
+                                                                       location);
+        }
         MainActivity.getInstance()
                     .dismissKeyboard();
         toggleState();
@@ -324,6 +332,9 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                            .equals(drop.getUserID());
     }
 
+    /**
+     * Quickly toggle our mode
+     */
     private void toggleState() {
         editing = !editing;
         getArguments().putBoolean(EDITING,
@@ -331,6 +342,10 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         syncUI();
     }
 
+    /**
+     * Sync up the UI with the current state of our variables. This method hides/shows our menu
+     * items and switches the description fields
+     */
     private void syncUI() {
         String key = getArguments().getString(KEY);
         toggleComments(key);
@@ -363,6 +378,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                     .syncUI();
     }
 
+    /**
+     * Handles receiving an image from the user. In this case, we load it from our Uri and send
+     * it to be uploaded
+     *
+     * @param path The path (or Uri) where our image is
+     */
     @Override
     public void receiveImage(final String path) {
         Glide.with(getContext())
@@ -371,44 +392,30 @@ public class DropFragment extends ImageManager implements ImageRecipient {
              .into(new SimpleTarget<Bitmap>() {
                  @Override
                  public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                     uploadImage(resource,
-                                 getArguments().getString(KEY));
+                     Utilities.uploadImage(getActivity(),
+                                           resource,
+                                           getArguments().getString(KEY),
+                                           user.getUid());
                  }
              });
     }
 
-    private void uploadImage(Bitmap image, final String key) {
-        Utilities.uploadImage(getActivity(),
-                              image,
-                              key,
-                              user.getUid());
-    }
-
+    /**
+     * This handles what happens when the user taps on the ImageView
+     */
     private class ImageClickHandler implements View.OnClickListener {
         @Override
         public void onClick(View v) {
             if (editing) {
                 String dropKey = getArguments().getString(KEY);
-                if (drop != null) {
-                    drop = new Drop(user.getUid(),
-                                    Calendar.getInstance()
-                                            .getTimeInMillis(),
-                                    drop.getImageURL(),
-                                    drop.getThumbnailURL(),
-                                    descriptionField.getText()
-                                                    .toString());
-                } else {
-                    drop = new Drop(user.getUid(),
-                                    Calendar.getInstance()
-                                            .getTimeInMillis(),
-                                    "",
-                                    "",
-                                    descriptionField.getText()
-                                                    .toString());
+                drop = new Drop(user.getUid(),
+                                drop.getTimestamp(),
+                                drop.getImageURL(),
+                                drop.getThumbnailURL(),
+                                descriptionField.getText()
+                                                .toString());
+                drop.save(dropKey);
 
-                }
-                getArguments().putString(KEY,
-                                         drop.save(dropKey));
                 if (ActivityCompat.checkSelfPermission(getContext(),
                                                        Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                     requestImage(DropFragment.this);
