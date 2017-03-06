@@ -60,6 +60,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
 
     private Drop drop; // The Drop with all the data to display
     private DatabaseReference dropRef; // This is where our Drop's data is
+    private ValueEventListener dropListener; // This listens for changes to our Drop
     private ImageView dropImage; // Image for the Drop
     private ImageView profileImage; // Image of the Profile who posted it
     private Menu menu; // The menu that shows in the toolbar
@@ -74,7 +75,10 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     private RelativeLayout commentsList; // The surrounding layout for comments
     private LinearLayout newCommentForm; // The surrounding layout for the new comment field
 
-    public static DropFragment newInstance(Bundle args) {
+    public static DropFragment newInstance(String dropKey) {
+        Bundle args = new Bundle();
+        args.putString(KEY,
+                       dropKey);
         DropFragment fragment = new DropFragment();
         fragment.setArguments(args);
         return fragment;
@@ -165,21 +169,27 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                         .dismissKeyboard();
                         }
                     });
-
-
-        String key = getArguments().getString(KEY);
-        if (key != null) {
+        String dropKey = getArguments().getString(KEY);
+        if (dropKey != null) {
             ViewCompat.setTransitionName(dropImage,
-                                         "image_" + key);
+                                         "image_" + dropKey);
             ViewCompat.setTransitionName(description,
-                                         "desc_" + key);
+                                         "desc_" + dropKey);
+            ViewCompat.setTransitionName(descriptionField,
+                                         "desc_" + dropKey);
             ViewCompat.setTransitionName(profileImage,
-                                         "prof_" + key);
+                                         "prof_" + dropKey);
         }
 
         notifyDataChanged(drop);
 
-        dropRef.addValueEventListener(new ValueEventListener() {
+        return fragmentView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        dropListener = dropRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 drop = dataSnapshot.getValue(Drop.class);
@@ -193,8 +203,6 @@ public class DropFragment extends ImageManager implements ImageRecipient {
 
             }
         });
-
-        return fragmentView;
     }
 
     @Override
@@ -205,6 +213,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         syncUI();
         super.onCreateOptionsMenu(menu,
                                   inflater);
+    }
+
+    @Override
+    public void onPause() {
+        dropRef.removeEventListener(dropListener);
+        super.onPause();
     }
 
     private void toggleComments(String key) {
@@ -347,16 +361,6 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         edit.setVisible(userOwnsDrop && !editing);
         MainActivity.getInstance()
                     .syncUI();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (drop == null) {
-            String key = getArguments().getString(KEY);
-            drop = getDrop(key);
-            editing = drop == null;
-        }
     }
 
     @Override
