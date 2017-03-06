@@ -9,20 +9,15 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.R;
-import com.rethink.drop.models.Drop;
 
-import static com.rethink.drop.models.Drop.KEY;
+public class ImageFragment extends Fragment {
+    public final static String IMAGE_URL = "image_url";
 
-public class ImageFragment
-        extends Fragment {
-    private ImageView imageView;
-
-    public static ImageFragment newInstance(Bundle args) {
+    public static ImageFragment newInstance(String imageUrl) {
+        Bundle args = new Bundle();
+        args.putString(IMAGE_URL,
+                       imageUrl);
         ImageFragment fragment = new ImageFragment();
         fragment.setArguments(args);
         return fragment;
@@ -31,36 +26,22 @@ public class ImageFragment
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        super.onCreateView(inflater, container, savedInstanceState);
-        View v = inflater.inflate(R.layout.fragment_image, container, false);
-        imageView = (ImageView) v.findViewById(R.id.full_image);
-        String key = getArguments().getString(KEY);
-        if (key != null) {
-            FirebaseDatabase.getInstance()
-                            .getReference()
-                            .child("posts")
-                            .child(key)
-                            .addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    Drop drop = dataSnapshot.getValue(Drop.class);
-                                    String imageUrl = drop.getImageURL() == null ? "" : drop.getImageURL();
-                                    if (!imageUrl.equals("")) {
-                                        Glide.with(getContext())
-                                             .load(imageUrl)
-                                             .placeholder(R.drawable.ic_photo_camera_white_24px)
-                                             .crossFade()
-                                             .into(imageView);
-                                    }
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-
-                                }
-                            });
+        super.onCreateView(inflater,
+                           container,
+                           savedInstanceState);
+        View v = inflater.inflate(R.layout.fragment_image,
+                                  container,
+                                  false);
+        ImageView imageView = (ImageView) v.findViewById(R.id.full_image);
+        String imageUrl = getArguments().getString(IMAGE_URL);
+        if (imageUrl != null && !imageUrl.equals("")) {
+            Glide.with(ImageFragment.this)
+                 .load(imageUrl)
+                 .crossFade()
+                 .placeholder(R.drawable.ic_photo_camera_white_24px)
+                 .crossFade()
+                 .into(imageView);
         }
         return v;
     }
-
 }
