@@ -73,4 +73,15 @@ public class Drop {
         }
         return dropKey;
     }
+
+    @Exclude
+    public void publish(String dropKey) {
+        FirebaseDatabase.getInstance()
+                        .getReference()
+                        .child("profiles")
+                        .child(getUserID())
+                        .child("posts")
+                        .child(dropKey)
+                        .setValue(this);
+    }
 }

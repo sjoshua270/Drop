@@ -282,6 +282,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
 
         String key = getArguments().getString(KEY);
         drop.save(key);
+        drop.publish(key);
         // If we don't yet have this key...
         if (!keys.contains(key)) {
             // ...then it is new and we can add it to GeoFire, our locations record

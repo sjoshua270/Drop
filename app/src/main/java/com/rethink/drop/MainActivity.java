@@ -13,6 +13,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -36,6 +37,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.rethink.drop.exceptions.FragmentArgsMismatch;
@@ -45,6 +47,7 @@ import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.managers.DataManager;
 import com.rethink.drop.tools.FabManager;
 import com.rethink.drop.tools.FragmentJuggler;
+import com.rethink.drop.tools.Notifications;
 
 import static com.rethink.drop.fragments.ImageFragment.IMAGE_URL;
 import static com.rethink.drop.managers.DataManager.getDrop;
@@ -66,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     public static LatLng userLocation;
     private static GoogleApiClient googleApiClient;
     private static FragmentJuggler fragmentJuggler;
+    private static Notifications notifications;
     private final int LOCATION_REQUEST = 2;
     private final String STATE_FRAGMENT = "state_fragment";
     private final String STATE_KEY = "state_key";
@@ -108,6 +112,14 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         }
         dataManager = new DataManager();
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
+        FirebaseUser user = FirebaseAuth.getInstance()
+                                        .getCurrentUser();
+        if (user != null) {
+            String userID = user.getUid();
+            notifications = new Notifications(NotificationManagerCompat.from(this),
+                                              userID);
+        }
+
         fab = new FabManager(this,
                              (FloatingActionButton) findViewById(R.id.fab));
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
