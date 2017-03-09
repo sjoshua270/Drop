@@ -55,6 +55,7 @@ import static com.rethink.drop.MainActivity.userLocation;
 import static com.rethink.drop.managers.DataManager.getDrop;
 import static com.rethink.drop.managers.DataManager.keys;
 import static com.rethink.drop.managers.DataManager.profiles;
+import static com.rethink.drop.models.Comment.COMMENT_KEY;
 import static com.rethink.drop.models.Drop.KEY;
 
 public class DropFragment extends ImageManager implements ImageRecipient {
@@ -159,13 +160,19 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                     .setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
+                            String commentKey = getArguments().getString(COMMENT_KEY);
+                            boolean edited = commentKey != null;
                             new Comment(user.getUid(),
                                         commentField.getText()
                                                     .toString(),
                                         Calendar.getInstance()
-                                                .getTimeInMillis()).save(getArguments().getString(KEY),
-                                                                         null);
+                                                .getTimeInMillis(),
+                                        edited).save(getArguments().getString(KEY),
+                                                     commentKey);
+                            // Reset everything for a new comment
                             commentField.setText("");
+                            getArguments().putString(COMMENT_KEY,
+                                                     null);
                             MainActivity.getInstance()
                                         .dismissKeyboard();
                         }
@@ -259,6 +266,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
             commentsList.setVisibility(View.GONE);
             newCommentForm.setVisibility(View.GONE);
         }
+    }
+
+    public void editComment(String commentText) {
+        commentField.setText(commentText);
+        MainActivity.getInstance()
+                    .showKeyboard(commentField);
     }
 
     /**

@@ -1,6 +1,8 @@
 package com.rethink.drop.adapters;
 
 
+import android.view.View;
+
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.database.Query;
 import com.rethink.drop.MainActivity;
@@ -26,13 +28,28 @@ public class CommentAdapter extends FirebaseRecyclerAdapter<Comment, CommentHold
     }
 
     @Override
-    protected void populateViewHolder(CommentHolder viewHolder, Comment model, int position) {
-        viewHolder.text.setText(model.getText());
-        viewHolder.timeStamp.setText(Utilities.getTimeStampString(model.getTimeStamp()));
+    protected void populateViewHolder(CommentHolder viewHolder, final Comment comment, final int position) {
+        viewHolder.text.setText(comment.getText());
+        String edited = comment.isEdited() ? "edited" : "";
+        viewHolder.timeStamp.setText(Utilities.getTimeStampString(comment.getTimeStamp()));
+        viewHolder.edited.setText(edited);
         Utilities.setProfileData(MainActivity.getInstance(),
-                                 model.getCommenterID(),
+                                 comment.getCommenterID(),
                                  viewHolder.profile,
                                  viewHolder.username);
+        viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                MainActivity.getInstance()
+                            .editComment(getKey(position),
+                                         comment);
+                return true;
+            }
+        });
+    }
+
+    private String getKey(int position) {
+        return getRef(position).getKey();
     }
 }
 

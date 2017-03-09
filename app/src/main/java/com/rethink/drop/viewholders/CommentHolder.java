@@ -12,6 +12,7 @@ public class CommentHolder extends RecyclerView.ViewHolder {
     public final TextView timeStamp;
     public final TextView username;
     public final TextView text;
+    public final TextView edited;
 
     public CommentHolder(View itemView) {
         super(itemView);
@@ -19,5 +20,6 @@ public class CommentHolder extends RecyclerView.ViewHolder {
         timeStamp = (TextView) itemView.findViewById(R.id.comment_timestamp);
         username = (TextView) itemView.findViewById(R.id.comment_user_name);
         text = (TextView) itemView.findViewById(R.id.comment_text);
+        edited = (TextView) itemView.findViewById(R.id.comment_edited);
     }
 }

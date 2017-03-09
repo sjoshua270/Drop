@@ -7,14 +7,18 @@ import com.google.firebase.database.FirebaseDatabase;
 import static com.rethink.drop.tools.StringUtilities.parseHashTags;
 
 public class Comment {
+    public static final String COMMENT_KEY = "comment_key";
     private String commenterID;
     private String text;
     private long timeStamp;
+    private boolean edited;
 
-    public Comment(String commenterID, String text, long timeStamp) {
+    public Comment(String commenterID, String text, long timeStamp, boolean edited) {
         this.commenterID = commenterID;
         this.text = text;
         this.timeStamp = timeStamp;
+        this.edited = edited;
+
     }
 
     public Comment() {
@@ -31,6 +35,10 @@ public class Comment {
 
     public long getTimeStamp() {
         return timeStamp;
+    }
+
+    public boolean isEdited() {
+        return edited;
     }
 
     @Exclude

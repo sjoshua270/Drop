@@ -21,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.firebase.geofire.GeoLocation;
@@ -45,12 +46,14 @@ import com.rethink.drop.fragments.DropFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.managers.DataManager;
+import com.rethink.drop.models.Comment;
 import com.rethink.drop.tools.FabManager;
 import com.rethink.drop.tools.FragmentJuggler;
 import com.rethink.drop.tools.Notifications;
 
 import static com.rethink.drop.fragments.ImageFragment.IMAGE_URL;
 import static com.rethink.drop.managers.DataManager.getDrop;
+import static com.rethink.drop.models.Comment.COMMENT_KEY;
 import static com.rethink.drop.models.Drop.KEY;
 import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
 import static com.rethink.drop.tools.FragmentJuggler.FRIENDS;
@@ -296,6 +299,24 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                        getDrop(key).getImageURL());
         openFragment(IMAGE,
                      args);
+    }
+
+    public void editComment(String commentKey, Comment comment) {
+        Fragment dropFragment = fragmentJuggler.getCurrentFragment();
+        if (dropFragment.getClass()
+                        .equals(DropFragment.class)) {
+            dropFragment.getArguments()
+                        .putString(COMMENT_KEY,
+                                   commentKey);
+            ((DropFragment) dropFragment).editComment(comment.getText());
+        }
+    }
+
+    public void showKeyboard(EditText editText) {
+        editText.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(editText,
+                          InputMethodManager.SHOW_IMPLICIT);
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
