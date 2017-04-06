@@ -12,6 +12,7 @@ import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -45,11 +46,12 @@ import com.rethink.drop.tools.Utilities;
 import com.rethink.drop.viewholders.DropHolder;
 
 import static com.rethink.drop.MainActivity.EDITING;
+import static com.rethink.drop.managers.DataManager.getProfile;
 import static com.rethink.drop.models.Profile.PROFILE_KEY;
 
 public class ProfileFragment extends ImageManager implements ImageRecipient {
     private DatabaseReference profileReference;
-    private ProfileListener profileListener;
+    private ValueEventListener profileListener;
     private TextView name;
     private TextView nameField;
     private ViewSwitcher nameFieldSwitcher;
@@ -58,7 +60,6 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     private Profile profile;
     private Menu menu;
     private boolean userOwnsProfile;
-    private String userID;
     private RecyclerView postsRecycler;
 
     public static ProfileFragment newInstance(@Nullable String userID) {
@@ -73,15 +74,14 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        userID = getArguments().getString(PROFILE_KEY);
-        if (userID != null) {
-            profileListener = new ProfileListener();
-        } else {
-            MainActivity.getInstance()
-                        .showMessage("No user");
+        setHasOptionsMenu(true);
+
+        Bundle args = getArguments();
+        if (args != null) {
+            String profKey = args.getString(PROFILE_KEY);
+            profile = getProfile(profKey);
         }
         editing = false;
-        setHasOptionsMenu(true);
     }
 
     @Nullable
@@ -92,14 +92,23 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                                   false);
         profileImageView = (ImageView) v.findViewById(R.id.prof_img);
         profileImageView.setOnClickListener(new ImageClickHandler());
-        ViewCompat.setTransitionName(profileImageView,
-                                     "image_" + userID);
+        String profKey = getArguments().getString(PROFILE_KEY);
+        if (profKey != null) {
+            ViewCompat.setTransitionName(profileImageView,
+                                         "image_" + profKey);
+        } else {
+            Log.e("ProfileFragment",
+                  "Missing profKey");
+        }
 
         name = (TextView) v.findViewById(R.id.prof_name);
         nameField = (TextView) v.findViewById(R.id.prof_name_edit);
         nameFieldSwitcher = (ViewSwitcher) v.findViewById(R.id.username_switcher);
 
         postsRecycler = (RecyclerView) v.findViewById(R.id.recycler_view);
+
+        notifyDataChanged(profile);
+
         return v;
     }
 
@@ -168,14 +177,28 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
             editing = false;
             profileReference = getProfileReference(userID);
         }
-        profileReference.addValueEventListener(profileListener);
+        profileListener = profileReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                profile = dataSnapshot.getValue(Profile.class);
+                if (profile != null) {
+                    notifyDataChanged(profile);
+                } else {
+                    editing = true;
+                    syncUI();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     @Override
     public void onPause() {
-        if (profileListener != null) {
-            profileReference.removeEventListener(profileListener);
-        }
+        profileReference.removeEventListener(profileListener);
         super.onPause();
     }
 
@@ -196,13 +219,13 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
         toggleState();
     }
 
-    private void updateData(Profile profile) {
+    private void notifyDataChanged(Profile profile) {
         DrawableRequestBuilder<String> thumbnailRequest = Glide.with(ProfileFragment.this)
                                                                .load(profile.getThumbnailURL());
-        Glide.with(getContext())
+        Glide.with(ProfileFragment.this)
              .load(profile.getImageURL())
              .centerCrop()
-             .placeholder(R.drawable.ic_photo_camera_white_24px)
+             .placeholder(R.drawable.ic_face_white_24px)
              .crossFade()
              .thumbnail(thumbnailRequest)
              .into(profileImageView);
@@ -211,11 +234,10 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
         FirebaseUser user = FirebaseAuth.getInstance()
                                         .getCurrentUser();
         userOwnsProfile = user != null && user.getUid()
-                                              .equals(userID);
+                                              .equals(getArguments().getString(PROFILE_KEY));
         FirebaseRecyclerAdapter<Drop, DropHolder> dropAdapter = DropAdapter.getProfilePosts(getArguments().getString(PROFILE_KEY));
         postsRecycler.setLayoutManager(new LinearLayoutManager(MainActivity.getInstance()));
         postsRecycler.setAdapter(dropAdapter);
-        syncUI();
     }
 
     private void toggleState() {
@@ -272,24 +294,6 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                                                       0);
                 }
             }
-        }
-    }
-
-    private class ProfileListener implements ValueEventListener {
-        @Override
-        public void onDataChange(DataSnapshot dataSnapshot) {
-            profile = dataSnapshot.getValue(Profile.class);
-            if (profile != null) {
-                updateData(profile);
-            } else {
-                editing = true;
-                syncUI();
-            }
-        }
-
-        @Override
-        public void onCancelled(DatabaseError databaseError) {
-
         }
     }
 }

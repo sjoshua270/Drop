@@ -51,6 +51,16 @@ public class DataManager {
     }
 
     /**
+     * A simple get method using the Profile key
+     *
+     * @param profileKey Key that corresponds to the desired Profile object
+     * @return Profile object
+     */
+    public static Profile getProfile(String profileKey) {
+        return profiles.get(profileKey);
+    }
+
+    /**
      * Get the current index of the Key specified
      * This is used to tell adapters where the newest drop was inserted
      *
