@@ -10,6 +10,8 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.AppCompatTextView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,6 +26,7 @@ import com.bumptech.glide.DrawableRequestBuilder;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -33,10 +36,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
+import com.rethink.drop.adapters.DropAdapter;
 import com.rethink.drop.interfaces.ImageRecipient;
+import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
 import com.rethink.drop.tools.ImageManager;
 import com.rethink.drop.tools.Utilities;
+import com.rethink.drop.viewholders.DropHolder;
 
 import static com.rethink.drop.MainActivity.EDITING;
 import static com.rethink.drop.models.Profile.PROFILE_KEY;
@@ -53,6 +59,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     private Menu menu;
     private boolean userOwnsProfile;
     private String userID;
+    private RecyclerView postsRecycler;
 
     public static ProfileFragment newInstance(@Nullable String userID) {
         Bundle args = new Bundle();
@@ -91,6 +98,8 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
         name = (TextView) v.findViewById(R.id.prof_name);
         nameField = (TextView) v.findViewById(R.id.prof_name_edit);
         nameFieldSwitcher = (ViewSwitcher) v.findViewById(R.id.username_switcher);
+
+        postsRecycler = (RecyclerView) v.findViewById(R.id.recycler_view);
         return v;
     }
 
@@ -203,6 +212,9 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                                         .getCurrentUser();
         userOwnsProfile = user != null && user.getUid()
                                               .equals(userID);
+        FirebaseRecyclerAdapter<Drop, DropHolder> dropAdapter = DropAdapter.getProfilePosts(getArguments().getString(PROFILE_KEY));
+        postsRecycler.setLayoutManager(new LinearLayoutManager(MainActivity.getInstance()));
+        postsRecycler.setAdapter(dropAdapter);
         syncUI();
     }
 

@@ -10,7 +10,7 @@
 
         <ImageView
             android:id="@+id/prof_img"
-            android:layout_width="match_parent"
+            android:layout_width="@dimen/item_image_height"
             android:layout_height="@dimen/item_image_height"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
@@ -45,5 +45,14 @@
                     android:hint="@string/prof_name" />
             </android.support.design.widget.TextInputLayout>
         </ViewSwitcher>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/username_switcher">
+
+            <include layout="@layout/recycler_view" />
+        </LinearLayout>
     </RelativeLayout>
+
 </ScrollView>

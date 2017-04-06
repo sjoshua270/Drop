@@ -8,6 +8,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.models.Drop;
@@ -20,6 +23,65 @@ import static com.rethink.drop.managers.DataManager.profiles;
 
 public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
     private Context context;
+
+    public static FirebaseRecyclerAdapter<Drop, DropHolder> getProfilePosts(String profileKey) {
+        DatabaseReference ref = FirebaseDatabase.getInstance()
+                                                .getReference()
+                                                .child("profiles")
+                                                .child(profileKey)
+                                                .child("posts");
+        return new FirebaseRecyclerAdapter<Drop, DropHolder>(Drop.class,
+                                                             R.layout.item_drop,
+                                                             DropHolder.class,
+                                                             ref) {
+            @Override
+            protected void populateViewHolder(final DropHolder dropHolder, Drop drop, int position) {
+                final String key = keys.get(position);
+                if (drop != null) {
+                    // Set the Drop image
+                    String dropImageUrl = drop.getImageURL();
+                    if (dropImageUrl != null) {
+                        Glide.with(MainActivity.getInstance())
+                             .load(dropImageUrl)
+                             .centerCrop()
+                             .placeholder(R.drawable.ic_photo_camera_black_24px)
+                             .crossFade()
+                             .into(dropHolder.imageView);
+                    }
+                    // Set the Drop text
+                    dropHolder.desc.setText(drop.getText());
+
+                    // Set the Profile image
+                    Profile profile = profiles.get(drop.getUserID());
+                    if (profile != null) {
+                        String profileImageUrl = profile.getImageURL();
+                        if (profileImageUrl != null) {
+                            Glide.with(MainActivity.getInstance())
+                                 .load(profileImageUrl)
+                                 .centerCrop()
+                                 .placeholder(R.drawable.ic_face_white_24px)
+                                 .crossFade()
+                                 .into(dropHolder.profile);
+                        }
+                    }
+                }
+                ViewCompat.setTransitionName(dropHolder.imageView,
+                                             "image_" + key);
+                ViewCompat.setTransitionName(dropHolder.desc,
+                                             "desc_" + key);
+                ViewCompat.setTransitionName(dropHolder.profile,
+                                             "prof_" + key);
+                dropHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        MainActivity.getInstance()
+                                    .openListing(dropHolder.itemView,
+                                                 key);
+                    }
+                });
+            }
+        };
+    }
 
     @Override
     public DropHolder onCreateViewHolder(ViewGroup parent, int viewType) {
