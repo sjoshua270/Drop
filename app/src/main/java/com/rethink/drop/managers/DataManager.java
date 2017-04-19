@@ -27,6 +27,8 @@ public class DataManager {
     private static GeoQueryListener geoQueryListener; // This is the listener that tells us when a drop enters or leaves our radius
     private DatabaseReference geoFireRef; // This is where our GeoQuery can find its data
     private GeoQuery geoQuery; // This is how we access the data in a radius
+    private DatabaseReference postsReference;
+    private HashMap<String, ValueEventListener> dropListeners;
 
     public DataManager() {
         scanRadius = 10.0;
@@ -38,6 +40,10 @@ public class DataManager {
         geoFireRef = FirebaseDatabase.getInstance()
                                      .getReference()
                                      .child("geoFire");
+        postsReference = FirebaseDatabase.getInstance()
+                                         .getReference()
+                                         .child("posts");
+        dropListeners = new HashMap<>();
     }
 
     /**
@@ -78,7 +84,8 @@ public class DataManager {
      */
     public void updateLocation(GeoLocation geoLocation) {
         if (geoQuery == null) {
-            geoQuery = new GeoFire(geoFireRef).queryAtLocation(geoLocation, scanRadius);
+            geoQuery = new GeoFire(geoFireRef).queryAtLocation(geoLocation,
+                                                               scanRadius);
         } else {
             geoQuery.setCenter(geoLocation);
         }
@@ -100,7 +107,26 @@ public class DataManager {
     public void onPause() {
         if (geoQuery != null) {
             geoQuery.removeAllListeners();
+            for (String dropKey : keys) {
+                postsReference.child(dropKey)
+                              .removeEventListener(dropListeners.get(dropKey));
+            }
         }
+    }
+
+    /**
+     * Gets an existing listener or returns a new listener if it was not saved yet
+     *
+     * @param dropKey The key to retrieve a listener for
+     * @return ValueEventListener for the desired Drop
+     */
+    private ValueEventListener getListener(String dropKey) {
+        if (dropListeners.get(dropKey) != null) {
+            return dropListeners.get(dropKey);
+        }
+
+        return postsReference.child(dropKey)
+                             .addValueEventListener(new DropListener());
     }
 
     /**
@@ -129,52 +155,8 @@ public class DataManager {
                                   new LatLng(location.latitude,
                                              location.longitude));
                 // Retrieve the Drop whose dropKey was just added
-                FirebaseDatabase.getInstance()
-                                .getReference()
-                                .child("posts")
-                                .child(dropKey)
-                                .addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(DataSnapshot dataSnapshot) {
-                                        // Add our Drop to the drops set
-                                        String key = dataSnapshot.getKey();
-                                        Drop drop = dataSnapshot.getValue(Drop.class);
-                                        drops.put(key,
-                                                  drop);
-                                        MainActivity.getInstance()
-                                                    .notifyDropChanged(dropKey);
-                                        // If we haven't already stored the Profile which created this Drop...
-                                        if (!profiles.containsKey(drop.getUserID())) {
-                                            // ...then let's add it!
-                                            FirebaseDatabase.getInstance()
-                                                            .getReference()
-                                                            .child("profiles")
-                                                            .child(drop.getUserID())
-                                                            .addListenerForSingleValueEvent(new ValueEventListener() {
-                                                                @Override
-                                                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                                                    // Add our Profile to the profiles set
-                                                                    String key = dataSnapshot.getKey();
-                                                                    Profile profile = dataSnapshot.getValue(Profile.class);
-                                                                    profiles.put(key,
-                                                                                 profile);
-                                                                    MainActivity.getInstance()
-                                                                                .notifyDropChanged(dropKey);
-                                                                }
-
-                                                                @Override
-                                                                public void onCancelled(DatabaseError databaseError) {
-
-                                                                }
-                                                            });
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onCancelled(DatabaseError databaseError) {
-
-                                    }
-                                });
+                dropListeners.put(dropKey,
+                                  getListener(dropKey));
                 // Inform MainActivity that we have a new Drop
                 MainActivity.getInstance()
                             .notifyDropInserted(dropKey);
@@ -184,7 +166,9 @@ public class DataManager {
         @Override
         public void onKeyExited(String key) {
             keys.remove(key);
+            drops.remove(key);
             dropLocations.remove(key);
+            dropListeners.remove(key);
             MainActivity.getInstance()
                         .notifyDropRemoved(key);
         }
@@ -204,5 +188,71 @@ public class DataManager {
 
         }
 
+    }
+
+    /**
+     * Listens for data in a Drop to change on Firebase
+     * When data changes, the Drop is added to our list of Drops and the MainActivity
+     * is notified of the drop being changed.
+     * <p>
+     * If we haven't already updated the profile associated with the Drop, we begin
+     * that process as well
+     */
+    private class DropListener implements ValueEventListener {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            // Add our Drop to the drops set
+            final String dropKey = dataSnapshot.getKey();
+            Drop drop = dataSnapshot.getValue(Drop.class);
+            if (drop != null) {
+                drops.put(dropKey,
+                          drop);
+                MainActivity.getInstance()
+                            .notifyDropChanged(dropKey);
+                // If we haven't already stored the Profile which created this Drop...
+                if (!profiles.containsKey(drop.getUserID())) {
+                    // ...then let's add it!
+                    FirebaseDatabase.getInstance()
+                                    .getReference()
+                                    .child("profiles")
+                                    .child(drop.getUserID())
+                                    .addListenerForSingleValueEvent(new ProfileListener(dropKey));
+                }
+            }
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    }
+
+    /**
+     * This one listens for changes on the Profile side of things. When a profile changes,
+     * it is added to our local list of Profiles and the Drop which called on the update
+     * is updated in the UI via MainActivity
+     */
+    private class ProfileListener implements ValueEventListener {
+        String dropKey;
+
+        private ProfileListener(String dropKey) {
+            this.dropKey = dropKey;
+        }
+
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            // Add our Profile to the profiles set
+            String key = dataSnapshot.getKey();
+            Profile profile = dataSnapshot.getValue(Profile.class);
+            profiles.put(key,
+                         profile);
+            MainActivity.getInstance()
+                        .notifyDropChanged(dropKey);
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
     }
 }
