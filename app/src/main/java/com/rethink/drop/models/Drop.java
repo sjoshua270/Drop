@@ -84,4 +84,24 @@ public class Drop {
                         .child(dropKey)
                         .setValue(this);
     }
+
+    @Exclude
+    public void delete(String dropKey) {
+        DatabaseReference ref = FirebaseDatabase.getInstance()
+                                                .getReference();
+        ref.child("posts")
+           .child(dropKey)
+           .removeValue();
+        ref.child("geoFire")
+           .child(dropKey)
+           .removeValue();
+        ref.child("comments")
+           .child(dropKey)
+           .removeValue();
+        ref.child("profiles")
+           .child(getUserID())
+           .child("posts")
+           .child(dropKey)
+           .removeValue();
+    }
 }
