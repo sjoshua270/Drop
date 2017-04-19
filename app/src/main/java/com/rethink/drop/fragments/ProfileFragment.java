@@ -50,8 +50,8 @@ import static com.rethink.drop.managers.DataManager.getProfile;
 import static com.rethink.drop.models.Profile.PROFILE_KEY;
 
 public class ProfileFragment extends ImageManager implements ImageRecipient {
-    private DatabaseReference profileReference;
-    private ValueEventListener profileListener;
+    private DatabaseReference profRef;
+    private ValueEventListener profListener;
     private TextView name;
     private TextView nameField;
     private ViewSwitcher nameFieldSwitcher;
@@ -80,6 +80,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
         if (args != null) {
             String profKey = args.getString(PROFILE_KEY);
             profile = getProfile(profKey);
+            profRef = getProfileReference(profKey);
         }
         editing = false;
     }
@@ -172,12 +173,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     @Override
     public void onResume() {
         super.onResume();
-        if (profileReference == null) {
-            String userID = getArguments().getString(PROFILE_KEY);
-            editing = false;
-            profileReference = getProfileReference(userID);
-        }
-        profileListener = profileReference.addValueEventListener(new ValueEventListener() {
+        profListener = profRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 profile = dataSnapshot.getValue(Profile.class);
@@ -198,7 +194,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
 
     @Override
     public void onPause() {
-        profileReference.removeEventListener(profileListener);
+        profRef.removeEventListener(profListener);
         super.onPause();
     }
 
@@ -210,9 +206,9 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     }
 
     public void saveProfile() {
-        profileReference.setValue(new Profile(profile.getImageURL(),
-                                              profile.getThumbnailURL(),
-                                              nameField.getText()
+        profRef.setValue(new Profile(profile.getImageURL(),
+                                     profile.getThumbnailURL(),
+                                     nameField.getText()
                                                        .toString()));
         MainActivity.getInstance()
                     .dismissKeyboard();
