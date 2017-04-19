@@ -39,8 +39,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.rethink.drop.exceptions.FragmentArgsMismatch;
 import com.rethink.drop.fragments.DropFragment;
 import com.rethink.drop.fragments.LocalFragment;
@@ -363,23 +361,13 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         }
         if (fragmentClass.equals(DropFragment.class)) {
             DropFragment dropFragment = (DropFragment) fragment;
-            String key = getSupportFragmentManager().findFragmentById(R.id.main_fragment_container)
-                                                    .getArguments()
-                                                    .getString(KEY);
+            String dropKey = getSupportFragmentManager().findFragmentById(R.id.main_fragment_container)
+                                                        .getArguments()
+                                                        .getString(KEY);
             switch (optionID) {
                 case R.id.delete_drop:
-                    if (key != null) {
-                        DatabaseReference ref = FirebaseDatabase.getInstance()
-                                                                .getReference();
-                        ref.child("posts")
-                           .child(key)
-                           .removeValue();
-                        ref.child("geoFire")
-                           .child(key)
-                           .removeValue();
-                        ref.child("comments")
-                           .child(key)
-                           .removeValue();
+                    if (dropKey != null) {
+                        getDrop(dropKey).delete(dropKey);
                     }
                     while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
                         getSupportFragmentManager().popBackStackImmediate();
