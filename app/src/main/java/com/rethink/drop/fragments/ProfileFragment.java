@@ -108,7 +108,9 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
 
         postsRecycler = (RecyclerView) v.findViewById(R.id.recycler_view);
 
-        notifyDataChanged(profile);
+        if (profile != null) {
+            notifyDataChanged(profile);
+        }
 
         return v;
     }
