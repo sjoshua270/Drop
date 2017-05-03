@@ -78,7 +78,7 @@ public class Drop {
     public void publish(String dropKey) {
         FirebaseDatabase.getInstance()
                         .getReference()
-                        .child("profiles")
+                        .child("drops_by_profile")
                         .child(getUserID())
                         .child("posts")
                         .child(dropKey)
