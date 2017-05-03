@@ -39,12 +39,16 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.exceptions.FragmentArgsMismatch;
 import com.rethink.drop.fragments.DropFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.managers.DataManager;
 import com.rethink.drop.models.Comment;
+import com.rethink.drop.models.Profile;
 import com.rethink.drop.tools.FabManager;
 import com.rethink.drop.tools.FragmentJuggler;
 import com.rethink.drop.tools.Notifications;
@@ -53,6 +57,7 @@ import static com.rethink.drop.fragments.ImageFragment.IMAGE_URL;
 import static com.rethink.drop.managers.DataManager.getDrop;
 import static com.rethink.drop.models.Comment.COMMENT_KEY;
 import static com.rethink.drop.models.Drop.KEY;
+import static com.rethink.drop.models.Profile.PROFILE_KEY;
 import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
 import static com.rethink.drop.tools.FragmentJuggler.FRIENDS;
 import static com.rethink.drop.tools.FragmentJuggler.IMAGE;
@@ -168,11 +173,36 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
             public void onClick(View view) {
                 switch (CURRENT) {
                     case LOCAL:
-                        if (FirebaseAuth.getInstance()
-                                        .getCurrentUser() != null) {
-                            Bundle args = new Bundle();
-                            openFragment(LISTING,
-                                         args);
+                        final FirebaseUser user = FirebaseAuth.getInstance()
+                                                              .getCurrentUser();
+                        if (user != null) {
+                            Profile.getRef(user.getUid())
+                                   .addListenerForSingleValueEvent(new ValueEventListener() {
+                                       @Override
+                                       public void onDataChange(DataSnapshot dataSnapshot) {
+                                           if (dataSnapshot.getValue(Profile.class) != null) {
+                                               Bundle args = new Bundle();
+                                               openFragment(LISTING,
+                                                            args);
+                                           } else {
+                                               Bundle args = new Bundle();
+                                               args.putString(PROFILE_KEY,
+                                                              user.getUid());
+                                               try {
+                                                   fragmentJuggler.setMainFragment(PROFILE,
+                                                                                   args);
+                                                   showMessage("Please set up a profile in order to make a Drop");
+                                               } catch (FragmentArgsMismatch e) {
+                                                   showMessage(getString(R.string.unexpected_error));
+                                               }
+                                           }
+                                       }
+
+                                       @Override
+                                       public void onCancelled(DatabaseError databaseError) {
+
+                                       }
+                                   });
                         } else {
                             ((LocalFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
                         }
