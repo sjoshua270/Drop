@@ -20,6 +20,14 @@ public class Profile {
     }
 
     @Exclude
+    public static DatabaseReference getRef(String profileKey) {
+        return FirebaseDatabase.getInstance()
+                               .getReference()
+                               .child("profiles")
+                               .child(profileKey);
+    }
+
+    @Exclude
     public static void addFriend(String profileKey, String friendKey, Profile friendProfile) {
         getFriendsRef(profileKey).child(friendKey)
                                  .setValue(friendProfile);
@@ -32,6 +40,15 @@ public class Profile {
                                .child("profiles")
                                .child(profileKey)
                                .child("friends");
+    }
+
+    @Exclude
+    public void save(String profileKey) {
+        FirebaseDatabase.getInstance()
+                        .getReference()
+                        .child("profiles")
+                        .child(profileKey)
+                        .setValue(this);
     }
 
     public String getImageURL() {

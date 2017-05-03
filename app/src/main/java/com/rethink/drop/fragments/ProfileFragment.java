@@ -206,10 +206,11 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     }
 
     public void saveProfile() {
-        profRef.setValue(new Profile(profile.getImageURL(),
-                                     profile.getThumbnailURL(),
-                                     nameField.getText()
-                                                       .toString()));
+        profile = new Profile(profile.getImageURL(),
+                              profile.getThumbnailURL(),
+                              nameField.getText()
+                                       .toString());
+        profile.save(getArguments().getString(PROFILE_KEY));
         MainActivity.getInstance()
                     .dismissKeyboard();
         toggleState();
