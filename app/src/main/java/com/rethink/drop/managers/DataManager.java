@@ -194,12 +194,12 @@ public class DataManager {
 
         @Override
         public void onKeyExited(String key) {
-            keys.remove(key);
             drops.remove(key);
             dropLocations.remove(key);
             dropListeners.remove(key);
             MainActivity.getInstance()
                         .notifyDropRemoved(key);
+            keys.remove(key);
         }
 
         @Override
