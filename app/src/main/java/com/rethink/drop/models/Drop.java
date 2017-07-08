@@ -80,7 +80,6 @@ public class Drop {
                         .getReference()
                         .child("drops_by_profile")
                         .child(getUserID())
-                        .child("posts")
                         .child(dropKey)
                         .setValue(this);
     }

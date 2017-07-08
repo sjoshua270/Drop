@@ -11,16 +11,11 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.firebase.ui.auth.AuthUI;
 import com.google.firebase.auth.FirebaseAuth;
-import com.rethink.drop.BuildConfig;
 import com.rethink.drop.MyLayoutManager;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.DropAdapter;
 
-import java.util.Arrays;
-
-import static com.rethink.drop.MainActivity.RC_SIGN_IN;
 import static com.rethink.drop.managers.DataManager.getDropIndex;
 import static com.rethink.drop.managers.DataManager.keys;
 
@@ -85,19 +80,5 @@ public class LocalFragment
 
     public void scrollToDrop(String key) {
         dropsRecycler.smoothScrollToPosition(keys.indexOf(key));
-    }
-
-    public void handleFabPress() {
-        startActivityForResult(
-                // Get an instance of AuthUI based on the default app
-                AuthUI.getInstance()
-                      .createSignInIntentBuilder()
-                      .setIsSmartLockEnabled(!BuildConfig.DEBUG)
-                      .setProviders(Arrays.asList(
-                              new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
-                              new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build()))
-                      .setTheme(R.style.AppTheme)
-                      .build(),
-                RC_SIGN_IN);
     }
 }

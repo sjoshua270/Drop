@@ -38,6 +38,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.DropAdapter;
+import com.rethink.drop.exceptions.FragmentArgsMismatch;
 import com.rethink.drop.interfaces.ImageRecipient;
 import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
@@ -62,10 +63,11 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     private boolean userOwnsProfile;
     private RecyclerView postsRecycler;
 
-    public static ProfileFragment newInstance(@Nullable String userID) {
-        Bundle args = new Bundle();
-        args.putString(PROFILE_KEY,
-                       userID);
+    public static ProfileFragment newInstance(Bundle args) throws FragmentArgsMismatch {
+        String userID = args.getString(PROFILE_KEY);
+        if (userID == null || userID.equals("")) {
+            throw new FragmentArgsMismatch("No profile key");
+        }
         ProfileFragment fragment = new ProfileFragment();
         fragment.setArguments(args);
         return fragment;
@@ -82,6 +84,10 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
             profile = getProfile(profKey);
             profRef = getProfileReference(profKey);
         }
+        FirebaseUser user = FirebaseAuth.getInstance()
+                                        .getCurrentUser();
+        userOwnsProfile = user != null && user.getUid()
+                                              .equals(getArguments().getString(PROFILE_KEY));
         editing = false;
     }
 
@@ -208,10 +214,14 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     }
 
     public void saveProfile() {
-        profile = new Profile(profile.getImageURL(),
-                              profile.getThumbnailURL(),
-                              nameField.getText()
-                                       .toString());
+        String imageURL = profile != null ? profile.getImageURL() : "";
+        String thumbnailURL = profile != null ? profile.getThumbnailURL() : "";
+        String name = nameField.getText()
+                               .toString();
+
+        profile = new Profile(imageURL,
+                              thumbnailURL,
+                              name);
         profile.save(getArguments().getString(PROFILE_KEY));
         MainActivity.getInstance()
                     .dismissKeyboard();
@@ -230,10 +240,6 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
              .into(profileImageView);
         name.setText(profile.getName());
         nameField.setText(profile.getName());
-        FirebaseUser user = FirebaseAuth.getInstance()
-                                        .getCurrentUser();
-        userOwnsProfile = user != null && user.getUid()
-                                              .equals(getArguments().getString(PROFILE_KEY));
         FirebaseRecyclerAdapter<Drop, DropHolder> dropAdapter = DropAdapter.getProfilePosts(getArguments().getString(PROFILE_KEY));
         postsRecycler.setLayoutManager(new LinearLayoutManager(MainActivity.getInstance()));
         postsRecycler.setAdapter(dropAdapter);

@@ -21,15 +21,18 @@ import static com.rethink.drop.managers.DataManager.getDrop;
 import static com.rethink.drop.managers.DataManager.keys;
 import static com.rethink.drop.managers.DataManager.profiles;
 
+
+/**
+ * Fills in the UI elements for our list of local Drops
+ */
 public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
     private Context context;
 
     public static FirebaseRecyclerAdapter<Drop, DropHolder> getProfilePosts(String profileKey) {
         DatabaseReference ref = FirebaseDatabase.getInstance()
                                                 .getReference()
-                                                .child("profiles")
-                                                .child(profileKey)
-                                                .child("posts");
+                                                .child("drops_by_profile")
+                                                .child(profileKey);
         return new FirebaseRecyclerAdapter<Drop, DropHolder>(Drop.class,
                                                              R.layout.item_drop,
                                                              DropHolder.class,
@@ -98,13 +101,16 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
         if (drop != null) {
             // Set the Drop image
             String dropImageUrl = drop.getImageURL();
-            if (dropImageUrl != null) {
+            if (dropImageUrl != null && !dropImageUrl.equals("")) {
+                holder.imageView.setVisibility(View.VISIBLE);
                 Glide.with(context)
                      .load(dropImageUrl)
                      .centerCrop()
                      .placeholder(R.drawable.ic_photo_camera_black_24px)
                      .crossFade()
                      .into(holder.imageView);
+            } else {
+                holder.imageView.setVisibility(View.GONE);
             }
             // Set the Drop text
             holder.desc.setText(drop.getText());

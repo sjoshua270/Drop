@@ -48,10 +48,13 @@ import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 import com.rethink.drop.managers.DataManager;
 import com.rethink.drop.models.Comment;
+import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
 import com.rethink.drop.tools.FabManager;
 import com.rethink.drop.tools.FragmentJuggler;
 import com.rethink.drop.tools.Notifications;
+
+import java.util.Arrays;
 
 import static com.rethink.drop.fragments.ImageFragment.IMAGE_URL;
 import static com.rethink.drop.managers.DataManager.getDrop;
@@ -59,6 +62,7 @@ import static com.rethink.drop.models.Comment.COMMENT_KEY;
 import static com.rethink.drop.models.Drop.KEY;
 import static com.rethink.drop.models.Profile.PROFILE_KEY;
 import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
+import static com.rethink.drop.tools.FragmentJuggler.FRAGMENT_NAMES;
 import static com.rethink.drop.tools.FragmentJuggler.FRIENDS;
 import static com.rethink.drop.tools.FragmentJuggler.IMAGE;
 import static com.rethink.drop.tools.FragmentJuggler.LISTING;
@@ -204,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                                        }
                                    });
                         } else {
-                            ((LocalFragment) fragmentJuggler.getCurrentFragment()).handleFabPress();
+                            login();
                         }
                         break;
                     case PROFILE:
@@ -219,12 +223,26 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         });
     }
 
+    public void login() {
+        startActivityForResult(
+                // Get an instance of AuthUI based on the default app
+                AuthUI.getInstance()
+                      .createSignInIntentBuilder()
+                      .setIsSmartLockEnabled(!BuildConfig.DEBUG)
+                      .setProviders(Arrays.asList(new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
+                                                  new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build()))
+                      .setTheme(R.style.AppTheme)
+                      .build(),
+                RC_SIGN_IN);
+    }
+
     private void openFragment(int id, Bundle args) {
         try {
             fragmentJuggler.setMainFragment(id,
                                             args);
         } catch (FragmentArgsMismatch fam) {
             Log.e("openFragment",
+                  FRAGMENT_NAMES[id] + " Fragment - " +
                   fam.getMessage());
             showMessage(getString(R.string.unexpected_error));
         }
@@ -312,21 +330,38 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     }
 
     public void openListing(View listingView, String key) {
-        fragmentJuggler.viewListing(listingView,
-                                    key);
+        try {
+            fragmentJuggler.viewListing(listingView,
+                                        key);
+        } catch (FragmentArgsMismatch fam) {
+            Log.e("openListing",
+                  fam.getMessage());
+        }
     }
 
     public void openProfile(View profile, String userID) {
-        fragmentJuggler.viewProfile(profile,
-                                    userID);
+        try {
+
+            fragmentJuggler.viewProfile(profile,
+                                        userID);
+        } catch (FragmentArgsMismatch fam) {
+            Log.e("openProfile",
+                  fam.getMessage());
+        }
     }
 
     public void viewImage(String key) {
         Bundle args = new Bundle();
-        args.putString(IMAGE_URL,
-                       getDrop(key).getImageURL());
-        openFragment(IMAGE,
-                     args);
+        Drop drop = getDrop(key);
+        if (drop != null) {
+            args.putString(IMAGE_URL,
+                           drop.getImageURL());
+            openFragment(IMAGE,
+                         args);
+        } else {
+            Log.e("viewImage",
+                  "Drop is not cached/saved");
+        }
     }
 
     public void editComment(String commentKey, Comment comment) {
@@ -354,7 +389,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
                 Bundle args = new Bundle();
-                openFragment(LISTING,
+                openFragment(LOCAL,
                              args);
             }
         }
@@ -384,8 +419,17 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         if (fragmentClass.equals(LocalFragment.class)) {
             switch (optionID) {
                 case R.id.open_profile:
-                    openFragment(PROFILE,
-                                 null);
+                    FirebaseUser user = FirebaseAuth.getInstance()
+                                                    .getCurrentUser();
+                    if (user != null) {
+                        Bundle args = new Bundle();
+                        args.putString(PROFILE_KEY,
+                                       user.getUid());
+                        openFragment(PROFILE,
+                                     args);
+                    } else {
+                        login();
+                    }
                     break;
             }
         }
@@ -396,8 +440,9 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                                                         .getString(KEY);
             switch (optionID) {
                 case R.id.delete_drop:
-                    if (dropKey != null) {
-                        getDrop(dropKey).delete(dropKey);
+                    Drop drop = getDrop(dropKey);
+                    if (drop != null) {
+                        drop.delete(dropKey);
                     }
                     while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
                         getSupportFragmentManager().popBackStackImmediate();

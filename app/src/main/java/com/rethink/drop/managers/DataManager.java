@@ -5,6 +5,8 @@ import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -44,6 +46,7 @@ public class DataManager {
                                          .getReference()
                                          .child("posts");
         dropListeners = new HashMap<>();
+        fetchUserInfo();
     }
 
     /**
@@ -53,7 +56,10 @@ public class DataManager {
      * @return Drop object
      */
     public static Drop getDrop(String dropKey) {
-        return drops.get(dropKey);
+        if (drops.containsKey(dropKey)) {
+            return drops.get(dropKey);
+        }
+        return null;
     }
 
     /**
@@ -75,6 +81,29 @@ public class DataManager {
      */
     public static int getDropIndex(String key) {
         return keys.indexOf(key);
+    }
+
+    private void fetchUserInfo() {
+        final FirebaseUser user = FirebaseAuth.getInstance()
+                                              .getCurrentUser();
+        if (user == null) {
+            MainActivity.getInstance()
+                        .login();
+        } else {
+            Profile.getRef(user.getUid())
+                   .addValueEventListener(new ValueEventListener() {
+                       @Override
+                       public void onDataChange(DataSnapshot dataSnapshot) {
+                           profiles.put(user.getUid(),
+                                        dataSnapshot.getValue(Profile.class));
+                       }
+
+                       @Override
+                       public void onCancelled(DatabaseError databaseError) {
+
+                       }
+                   });
+        }
     }
 
     /**
