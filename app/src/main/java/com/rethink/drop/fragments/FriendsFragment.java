@@ -14,6 +14,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.FriendAdapter;
+import com.rethink.drop.exceptions.FragmentArgsMismatch;
 import com.rethink.drop.models.Profile;
 import com.rethink.drop.viewholders.FriendHolder;
 
@@ -22,10 +23,11 @@ import static com.rethink.drop.models.Profile.PROFILE_KEY;
 public class FriendsFragment extends Fragment {
     private FriendAdapter friendAdapter;
 
-    public static FriendsFragment newInstance(String profileKey) {
-        Bundle args = new Bundle();
-        args.putString(PROFILE_KEY,
-                       profileKey);
+    public static FriendsFragment newInstance(Bundle args) throws FragmentArgsMismatch {
+        String profileKey = args.getString(PROFILE_KEY);
+        if (profileKey == null) {
+            throw new FragmentArgsMismatch("profileKey not provided for FriendsFragment");
+        }
         FriendsFragment fragment = new FriendsFragment();
         fragment.setArguments(args);
         return fragment;

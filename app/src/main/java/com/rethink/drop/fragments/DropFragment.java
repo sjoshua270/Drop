@@ -77,10 +77,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     private RelativeLayout commentsList; // The surrounding layout for comments
     private LinearLayout newCommentForm; // The surrounding layout for the new comment field
 
-    public static DropFragment newInstance(String dropKey) {
-        Bundle args = new Bundle();
-        args.putString(KEY,
-                       dropKey);
+    public static DropFragment newInstance(Bundle args) {
         DropFragment fragment = new DropFragment();
         fragment.setArguments(args);
         return fragment;

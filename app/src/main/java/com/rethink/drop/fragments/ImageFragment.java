@@ -10,14 +10,16 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.rethink.drop.R;
+import com.rethink.drop.exceptions.FragmentArgsMismatch;
 
 public class ImageFragment extends Fragment {
     public final static String IMAGE_URL = "image_url";
 
-    public static ImageFragment newInstance(String imageUrl) {
-        Bundle args = new Bundle();
-        args.putString(IMAGE_URL,
-                       imageUrl);
+    public static ImageFragment newInstance(Bundle args) throws FragmentArgsMismatch {
+        String imageUrl = args.getString(IMAGE_URL);
+        if (imageUrl == null || imageUrl.equals("")) {
+            throw new FragmentArgsMismatch("imageUrl was null or empty");
+        }
         ImageFragment fragment = new ImageFragment();
         fragment.setArguments(args);
         return fragment;

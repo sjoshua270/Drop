@@ -11,10 +11,7 @@ import android.transition.ChangeTransform;
 import android.transition.Fade;
 import android.transition.TransitionSet;
 import android.view.View;
-import android.widget.Toast;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.rethink.drop.R;
 import com.rethink.drop.exceptions.FragmentArgsMismatch;
 import com.rethink.drop.fragments.DropFragment;
@@ -23,7 +20,6 @@ import com.rethink.drop.fragments.ImageFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
 
-import static com.rethink.drop.fragments.ImageFragment.IMAGE_URL;
 import static com.rethink.drop.models.Drop.KEY;
 import static com.rethink.drop.models.Profile.PROFILE_KEY;
 
@@ -34,6 +30,13 @@ public class FragmentJuggler {
     public static final int PROFILE = 2;
     public static final int IMAGE = 3;
     public static final int FRIENDS = 6;
+    public static final String[] FRAGMENT_NAMES = {
+            "Local",
+            "Listing",
+            "Profile",
+            "Image",
+            "Friends"
+    };
     public static int CURRENT;
     private static FragmentManager fragmentManager;
 
@@ -59,44 +62,25 @@ public class FragmentJuggler {
                                 true);
                 break;
             case LISTING:
-                String dropKey = args.getString(KEY);
-                switchFragments(DropFragment.newInstance(dropKey),
+                switchFragments(DropFragment.newInstance(args),
                                 R.id.main_fragment_container,
                                 true);
                 break;
             case PROFILE:
-                FirebaseUser user = FirebaseAuth.getInstance()
-                                                .getCurrentUser();
-                if (user != null) {
-                    switchFragments(ProfileFragment.newInstance(user.getUid()),
-                                    R.id.main_fragment_container,
-                                    true);
-                } else {
-                    Toast.makeText(getCurrentFragment().getContext(),
-                                   "No userID",
-                                   Toast.LENGTH_SHORT)
-                         .show();
-                }
+                switchFragments(ProfileFragment.newInstance(args),
+                                R.id.main_fragment_container,
+                                true);
                 break;
             case IMAGE:
-                String imageUrl = args.getString(IMAGE_URL);
-                if (imageUrl != null && !imageUrl.equals("")) {
-                    switchFragments(ImageFragment.newInstance(imageUrl),
-                                    R.id.main_fragment_container,
-                                    true);
-                } else {
-                    throw new FragmentArgsMismatch("imageUrl was null or empty");
-                }
+                switchFragments(ImageFragment.newInstance(args),
+                                R.id.main_fragment_container,
+                                true);
                 break;
             case FRIENDS:
-                String profileKey = args.getString(PROFILE_KEY);
-                if (profileKey != null) {
-                    switchFragments(FriendsFragment.newInstance(profileKey),
-                                    R.id.main_fragment_container,
-                                    true);
-                } else {
-                    throw new FragmentArgsMismatch("profileKey not provided for FriendsFragment");
-                }
+                switchFragments(FriendsFragment.newInstance(args),
+                                R.id.main_fragment_container,
+                                true);
+
         }
         CURRENT = fragmentID;
     }
@@ -105,9 +89,12 @@ public class FragmentJuggler {
         return fragmentManager.findFragmentById(R.id.main_fragment_container);
     }
 
-    public void viewListing(View listingView, String key) {
+    public void viewListing(View listingView, String key) throws FragmentArgsMismatch {
         CURRENT = LISTING;
-        Fragment listingFragment = DropFragment.newInstance(key);
+        Bundle args = new Bundle();
+        args.putString(KEY,
+                       key);
+        Fragment listingFragment = DropFragment.newInstance(args);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             listingFragment.setSharedElementEnterTransition(new FragmentJuggler.ViewTransition());
             listingFragment.setSharedElementReturnTransition(new FragmentJuggler.ViewTransition());
@@ -127,9 +114,12 @@ public class FragmentJuggler {
                        .commit();
     }
 
-    public void viewProfile(View profileView, String userID) {
+    public void viewProfile(View profileView, String userID) throws FragmentArgsMismatch {
         CURRENT = PROFILE;
-        Fragment profileFragment = ProfileFragment.newInstance(userID);
+        Bundle args = new Bundle();
+        args.putString(PROFILE_KEY,
+                       userID);
+        Fragment profileFragment = ProfileFragment.newInstance(args);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             profileFragment.setSharedElementEnterTransition(new FragmentJuggler.ViewTransition());
             profileFragment.setSharedElementReturnTransition(new FragmentJuggler.ViewTransition());
