@@ -102,5 +102,9 @@ public class Drop {
            .child("posts")
            .child(dropKey)
            .removeValue();
+        ref.child("drops_by_profile")
+           .child(getUserID())
+           .child(dropKey)
+           .removeValue();
     }
 }
