@@ -30,10 +30,7 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -68,13 +65,12 @@ import static com.rethink.drop.tools.FragmentJuggler.LOCAL;
 import static com.rethink.drop.tools.FragmentJuggler.PROFILE;
 
 public class MainActivity extends AppCompatActivity implements OnConnectionFailedListener,
-                                                               ConnectionCallbacks,
-                                                               LocationListener {
+                                                               ConnectionCallbacks {
     public static final int RC_SIGN_IN = 1;
     public static final String EDITING = "editing";
     public static final int STORAGE_REQUEST = 3;
     public static MainActivity instance;
-    public static LatLng userLocation;
+    public static Location userLocation;
     private static GoogleApiClient googleApiClient;
     private static FragmentJuggler fragmentJuggler;
     private final int LOCATION_REQUEST = 2;
@@ -467,7 +463,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                                                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             askForLocationPermission();
         } else {
-            startLocationUpdates();
+            updateLocation();
         }
     }
 
@@ -481,51 +477,20 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == LOCATION_REQUEST) {
             if (grantResults.length > 0) {
-                startLocationUpdates();
-            }
-        }
-    }
-
-    private void startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(this,
-                                               android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            Location loc = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-            if (loc != null) {
-                userLocation = new LatLng(loc.getLatitude(),
-                                          loc.getLongitude());
                 updateLocation();
             }
-            LocationRequest locationRequest = LocationRequest.create();
-            locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-            locationRequest.setInterval(5000);
-            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient,
-                                                                     locationRequest,
-                                                                     this);
-        }
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        if (ActivityCompat.checkSelfPermission(this,
-                                               android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            userLocation = new LatLng(location.getLatitude(),
-                                      location.getLongitude());
-            updateLocation();
         }
     }
 
     private void updateLocation() {
-        if (userLocation != null) {
-            dataManager.updateLocation(new GeoLocation(userLocation.latitude,
-                                                       userLocation.longitude));
-            dataManager.onResume();
-        }
-    }
-
-    private void stopLocationUpdates() {
-        if (googleApiClient != null && googleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient,
-                                                                    this);
+        if (ActivityCompat.checkSelfPermission(this,
+                                               android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            userLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+            if (userLocation != null) {
+                dataManager.updateLocation(new GeoLocation(userLocation.getLatitude(),
+                                                           userLocation.getLongitude()));
+                dataManager.onResume();
+            }
         }
     }
 
@@ -541,7 +506,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     protected void onResume() {
         super.onResume();
         if (googleApiClient != null && googleApiClient.isConnected()) {
-            startLocationUpdates();
+            updateLocation();
         }
         updateLocation();
     }
@@ -550,7 +515,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     protected void onPause() {
         super.onPause();
         dataManager.onPause();
-        stopLocationUpdates();
     }
 
     @Override

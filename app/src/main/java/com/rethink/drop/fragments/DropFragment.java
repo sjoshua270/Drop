@@ -297,8 +297,8 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         // If we don't yet have this key...
         if (!keys.contains(key)) {
             // ...then it is new and we can add it to GeoFire, our locations record
-            GeoLocation location = new GeoLocation(userLocation.latitude,
-                                                   userLocation.longitude);
+            GeoLocation location = new GeoLocation(userLocation.getLatitude(),
+                                                   userLocation.getLongitude());
             new GeoFire(FirebaseDatabase.getInstance()
                                         .getReference()
                                         .child("geoFire")).setLocation(key,
