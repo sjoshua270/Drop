@@ -15,11 +15,19 @@
       },
       "oauth_client": [
         {
+          "client_id": "940764424057-dkuo1g8jmo4acp5l9mu1ei1orve5f2ic.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rethink.drop",
+            "certificate_hash": "ae0acb762324baa19af261f3597a261fec264678"
+          }
+        },
+        {
           "client_id": "940764424057-iaih3ndkpu5eahqssv5fh78d2jtol4eb.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.rethink.drop",
-            "certificate_hash": "D7D9D2DF2D054AE849A501FBB3E20F2A8C300C28"
+            "certificate_hash": "d7d9d2df2d054ae849a501fbb3e20f2a8c300c28"
           }
         },
         {
