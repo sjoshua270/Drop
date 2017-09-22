@@ -60,6 +60,7 @@ import static com.rethink.drop.models.Drop.KEY;
 
 public class DropFragment extends ImageManager implements ImageRecipient {
 
+    private static final boolean ALLOW_EDIT = false; // Saving editing for a later update
     private Drop drop; // The Drop with all the data to display
     private DatabaseReference dropRef; // This is where our Drop's data is
     private ValueEventListener dropListener; // This listens for changes to our Drop
@@ -219,7 +220,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         this.menu = menu;
-        inflater.inflate(R.menu.menu_edit,
+        inflater.inflate(R.menu.menu_drop,
                          menu);
         syncUI();
         super.onCreateOptionsMenu(menu,
@@ -384,7 +385,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         submit.setVisible(key == null);
         save.setVisible(userOwnsDrop && key != null && editing);
         delete.setVisible(userOwnsDrop && key != null);
-        edit.setVisible(userOwnsDrop && !editing);
+        edit.setVisible(userOwnsDrop && !editing && ALLOW_EDIT);
         MainActivity.getInstance()
                     .syncUI();
     }
