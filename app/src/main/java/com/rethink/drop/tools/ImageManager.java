@@ -27,14 +27,13 @@ import static android.app.Activity.RESULT_OK;
 import static com.rethink.drop.MainActivity.STORAGE_REQUEST;
 
 public class ImageManager extends Fragment {
-    private static final String TAG = "ImageManager";
     public static final int GALLERY_REQUEST = 3;
+    private static final String TAG = "ImageManager";
     private static final int CAMERA_CAPTURE = 1;
-    private ImageRecipient recipient;
-    private String picPath;
 
     public void requestImage(ImageRecipient recipient) {
-        this.recipient = recipient;
+        getArguments().putSerializable("recipient",
+                                       recipient.getClass());
         if (ActivityCompat.checkSelfPermission(getContext(),
                                                Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
             new AlertDialog.Builder(getContext()).setMessage("Select image source")
@@ -106,7 +105,8 @@ public class ImageManager extends Fragment {
                                          storageDir);
 
         // Save a file: path for use with ACTION_VIEW intents
-        picPath = "file://" + image.getAbsolutePath();
+        getArguments().putString("pic_path",
+                                 "file://" + image.getAbsolutePath());
         return image;
     }
 
@@ -114,7 +114,7 @@ public class ImageManager extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAMERA_CAPTURE) {
             if (resultCode == RESULT_OK) {
-                performCrop(Uri.parse(picPath));
+                performCrop(Uri.parse(getArguments().getString("pic_path")));
             }
         }
         if (requestCode == GALLERY_REQUEST) {
@@ -128,7 +128,14 @@ public class ImageManager extends Fragment {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
             if (resultCode == RESULT_OK) {
                 Uri resultUri = result.getUri();
-                recipient.receiveImage(resultUri.toString());
+                Class recipient = (Class) getArguments().getSerializable("recipient");
+                ImageRecipient imageRecipient = MainActivity.getImageRecipient(recipient);
+                if (imageRecipient != null) {
+                    imageRecipient.receiveImage(resultUri.toString());
+                } else {
+                    Log.e("onActivityResult",
+                          "No ImageRecipient");
+                }
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Exception error = result.getError();
                 Log.e(TAG,

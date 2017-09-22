@@ -42,6 +42,7 @@ import com.rethink.drop.exceptions.FragmentArgsMismatch;
 import com.rethink.drop.fragments.DropFragment;
 import com.rethink.drop.fragments.LocalFragment;
 import com.rethink.drop.fragments.ProfileFragment;
+import com.rethink.drop.interfaces.ImageRecipient;
 import com.rethink.drop.managers.DataManager;
 import com.rethink.drop.models.Comment;
 import com.rethink.drop.models.Drop;
@@ -83,6 +84,15 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         } else {
             return new MainActivity();
         }
+    }
+
+    public static ImageRecipient getImageRecipient(Class recipient) {
+        Fragment imageRecipient = fragmentJuggler.getCurrentFragment();
+        if (imageRecipient.getClass()
+                          .equals(recipient)) {
+            return (ImageRecipient) imageRecipient;
+        }
+        return null;
     }
 
     @Override

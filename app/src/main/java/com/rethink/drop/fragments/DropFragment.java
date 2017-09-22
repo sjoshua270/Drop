@@ -12,6 +12,7 @@ import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -40,6 +41,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.CommentAdapter;
+import com.rethink.drop.exceptions.NullDropException;
 import com.rethink.drop.interfaces.ImageRecipient;
 import com.rethink.drop.models.Comment;
 import com.rethink.drop.models.Drop;
@@ -72,7 +74,6 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     private ViewSwitcher descriptionFieldSwitcher; // Helps switch between the previous two views
     private FirebaseUser user; // The current user who will be attached to the post
     private Boolean editing; // To determine whether or not we are in edit mode
-    private boolean userOwnsDrop; // To decide whether or not to show editing options
     private RecyclerView commentRecycler; // The list of comments on the post
     private TextInputEditText commentField; // This is where a comment can be typed out
     private RelativeLayout commentsList; // The surrounding layout for comments
@@ -99,7 +100,6 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         Bundle args = getArguments();
         if (args != null) {
             String key = args.getString(KEY);
-            editing = key == null;
             if (key != null) {
                 drop = getDrop(key);
             } else {
@@ -113,6 +113,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                 getArguments().putString(KEY,
                                          key);
             }
+            editing = !keys.contains(key);
             dropRef = FirebaseDatabase.getInstance()
                                       .getReference()
                                       .child("posts")
@@ -187,7 +188,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                          "prof_" + dropKey);
         }
 
-        notifyDataChanged(drop);
+        try {
+            notifyDataChanged(drop);
+        } catch (NullDropException nde) {
+            Log.e("onCreateView",
+                  nde.getMessage());
+        }
 
         return fragmentView;
     }
@@ -203,7 +209,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 drop = dataSnapshot.getValue(Drop.class);
                 if (drop != null) {
-                    notifyDataChanged(drop);
+                    try {
+                        notifyDataChanged(drop);
+                    } catch (NullDropException nde) {
+                        Log.e("onResume",
+                              nde.getMessage());
+                    }
                 }
             }
 
@@ -314,7 +325,10 @@ public class DropFragment extends ImageManager implements ImageRecipient {
      *
      * @param drop The Drop that will replace our current data
      */
-    public void notifyDataChanged(Drop drop) {
+    public void notifyDataChanged(Drop drop) throws NullDropException {
+        if (drop == null) {
+            throw new NullDropException("Drop cannot be null here");
+        }
         DrawableRequestBuilder<String> thumbnailRequest = Glide.with(DropFragment.this)
                                                                .load(drop.getThumbnailURL());
         Glide.with(DropFragment.this)
@@ -340,8 +354,6 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                  .thumbnail(profThumbnailRequest)
                  .into(profileImage);
         }
-        userOwnsDrop = user != null && user.getUid()
-                                           .equals(drop.getUserID());
     }
 
     /**
@@ -361,6 +373,8 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     private void syncUI() {
         String key = getArguments().getString(KEY);
         toggleComments(key);
+        boolean userOwnsDrop = user != null && user.getUid()
+                                                   .equals(drop.getUserID());
         if (editing) {
             dropImage.setVisibility(View.VISIBLE);
             if (descriptionFieldSwitcher.getNextView()
