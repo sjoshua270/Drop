@@ -133,9 +133,9 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         View fragmentView = inflater.inflate(R.layout.fragment_drop,
                                              container,
                                              false);
-        dropImage = (ImageView) fragmentView.findViewById(R.id.drop_image);
+        dropImage = fragmentView.findViewById(R.id.drop_image);
         dropImage.setOnClickListener(new ImageClickHandler());
-        profileImage = (ImageView) fragmentView.findViewById(R.id.drop_profile_image);
+        profileImage = fragmentView.findViewById(R.id.drop_profile_image);
         profileImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -144,15 +144,15 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                          drop.getUserID());
             }
         });
-        descriptionFieldSwitcher = (ViewSwitcher) fragmentView.findViewById(R.id.description_switcher);
-        description = (TextView) fragmentView.findViewById(R.id.drop_description);
-        descriptionField = (TextInputEditText) fragmentView.findViewById(R.id.drop_description_field);
+        descriptionFieldSwitcher = fragmentView.findViewById(R.id.description_switcher);
+        description = fragmentView.findViewById(R.id.drop_description);
+        descriptionField = fragmentView.findViewById(R.id.drop_description_field);
 
         // Comments ============================
-        commentRecycler = (RecyclerView) fragmentView.findViewById(R.id.recycler_view);
-        commentField = (TextInputEditText) fragmentView.findViewById(R.id.comment_edit_text);
-        commentsList = (RelativeLayout) fragmentView.findViewById(R.id.comments_list);
-        newCommentForm = (LinearLayout) fragmentView.findViewById(R.id.new_comment_form);
+        commentRecycler = fragmentView.findViewById(R.id.recycler_view);
+        commentField = fragmentView.findViewById(R.id.comment_edit_text);
+        commentsList = fragmentView.findViewById(R.id.comments_list);
+        newCommentForm = fragmentView.findViewById(R.id.new_comment_form);
 
         // Handle Submit button for new comment
         fragmentView.findViewById(R.id.comment_submit)
@@ -443,11 +443,15 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                 drop.save(dropKey);
 
                 if (ActivityCompat.checkSelfPermission(getContext(),
-                                                       Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                                                       Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(),
+                                                                                                                                                                             Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                     requestImage(DropFragment.this);
                 } else {
                     ActivityCompat.requestPermissions(getActivity(),
-                                                      new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                                                      new String[]{
+                                                              Manifest.permission.READ_EXTERNAL_STORAGE,
+                                                              Manifest.permission.WRITE_EXTERNAL_STORAGE
+                                                      },
                                                       0);
                 }
             } else {
