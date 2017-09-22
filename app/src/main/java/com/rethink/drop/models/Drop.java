@@ -1,8 +1,16 @@
 package com.rethink.drop.models;
 
+import android.support.annotation.NonNull;
+import android.util.Log;
+
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.rethink.drop.MainActivity;
+import com.rethink.drop.managers.DataManager;
 
 import static com.rethink.drop.tools.StringUtilities.parseHashTags;
 
@@ -71,6 +79,8 @@ public class Drop {
                .push()
                .setValue(hashTag);
         }
+        DataManager.addDrop(dropKey,
+                            this);
         return dropKey;
     }
 
@@ -85,26 +95,61 @@ public class Drop {
     }
 
     @Exclude
-    public void delete(String dropKey) {
-        DatabaseReference ref = FirebaseDatabase.getInstance()
-                                                .getReference();
-        ref.child("posts")
-           .child(dropKey)
-           .removeValue();
-        ref.child("geoFire")
-           .child(dropKey)
-           .removeValue();
-        ref.child("comments")
-           .child(dropKey)
-           .removeValue();
-        ref.child("profiles")
-           .child(getUserID())
-           .child("posts")
-           .child(dropKey)
-           .removeValue();
-        ref.child("drops_by_profile")
-           .child(getUserID())
-           .child(dropKey)
-           .removeValue();
+    public void delete(final String dropKey) {
+        final FirebaseStorage firebaseStorage = FirebaseStorage.getInstance();
+
+        firebaseStorage.getReferenceFromUrl(getImageURL())
+                       .delete()
+                       .addOnSuccessListener(new OnSuccessListener<Void>() {
+                           @Override
+                           public void onSuccess(Void aVoid) {
+                               firebaseStorage.getReferenceFromUrl(getThumbnailURL())
+                                              .delete()
+                                              .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                  @Override
+                                                  public void onSuccess(Void aVoid) {
+                                                      DatabaseReference ref = FirebaseDatabase.getInstance()
+                                                                                              .getReference();
+                                                      ref.child("posts")
+                                                         .child(dropKey)
+                                                         .removeValue();
+                                                      ref.child("geoFire")
+                                                         .child(dropKey)
+                                                         .removeValue();
+                                                      ref.child("comments")
+                                                         .child(dropKey)
+                                                         .removeValue();
+                                                      ref.child("profiles")
+                                                         .child(getUserID())
+                                                         .child("posts")
+                                                         .child(dropKey)
+                                                         .removeValue();
+                                                      ref.child("drops_by_profile")
+                                                         .child(getUserID())
+                                                         .child(dropKey)
+                                                         .removeValue();
+                                                  }
+                                              })
+                                              .addOnFailureListener(new OnFailureListener() {
+                                                  @Override
+                                                  public void onFailure(@NonNull Exception e) {
+                                                      MainActivity.getInstance()
+                                                                  .showMessage("Failed to delete Drop. Please try again later");
+                                                      Log.e("Drop.delete_thumbnail",
+                                                            e.getMessage());
+                                                  }
+                                              });
+                           }
+                       })
+                       .addOnFailureListener(new OnFailureListener() {
+                           @Override
+                           public void onFailure(@NonNull Exception e) {
+                               MainActivity.getInstance()
+                                           .showMessage("Failed to delete Drop. Please try again later");
+                               Log.e("Drop.delete",
+                                     e.getMessage());
+                           }
+                       });
+
     }
 }
