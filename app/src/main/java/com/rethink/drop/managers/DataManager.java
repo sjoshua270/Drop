@@ -50,6 +50,19 @@ public class DataManager {
     }
 
     /**
+     * Adds a Drop to the local cache even if it is not public yet. This allows us to hold
+     * onto a Drop that may have just been created and hasn't been submitted yet.
+     * This helps with orientation changes
+     *
+     * @param dropKey Key that corresponds to the desired Drop object
+     * @param drop Drop we are saving
+     */
+    public static void addDrop(String dropKey, Drop drop) {
+        drops.put(dropKey,
+                  drop);
+    }
+
+    /**
      * A simple get method using the Drop key
      *
      * @param dropKey Key that corresponds to the desired Drop object
