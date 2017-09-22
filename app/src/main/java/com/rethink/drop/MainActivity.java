@@ -13,7 +13,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
-import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -52,7 +51,6 @@ import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
 import com.rethink.drop.tools.FabManager;
 import com.rethink.drop.tools.FragmentJuggler;
-import com.rethink.drop.tools.Notifications;
 
 import java.util.Arrays;
 
@@ -79,12 +77,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     public static LatLng userLocation;
     private static GoogleApiClient googleApiClient;
     private static FragmentJuggler fragmentJuggler;
-    private static Notifications notifications;
     private final int LOCATION_REQUEST = 2;
-    private final String STATE_FRAGMENT = "state_fragment";
-    private final String STATE_KEY = "state_key";
-    private final String STATE_LAT = "state_latitude";
-    private final String STATE_LON = "state_longitude";
     private FabManager fab;
     private DataManager dataManager;
 
@@ -94,10 +87,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         } else {
             return new MainActivity();
         }
-    }
-
-    public static LatLng getUserLocation() {
-        return userLocation;
     }
 
     @Override
@@ -122,13 +111,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         }
         dataManager = new DataManager();
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
-        FirebaseUser user = FirebaseAuth.getInstance()
-                                        .getCurrentUser();
-        if (user != null) {
-            String userID = user.getUid();
-            notifications = new Notifications(NotificationManagerCompat.from(this),
-                                              userID);
-        }
 
         fab = new FabManager(this,
                              (FloatingActionButton) findViewById(R.id.fab));
@@ -140,35 +122,6 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         setFabListener((FloatingActionButton) findViewById(R.id.fab));
         setBackStackListener();
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        Bundle args = new Bundle();
-        args.putString(KEY,
-                       savedInstanceState.getString(STATE_KEY));
-        openFragment(savedInstanceState.getInt(STATE_FRAGMENT),
-                     args);
-        userLocation = new LatLng(savedInstanceState.getDouble(STATE_LAT),
-                                  savedInstanceState.getDouble(STATE_LON));
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putInt(STATE_FRAGMENT,
-                        CURRENT);
-        outState.putString(STATE_KEY,
-                           fragmentJuggler.getCurrentFragment()
-                                          .getArguments()
-                                          .getString(KEY));
-        if (userLocation != null) {
-            outState.putDouble(STATE_LAT,
-                               userLocation.latitude);
-            outState.putDouble(STATE_LON,
-                               userLocation.longitude);
-        }
-        super.onSaveInstanceState(outState);
     }
 
     private void setFabListener(final FloatingActionButton fab) {
