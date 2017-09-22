@@ -39,7 +39,7 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                                                              ref) {
             @Override
             protected void populateViewHolder(final DropHolder dropHolder, Drop drop, int position) {
-                final String key = keys.get(position);
+                final String key = getRef(position).getKey();
                 if (drop != null) {
                     // Set the Drop image
                     String dropImageUrl = drop.getImageURL();
