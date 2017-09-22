@@ -14,6 +14,7 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
 import com.rethink.drop.MainActivity;
+import com.rethink.drop.R;
 import com.rethink.drop.interfaces.ImageRecipient;
 import com.theartofdev.edmodo.cropper.CropImage;
 
@@ -77,8 +78,10 @@ public class ImageManager extends Fragment {
                 photoFile = createImageFile();
             } catch (IOException ex) {
                 // Error occurred while creating the File
-                Log.i("TakePicture",
-                      "IOException");
+                MainActivity.getInstance()
+                            .showMessage(getString(R.string.unexpected_error));
+                Log.e("ImageManager.takePic",
+                      ex.getMessage());
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
