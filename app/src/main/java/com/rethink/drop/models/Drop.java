@@ -96,60 +96,71 @@ public class Drop {
 
     @Exclude
     public void delete(final String dropKey) {
-        final FirebaseStorage firebaseStorage = FirebaseStorage.getInstance();
+        if (getImageURL() != null && !getImageURL().equals("")) {
+            final FirebaseStorage firebaseStorage = FirebaseStorage.getInstance();
 
-        firebaseStorage.getReferenceFromUrl(getImageURL())
-                       .delete()
-                       .addOnSuccessListener(new OnSuccessListener<Void>() {
-                           @Override
-                           public void onSuccess(Void aVoid) {
-                               firebaseStorage.getReferenceFromUrl(getThumbnailURL())
-                                              .delete()
-                                              .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                  @Override
-                                                  public void onSuccess(Void aVoid) {
-                                                      DatabaseReference ref = FirebaseDatabase.getInstance()
-                                                                                              .getReference();
-                                                      ref.child("posts")
-                                                         .child(dropKey)
-                                                         .removeValue();
-                                                      ref.child("geoFire")
-                                                         .child(dropKey)
-                                                         .removeValue();
-                                                      ref.child("comments")
-                                                         .child(dropKey)
-                                                         .removeValue();
-                                                      ref.child("profiles")
-                                                         .child(getUserID())
-                                                         .child("posts")
-                                                         .child(dropKey)
-                                                         .removeValue();
-                                                      ref.child("drops_by_profile")
-                                                         .child(getUserID())
-                                                         .child(dropKey)
-                                                         .removeValue();
-                                                  }
-                                              })
-                                              .addOnFailureListener(new OnFailureListener() {
-                                                  @Override
-                                                  public void onFailure(@NonNull Exception e) {
-                                                      MainActivity.getInstance()
-                                                                  .showMessage("Failed to delete Drop. Please try again later");
-                                                      Log.e("Drop.delete_thumbnail",
-                                                            e.getMessage());
-                                                  }
-                                              });
-                           }
-                       })
-                       .addOnFailureListener(new OnFailureListener() {
-                           @Override
-                           public void onFailure(@NonNull Exception e) {
-                               MainActivity.getInstance()
-                                           .showMessage("Failed to delete Drop. Please try again later");
-                               Log.e("Drop.delete",
-                                     e.getMessage());
-                           }
-                       });
+            firebaseStorage.getReferenceFromUrl(getImageURL())
+                           .delete()
+                           .addOnSuccessListener(new OnSuccessListener<Void>() {
+                               @Override
+                               public void onSuccess(Void aVoid) {
+                                   if (getThumbnailURL() != null && !getThumbnailURL().equals("")) {
+                                       firebaseStorage.getReferenceFromUrl(getThumbnailURL())
+                                                      .delete()
+                                                      .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                          @Override
+                                                          public void onSuccess(Void aVoid) {
+                                                              deleteDropInfo(dropKey);
+                                                          }
+                                                      })
+                                                      .addOnFailureListener(new OnFailureListener() {
+                                                          @Override
+                                                          public void onFailure(@NonNull Exception e) {
+                                                              MainActivity.getInstance()
+                                                                          .showMessage("Failed to delete Drop. Please try again later");
+                                                              Log.e("Drop.delete_thumbnail",
+                                                                    e.getMessage());
+                                                          }
+                                                      });
+                                   }
+                               }
+                           })
+                           .addOnFailureListener(new OnFailureListener() {
+                               @Override
+                               public void onFailure(@NonNull Exception e) {
+                                   MainActivity.getInstance()
+                                               .showMessage("Failed to delete Drop. Please try again later");
+                                   Log.e("Drop.delete",
+                                         e.getMessage());
+                               }
+                           });
+        } else {
+            deleteDropInfo(dropKey);
+        }
 
+    }
+
+    @Exclude
+    private void deleteDropInfo(String dropKey) {
+        DatabaseReference ref = FirebaseDatabase.getInstance()
+                                                .getReference();
+        ref.child("posts")
+           .child(dropKey)
+           .removeValue();
+        ref.child("geoFire")
+           .child(dropKey)
+           .removeValue();
+        ref.child("comments")
+           .child(dropKey)
+           .removeValue();
+        ref.child("profiles")
+           .child(getUserID())
+           .child("posts")
+           .child(dropKey)
+           .removeValue();
+        ref.child("drops_by_profile")
+           .child(getUserID())
+           .child(dropKey)
+           .removeValue();
     }
 }
