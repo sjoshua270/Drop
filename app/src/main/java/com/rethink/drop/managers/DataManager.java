@@ -21,7 +21,7 @@ import java.util.HashMap;
 
 public class DataManager {
 
-    public static ArrayList<String> keys; // Determines the order that drops are displayed
+    public static ArrayList<String> feedKeys; // Determines the order that drops are displayed in the feed
     public static HashMap<String, LatLng> dropLocations; // Holds the LatLng for each drop
     public static HashMap<String, Profile> profiles; // Holds Profiles for each loaded drop
     private static HashMap<String, Drop> drops; // These are our drops
@@ -34,7 +34,7 @@ public class DataManager {
 
     public DataManager() {
         scanRadius = 10.0;
-        keys = new ArrayList<>();
+        feedKeys = new ArrayList<>();
         drops = new HashMap<>();
         dropLocations = new HashMap<>();
         profiles = new HashMap<>();
@@ -93,7 +93,7 @@ public class DataManager {
      * @return Integer which indicates the Drop's position in our current order
      */
     public static int getDropIndex(String key) {
-        return keys.indexOf(key);
+        return feedKeys.indexOf(key);
     }
 
     private void fetchUserInfo() {
@@ -149,7 +149,7 @@ public class DataManager {
     public void onPause() {
         if (geoQuery != null) {
             geoQuery.removeAllListeners();
-            for (String dropKey : keys) {
+            for (String dropKey : feedKeys) {
                 postsReference.child(dropKey)
                               .removeEventListener(dropListeners.get(dropKey));
             }
@@ -178,20 +178,20 @@ public class DataManager {
         @Override
         public void onKeyEntered(final String dropKey, GeoLocation location) {
             // If we don't already have the dropKey...
-            if (keys.indexOf(dropKey) < 0) {
+            if (feedKeys.indexOf(dropKey) < 0) {
                 // ...put it in the list in chronological order
-                for (int i = 0; i < keys.size(); i++) {
+                for (int i = 0; i < feedKeys.size(); i++) {
                     // Keys are created by Firebase in a chronological fashion, so comparing these
                     // alphabetically works!
-                    if (keys.get(i)
-                            .compareTo(dropKey) < 0) {
-                        keys.add(i,
-                                 dropKey);
+                    if (feedKeys.get(i)
+                                .compareTo(dropKey) < 0) {
+                        feedKeys.add(i,
+                                     dropKey);
                         break;
                     }
                 }
-                if (keys.indexOf(dropKey) < 0) {
-                    keys.add(dropKey);
+                if (feedKeys.indexOf(dropKey) < 0) {
+                    feedKeys.add(dropKey);
                 }
                 dropLocations.put(dropKey,
                                   new LatLng(location.latitude,
@@ -212,7 +212,7 @@ public class DataManager {
             dropListeners.remove(key);
             MainActivity.getInstance()
                         .notifyDropRemoved(key);
-            keys.remove(key);
+            feedKeys.remove(key);
         }
 
         @Override
