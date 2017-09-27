@@ -16,8 +16,8 @@ import com.rethink.drop.MyLayoutManager;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.DropAdapter;
 
+import static com.rethink.drop.managers.DataManager.feedKeys;
 import static com.rethink.drop.managers.DataManager.getDropIndex;
-import static com.rethink.drop.managers.DataManager.keys;
 
 
 public class LocalFragment
@@ -59,7 +59,7 @@ public class LocalFragment
             container, @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.recycler_view, container, false);
-        dropsRecycler = (RecyclerView) rootView.findViewById(R.id.recycler_view);
+        dropsRecycler = rootView.findViewById(R.id.recycler_view);
         return rootView;
     }
 
@@ -79,6 +79,6 @@ public class LocalFragment
     }
 
     public void scrollToDrop(String key) {
-        dropsRecycler.smoothScrollToPosition(keys.indexOf(key));
+        dropsRecycler.smoothScrollToPosition(feedKeys.indexOf(key));
     }
 }
