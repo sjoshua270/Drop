@@ -1,13 +1,12 @@
 package com.rethink.drop;
 
-import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -21,17 +20,24 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.firebase.geofire.GeoLocation;
 import com.firebase.ui.auth.AuthUI;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.CommonStatusCodes;
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -65,16 +71,18 @@ import static com.rethink.drop.tools.FragmentJuggler.LISTING;
 import static com.rethink.drop.tools.FragmentJuggler.LOCAL;
 import static com.rethink.drop.tools.FragmentJuggler.PROFILE;
 
-public class MainActivity extends AppCompatActivity implements OnConnectionFailedListener,
-                                                               ConnectionCallbacks {
+public class MainActivity extends AppCompatActivity {
     public static final int RC_SIGN_IN = 1;
     public static final String EDITING = "editing";
     public static final int STORAGE_REQUEST = 3;
+    private static final int REQUEST_LOCATION = 2;
+    private static final int REQUEST_CHECK_SETTINGS = 3830;
     public static MainActivity instance;
     public static Location userLocation;
-    private static GoogleApiClient googleApiClient;
+    private static LocationRequest mLocationRequest;
     private static FragmentJuggler fragmentJuggler;
-    private final int LOCATION_REQUEST = 2;
+    private static LocationCallback mLocationCallback;
+    private FusedLocationProviderClient mFusedLocationClient;
     private FabManager fab;
     private DataManager dataManager;
 
@@ -101,22 +109,25 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         setContentView(R.layout.activity_main);
         instance = this;
 
-        int status = GoogleApiAvailability.getInstance()
-                                          .isGooglePlayServicesAvailable(this);
-        if (status == ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED) {
-            Dialog dialog = GoogleApiAvailability.getInstance()
-                                                 .getErrorDialog(MainActivity.getInstance(),
-                                                                 status,
-                                                                 1);
-            dialog.show();
-        } else {
-            googleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this)
-                                                               .addOnConnectionFailedListener(this)
-                                                               .addApi(LocationServices.API)
-                                                               .build();
-        }
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
         dataManager = new DataManager();
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
+        // Let's handle what happens when we do get our location
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                userLocation = locationResult.getLastLocation();
+                dataManager.updateLocation(new GeoLocation(userLocation.getLatitude(),
+                                                           userLocation.getLongitude()));
+                dataManager.onResume();
+                super.onLocationResult(locationResult);
+            }
+        };
 
         fab = new FabManager(this,
                              (FloatingActionButton) findViewById(R.id.fab));
@@ -201,8 +212,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                                             args);
         } catch (FragmentArgsMismatch fam) {
             Log.e("openFragment",
-                  FRAGMENT_NAMES[id] + " Fragment - " +
-                  fam.getMessage());
+                  FRAGMENT_NAMES[id] + " Fragment - " + fam.getMessage());
             showMessage(getString(R.string.unexpected_error));
         }
         if (findViewById(R.id.sub_fragment_container).getVisibility() == View.VISIBLE) {
@@ -352,6 +362,11 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
                              args);
             }
         }
+        if (requestCode == REQUEST_CHECK_SETTINGS) {
+            if (resultCode == RESULT_OK) {
+                updateLocation();
+            }
+        }
     }
 
     @Override
@@ -451,41 +466,15 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Toast.makeText(this,
-                       "Failed to connect to location service: " + connectionResult.getErrorCode(),
-                       Toast.LENGTH_LONG)
-             .show();
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        Toast.makeText(this,
-                       "Connection suspended",
-                       Toast.LENGTH_LONG)
-             .show();
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        if (ActivityCompat.checkSelfPermission(this,
-                                               android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            askForLocationPermission();
-        } else {
-            updateLocation();
-        }
-    }
-
     private void askForLocationPermission() {
         ActivityCompat.requestPermissions(this,
                                           new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                                          LOCATION_REQUEST);
+                                          REQUEST_LOCATION);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == LOCATION_REQUEST) {
+        if (requestCode == REQUEST_LOCATION) {
             if (grantResults.length > 0) {
                 updateLocation();
             }
@@ -493,31 +482,72 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     }
 
     private void updateLocation() {
+        // Do we have Location permissions?
         if (ActivityCompat.checkSelfPermission(this,
-                                               android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            userLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-            if (userLocation != null) {
-                dataManager.updateLocation(new GeoLocation(userLocation.getLatitude(),
-                                                           userLocation.getLongitude()));
-                dataManager.onResume();
-            }
+                                               android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            askForLocationPermission(); // No
+        } else {
+            checkLocationSettings(); // Yes
         }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (googleApiClient != null) {
-            googleApiClient.connect();
+    private void checkLocationSettings() {
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest);
+        SettingsClient client = LocationServices.getSettingsClient(MainActivity.this);
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+        // Do the system settings match what we want?
+        task.addOnSuccessListener(this,
+                                  new OnSuccessListener<LocationSettingsResponse>() {
+                                      @Override
+                                      public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                                          // Yes! Let's ask for location
+                                          startLocationUpdates();
+                                      }
+                                  });
+
+        task.addOnFailureListener(this,
+                                  new OnFailureListener() {
+                                      @Override
+                                      public void onFailure(@NonNull Exception e) {
+                                          int statusCode = ((ApiException) e).getStatusCode();
+                                          switch (statusCode) {
+                                              case CommonStatusCodes.RESOLUTION_REQUIRED:
+                                                  // Location settings are not satisfied, but this can be fixed
+                                                  // by showing the user a dialog.
+                                                  try {
+                                                      // Show the dialog by calling startResolutionForResult(),
+                                                      // and check the result in onActivityResult().
+                                                      ResolvableApiException resolvable = (ResolvableApiException) e;
+                                                      resolvable.startResolutionForResult(MainActivity.this,
+                                                                                          REQUEST_CHECK_SETTINGS);
+                                                  } catch (IntentSender.SendIntentException sendEx) {
+                                                      // Ignore the error.
+                                                  }
+                                                  break;
+                                              case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                                  // Location settings are not satisfied. However, we have no way
+                                                  // to fix the settings so we won't show the dialog.
+                                                  break;
+                                          }
+                                      }
+                                  });
+    }
+
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this,
+                                               android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
+                                                                                                                                                                            android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
         }
+        // Start asking for updates
+        mFusedLocationClient.requestLocationUpdates(mLocationRequest,
+                                                    mLocationCallback,
+                                                    null /* Looper */);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (googleApiClient != null && googleApiClient.isConnected()) {
-            updateLocation();
-        }
         updateLocation();
     }
 
@@ -525,13 +555,7 @@ public class MainActivity extends AppCompatActivity implements OnConnectionFaile
     protected void onPause() {
         super.onPause();
         dataManager.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (googleApiClient != null) {
-            googleApiClient.disconnect();
-        }
+        // Let's stop listening for updates
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
 }
