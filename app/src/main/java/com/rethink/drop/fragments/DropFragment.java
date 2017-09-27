@@ -54,8 +54,8 @@ import java.util.Calendar;
 
 import static com.rethink.drop.MainActivity.EDITING;
 import static com.rethink.drop.MainActivity.userLocation;
+import static com.rethink.drop.managers.DataManager.feedKeys;
 import static com.rethink.drop.managers.DataManager.getDrop;
-import static com.rethink.drop.managers.DataManager.keys;
 import static com.rethink.drop.managers.DataManager.profiles;
 import static com.rethink.drop.models.Comment.COMMENT_KEY;
 import static com.rethink.drop.models.Drop.KEY;
@@ -113,7 +113,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                 getArguments().putString(KEY,
                                          key);
             }
-            editing = !keys.contains(key);
+            editing = !feedKeys.contains(key);
             dropRef = FirebaseDatabase.getInstance()
                                       .getReference()
                                       .child("posts")
@@ -306,7 +306,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         drop.save(key);
         drop.publish(key);
         // If we don't yet have this key...
-        if (!keys.contains(key)) {
+        if (!feedKeys.contains(key)) {
             // ...then it is new and we can add it to GeoFire, our locations record
             GeoLocation location = new GeoLocation(userLocation.getLatitude(),
                                                    userLocation.getLongitude());

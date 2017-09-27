@@ -17,8 +17,8 @@ import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
 import com.rethink.drop.viewholders.DropHolder;
 
+import static com.rethink.drop.managers.DataManager.feedKeys;
 import static com.rethink.drop.managers.DataManager.getDrop;
-import static com.rethink.drop.managers.DataManager.keys;
 import static com.rethink.drop.managers.DataManager.profiles;
 
 
@@ -96,7 +96,7 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
 
     @Override
     public void onBindViewHolder(final DropHolder holder, final int position) {
-        final String key = keys.get(position);
+        final String key = feedKeys.get(position);
         Drop drop = getDrop(key);
         if (drop != null) {
             // Set the Drop image
@@ -144,6 +144,6 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
 
     @Override
     public int getItemCount() {
-        return keys.size();
+        return feedKeys.size();
     }
 }
