@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -22,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import static android.app.Activity.RESULT_OK;
@@ -34,29 +36,29 @@ public class ImageManager extends Fragment {
 
     public void requestImage(ImageRecipient recipient) {
         getArguments().putSerializable("recipient",
-                                       recipient.getClass());
+                recipient.getClass());
         if (ActivityCompat.checkSelfPermission(getContext(),
-                                               Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
             new AlertDialog.Builder(getContext()).setMessage("Select image source")
-                                                 .setNegativeButton("Gallery",
-                                                                    new DialogInterface.OnClickListener() {
-                                                                        @Override
-                                                                        public void onClick(DialogInterface dialog, int which) {
-                                                                            dispatchGalleryPictureIntent();
-                                                                        }
-                                                                    })
-                                                 .setPositiveButton("Camera",
-                                                                    new DialogInterface.OnClickListener() {
-                                                                        @Override
-                                                                        public void onClick(DialogInterface dialog, int which) {
-                                                                            dispatchTakePictureIntent();
-                                                                        }
-                                                                    })
-                                                 .show();
+                    .setNegativeButton("Gallery",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dispatchGalleryPictureIntent();
+                                }
+                            })
+                    .setPositiveButton("Camera",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dispatchTakePictureIntent();
+                                }
+                            })
+                    .show();
         } else {
             ActivityCompat.requestPermissions(getActivity(),
-                                              new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                                              STORAGE_REQUEST);
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    STORAGE_REQUEST);
         }
     }
 
@@ -65,8 +67,8 @@ public class ImageManager extends Fragment {
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent,
-                                                    "Select Picture"),
-                               GALLERY_REQUEST);
+                "Select Picture"),
+                GALLERY_REQUEST);
     }
 
     private void dispatchTakePictureIntent() {
@@ -79,20 +81,24 @@ public class ImageManager extends Fragment {
             } catch (IOException ex) {
                 // Error occurred while creating the File
                 MainActivity.getInstance()
-                            .showMessage(getString(R.string.unexpected_error));
+                        .showMessage(getString(R.string.unexpected_error));
                 Log.e("ImageManager.takePic",
-                      ex.getMessage());
+                        ex.getMessage());
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
-                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                                      FileProvider.getUriForFile(MainActivity.getInstance(),
-                                                                 MainActivity.getInstance()
-                                                                             .getApplicationContext()
-                                                                             .getPackageName() + ".provider",
-                                                                 photoFile));
-                startActivityForResult(cameraIntent,
-                                       CAMERA_CAPTURE);
+                Uri photoUri = FileProvider.getUriForFile(MainActivity.getInstance(),
+                        MainActivity.getInstance()
+                                .getApplicationContext()
+                                .getPackageName() + ".provider",
+                        photoFile);
+                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                List<ResolveInfo> resInfoList = getContext().getPackageManager().queryIntentActivities(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY);
+                for (ResolveInfo resolveInfo : resInfoList) {
+                    String packageName = resolveInfo.activityInfo.packageName;
+                    getContext().grantUriPermission(packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                }
+                startActivityForResult(cameraIntent, CAMERA_CAPTURE);
             }
         }
     }
@@ -100,16 +106,16 @@ public class ImageManager extends Fragment {
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss",
-                                                Locale.getDefault()).format(new Date());
+                Locale.getDefault()).format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(imageFileName,
-                                         ".jpg",
-                                         storageDir);
+                ".jpg",
+                storageDir);
 
         // Save a file: path for use with ACTION_VIEW intents
         getArguments().putString("pic_path",
-                                 "file://" + image.getAbsolutePath());
+                "file://" + image.getAbsolutePath());
         return image;
     }
 
@@ -137,13 +143,13 @@ public class ImageManager extends Fragment {
                     imageRecipient.receiveImage(resultUri.toString());
                 } else {
                     Log.e("onActivityResult",
-                          "No ImageRecipient");
+                            "No ImageRecipient");
                 }
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Exception error = result.getError();
                 Log.e(TAG,
-                      "Error cropping image: ",
-                      error);
+                        "Error cropping image: ",
+                        error);
             }
         }
     }
@@ -153,7 +159,7 @@ public class ImageManager extends Fragment {
      */
     private void performCrop(Uri imageUri) {
         CropImage.activity(imageUri)
-                 .start(getContext(),
+                .start(getContext(),
                         this);
     }
 }
