@@ -534,15 +534,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(this,
-                                               android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
-                                                                                                                                                                            android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
+        // If we don't have location permissions...
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            askForLocationPermission();
+        } else {
+            // Start asking for updates
+            mFusedLocationClient.requestLocationUpdates(mLocationRequest,
+                    mLocationCallback,
+                    null);
         }
-        // Start asking for updates
-        mFusedLocationClient.requestLocationUpdates(mLocationRequest,
-                                                    mLocationCallback,
-                                                    null /* Looper */);
     }
 
     @Override
