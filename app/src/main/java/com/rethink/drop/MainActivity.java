@@ -101,16 +101,18 @@ public class MainActivity extends AppCompatActivity {
     public static ImageRecipient getImageRecipient(Class recipient) {
         Fragment imageRecipient = fragmentJuggler.getCurrentFragment();
         if (imageRecipient.getClass()
-                .equals(recipient)) {
+                          .equals(recipient)) {
             return (ImageRecipient) imageRecipient;
         }
         return null;
     }
 
     public static void askForLocationPermission() {
-        ActivityCompat.requestPermissions(getInstance(),
+        ActivityCompat.requestPermissions(
+                getInstance(),
                 new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                REQUEST_LOCATION);
+                REQUEST_LOCATION
+        );
     }
 
     @Override
@@ -139,8 +141,10 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        fab = new FabManager(this,
-                (FloatingActionButton) findViewById(R.id.fab));
+        fab = new FabManager(
+                this,
+                (FloatingActionButton) findViewById(R.id.fab)
+        );
 
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         setFabListener((FloatingActionButton) findViewById(R.id.fab));
@@ -168,35 +172,41 @@ public class MainActivity extends AppCompatActivity {
                 switch (CURRENT) {
                     case LOCAL:
                         final FirebaseUser user = FirebaseAuth.getInstance()
-                                .getCurrentUser();
+                                                              .getCurrentUser();
                         if (user != null) {
                             Profile.getRef(user.getUid())
-                                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(DataSnapshot dataSnapshot) {
-                                            if (dataSnapshot.getValue(Profile.class) != null) {
-                                                Bundle args = new Bundle();
-                                                openFragment(LISTING,
-                                                        args);
-                                            } else {
-                                                Bundle args = new Bundle();
-                                                args.putString(PROFILE_KEY,
-                                                        user.getUid());
-                                                try {
-                                                    fragmentJuggler.setMainFragment(PROFILE,
-                                                            args);
-                                                    showMessage("Please set up a profile in order to make a Drop");
-                                                } catch (FragmentArgsMismatch e) {
-                                                    showMessage(getString(R.string.unexpected_error));
-                                                }
-                                            }
-                                        }
+                                   .addListenerForSingleValueEvent(new ValueEventListener() {
+                                       @Override
+                                       public void onDataChange(DataSnapshot dataSnapshot) {
+                                           if (dataSnapshot.getValue(Profile.class) != null) {
+                                               Bundle args = new Bundle();
+                                               openFragment(
+                                                       LISTING,
+                                                       args
+                                               );
+                                           } else {
+                                               Bundle args = new Bundle();
+                                               args.putString(
+                                                       PROFILE_KEY,
+                                                       user.getUid()
+                                               );
+                                               try {
+                                                   fragmentJuggler.setMainFragment(
+                                                           PROFILE,
+                                                           args
+                                                   );
+                                                   showMessage("Please set up a profile in order to make a Drop");
+                                               } catch (FragmentArgsMismatch e) {
+                                                   showMessage(getString(R.string.unexpected_error));
+                                               }
+                                           }
+                                       }
 
-                                        @Override
-                                        public void onCancelled(DatabaseError databaseError) {
+                                       @Override
+                                       public void onCancelled(DatabaseError databaseError) {
 
-                                        }
-                                    });
+                                       }
+                                   });
                         } else {
                             login();
                         }
@@ -204,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
                     case PROFILE:
                         Fragment profileFragment = fragmentJuggler.getCurrentFragment();
                         if (profileFragment.getClass()
-                                .equals(ProfileFragment.class)) {
+                                           .equals(ProfileFragment.class)) {
                             ((ProfileFragment) profileFragment).addToFriends();
                         }
                         break;
@@ -217,22 +227,29 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(
                 // Get an instance of AuthUI based on the default app
                 AuthUI.getInstance()
-                        .createSignInIntentBuilder()
-                        .setIsSmartLockEnabled(!BuildConfig.DEBUG)
-                        .setProviders(Arrays.asList(new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
-                                new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build()))
-                        .setTheme(R.style.AppTheme)
-                        .build(),
-                RC_SIGN_IN);
+                      .createSignInIntentBuilder()
+                      .setIsSmartLockEnabled(!BuildConfig.DEBUG)
+                      .setProviders(Arrays.asList(
+                              new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
+                              new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build()
+                      ))
+                      .setTheme(R.style.AppTheme)
+                      .build(),
+                RC_SIGN_IN
+        );
     }
 
     private void openFragment(int id, Bundle args) {
         try {
-            fragmentJuggler.setMainFragment(id,
-                    args);
+            fragmentJuggler.setMainFragment(
+                    id,
+                    args
+            );
         } catch (FragmentArgsMismatch fam) {
-            Log.e("openFragment",
-                    FRAGMENT_NAMES[id] + " Fragment - " + fam.getMessage());
+            Log.e(
+                    "openFragment",
+                    FRAGMENT_NAMES[id] + " Fragment - " + fam.getMessage()
+            );
             showMessage(getString(R.string.unexpected_error));
         }
         if (findViewById(R.id.sub_fragment_container).getVisibility() == View.VISIBLE) {
@@ -241,16 +258,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showMessage(final String message) {
-        Snackbar.make(findViewById(R.id.fab),
+        Snackbar.make(
+                findViewById(R.id.fab),
                 message,
-                Snackbar.LENGTH_LONG)
+                Snackbar.LENGTH_LONG
+        )
                 .show();
     }
 
     public void syncUI() {
         syncUpNav();
         fab.update(fragmentJuggler.getCurrentFragment()
-                .getArguments());
+                                  .getArguments());
     }
 
     public void dismissKeyboard() {
@@ -258,8 +277,10 @@ public class MainActivity extends AppCompatActivity {
         View focused = getCurrentFocus();
         if (focused != null) {
             if (imm != null) {
-                imm.hideSoftInputFromWindow(focused.getWindowToken(),
-                        0);
+                imm.hideSoftInputFromWindow(
+                        focused.getWindowToken(),
+                        0
+                );
             }
         }
     }
@@ -322,22 +343,30 @@ public class MainActivity extends AppCompatActivity {
 
     public void openListing(View listingView, String key) {
         try {
-            fragmentJuggler.viewListing(listingView,
-                    key);
+            fragmentJuggler.viewListing(
+                    listingView,
+                    key
+            );
         } catch (FragmentArgsMismatch fam) {
-            Log.e("openListing",
-                    fam.getMessage());
+            Log.e(
+                    "openListing",
+                    fam.getMessage()
+            );
         }
     }
 
     public void openProfile(View profile, String userID) {
         try {
 
-            fragmentJuggler.viewProfile(profile,
-                    userID);
+            fragmentJuggler.viewProfile(
+                    profile,
+                    userID
+            );
         } catch (FragmentArgsMismatch fam) {
-            Log.e("openProfile",
-                    fam.getMessage());
+            Log.e(
+                    "openProfile",
+                    fam.getMessage()
+            );
         }
     }
 
@@ -345,23 +374,31 @@ public class MainActivity extends AppCompatActivity {
         Bundle args = new Bundle();
         Drop drop = getDrop(key);
         if (drop != null) {
-            args.putString(IMAGE_URL,
-                    drop.getImageURL());
-            openFragment(IMAGE,
-                    args);
+            args.putString(
+                    IMAGE_URL,
+                    drop.getImageURL()
+            );
+            openFragment(
+                    IMAGE,
+                    args
+            );
         } else {
-            Log.e("viewImage",
-                    "Drop is not cached/saved");
+            Log.e(
+                    "viewImage",
+                    "Drop is not cached/saved"
+            );
         }
     }
 
     public void editComment(String commentKey, Comment comment) {
         Fragment dropFragment = fragmentJuggler.getCurrentFragment();
         if (dropFragment.getClass()
-                .equals(DropFragment.class)) {
+                        .equals(DropFragment.class)) {
             dropFragment.getArguments()
-                    .putString(COMMENT_KEY,
-                            commentKey);
+                        .putString(
+                                COMMENT_KEY,
+                                commentKey
+                        );
             ((DropFragment) dropFragment).editComment(comment.getText());
         }
     }
@@ -370,20 +407,26 @@ public class MainActivity extends AppCompatActivity {
         editText.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
-            imm.showSoftInput(editText,
-                    InputMethodManager.SHOW_IMPLICIT);
+            imm.showSoftInput(
+                    editText,
+                    InputMethodManager.SHOW_IMPLICIT
+            );
         }
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode,
+        super.onActivityResult(
+                requestCode,
                 resultCode,
-                data);
+                data
+        );
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
                 Bundle args = new Bundle();
-                openFragment(LOCAL,
-                        args);
+                openFragment(
+                        LOCAL,
+                        args
+                );
             }
         }
         if (requestCode == REQUEST_CHECK_SETTINGS) {
@@ -418,13 +461,17 @@ public class MainActivity extends AppCompatActivity {
             switch (optionID) {
                 case R.id.open_profile:
                     FirebaseUser user = FirebaseAuth.getInstance()
-                            .getCurrentUser();
+                                                    .getCurrentUser();
                     if (user != null) {
                         Bundle args = new Bundle();
-                        args.putString(PROFILE_KEY,
-                                user.getUid());
-                        openFragment(PROFILE,
-                                args);
+                        args.putString(
+                                PROFILE_KEY,
+                                user.getUid()
+                        );
+                        openFragment(
+                                PROFILE,
+                                args
+                        );
                     } else {
                         login();
                     }
@@ -434,8 +481,8 @@ public class MainActivity extends AppCompatActivity {
         if (fragmentClass.equals(DropFragment.class)) {
             DropFragment dropFragment = (DropFragment) fragment;
             String dropKey = getSupportFragmentManager().findFragmentById(R.id.main_fragment_container)
-                    .getArguments()
-                    .getString(KEY);
+                                                        .getArguments()
+                                                        .getString(KEY);
             switch (optionID) {
                 case R.id.delete_drop:
                     Drop drop = getDrop(dropKey);
@@ -461,15 +508,15 @@ public class MainActivity extends AppCompatActivity {
             switch (optionID) {
                 case R.id.log_out:
                     AuthUI.getInstance()
-                            .signOut(this)
-                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
-                                        getSupportFragmentManager().popBackStackImmediate();
-                                    }
-                                }
-                            });
+                          .signOut(this)
+                          .addOnCompleteListener(new OnCompleteListener<Void>() {
+                              @Override
+                              public void onComplete(@NonNull Task<Void> task) {
+                                  while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
+                                      getSupportFragmentManager().popBackStackImmediate();
+                                  }
+                              }
+                          });
                     break;
                 case R.id.save_profile:
                     profileFragment.saveProfile();
@@ -478,8 +525,10 @@ public class MainActivity extends AppCompatActivity {
                     profileFragment.editProfile();
                     break;
                 case R.id.friends:
-                    openFragment(FRIENDS,
-                            profileFragment.getArguments());
+                    openFragment(
+                            FRIENDS,
+                            profileFragment.getArguments()
+                    );
                     break;
             }
         }
@@ -517,16 +566,19 @@ public class MainActivity extends AppCompatActivity {
         SettingsClient client = LocationServices.getSettingsClient(MainActivity.getInstance());
         Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
         // Do the system settings match what we want?
-        task.addOnSuccessListener(MainActivity.getInstance(),
+        task.addOnSuccessListener(
+                MainActivity.getInstance(),
                 new OnSuccessListener<LocationSettingsResponse>() {
                     @Override
                     public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
                         // Yes! Let's ask for location
                         checkForLastLocation();
                     }
-                });
+                }
+        );
 
-        task.addOnFailureListener(MainActivity.getInstance(),
+        task.addOnFailureListener(
+                MainActivity.getInstance(),
                 new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
@@ -539,8 +591,10 @@ public class MainActivity extends AppCompatActivity {
                                     // Show the dialog by calling startResolutionForResult(),
                                     // and check the result in onActivityResult().
                                     ResolvableApiException resolvable = (ResolvableApiException) e;
-                                    resolvable.startResolutionForResult(MainActivity.getInstance(),
-                                            MainActivity.REQUEST_CHECK_SETTINGS);
+                                    resolvable.startResolutionForResult(
+                                            MainActivity.getInstance(),
+                                            MainActivity.REQUEST_CHECK_SETTINGS
+                                    );
                                 } catch (IntentSender.SendIntentException sendEx) {
                                     // Ignore the error.
                                 }
@@ -551,7 +605,8 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                         }
                     }
-                });
+                }
+        );
     }
 
     @SuppressLint("MissingPermission")
@@ -580,25 +635,30 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("MissingPermission")
     private void startLocationUpdates() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!locationPermissionsGranted()) {
-                MainActivity.askForLocationPermission();
-            }
+        if (!locationPermissionsGranted()) {
+            askForLocationPermission();
+        } else {
+            // Start asking for updates
+            mFusedLocationClient.requestLocationUpdates(
+                    mLocationRequest,
+                    mLocationCallback,
+                    null
+            );
         }
-        // Start asking for updates
-        mFusedLocationClient.requestLocationUpdates(mLocationRequest,
-                mLocationCallback,
-                null);
     }
 
     private void applyLocation(Location location) {
         spinner.setVisibility(View.GONE);
-        dataManager.updateLocation(new GeoLocation(location.getLatitude(),
-                location.getLongitude()));
+        dataManager.updateLocation(new GeoLocation(
+                location.getLatitude(),
+                location.getLongitude()
+        ));
         dataManager.onResume();
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
-            openFragment(LOCAL,
-                    null);
+            openFragment(
+                    LOCAL,
+                    null
+            );
         }
         mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
