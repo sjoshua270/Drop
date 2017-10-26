@@ -28,6 +28,15 @@
         android:animateLayoutChanges="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+        <com.github.rahatarmanahmed.cpv.CircularProgressView
+            android:id="@+id/progress_view"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            app:cpv_animAutostart="true"
+            app:cpv_indeterminate="true" />
+
         <FrameLayout
             android:id="@+id/main_fragment_container"
             android:layout_width="match_parent"
@@ -51,6 +60,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        android:src="@drawable/ic_add_white_24px"/>
+        android:src="@drawable/ic_add_white_24px" />
 
 </android.support.design.widget.CoordinatorLayout>

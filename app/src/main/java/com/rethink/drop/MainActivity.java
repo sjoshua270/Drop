@@ -1,10 +1,12 @@
 package com.rethink.drop;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -23,6 +25,7 @@ import android.widget.EditText;
 
 import com.firebase.geofire.GeoLocation;
 import com.firebase.ui.auth.AuthUI;
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -85,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient mFusedLocationClient;
     private FabManager fab;
     private DataManager dataManager;
+    private CircularProgressView spinner;
 
     public static MainActivity getInstance() {
         if (instance != null) {
@@ -97,10 +101,16 @@ public class MainActivity extends AppCompatActivity {
     public static ImageRecipient getImageRecipient(Class recipient) {
         Fragment imageRecipient = fragmentJuggler.getCurrentFragment();
         if (imageRecipient.getClass()
-                          .equals(recipient)) {
+                .equals(recipient)) {
             return (ImageRecipient) imageRecipient;
         }
         return null;
+    }
+
+    public static void askForLocationPermission() {
+        ActivityCompat.requestPermissions(getInstance(),
+                new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                REQUEST_LOCATION);
     }
 
     @Override
@@ -112,8 +122,10 @@ public class MainActivity extends AppCompatActivity {
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
         mLocationRequest.setFastestInterval(5000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        spinner = findViewById(R.id.progress_view);
+        spinner.setVisibility(View.VISIBLE);
 
         dataManager = new DataManager();
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
@@ -122,23 +134,31 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 userLocation = locationResult.getLastLocation();
-                dataManager.updateLocation(new GeoLocation(userLocation.getLatitude(),
-                                                           userLocation.getLongitude()));
-                dataManager.onResume();
+                applyLocation(userLocation);
                 super.onLocationResult(locationResult);
             }
         };
 
         fab = new FabManager(this,
-                             (FloatingActionButton) findViewById(R.id.fab));
-        if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
-            openFragment(LOCAL,
-                         null);
-        }
+                (FloatingActionButton) findViewById(R.id.fab));
 
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         setFabListener((FloatingActionButton) findViewById(R.id.fab));
         setBackStackListener();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateLocation();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        dataManager.onPause();
+        // Let's stop listening for updates
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
 
     private void setFabListener(final FloatingActionButton fab) {
@@ -148,35 +168,35 @@ public class MainActivity extends AppCompatActivity {
                 switch (CURRENT) {
                     case LOCAL:
                         final FirebaseUser user = FirebaseAuth.getInstance()
-                                                              .getCurrentUser();
+                                .getCurrentUser();
                         if (user != null) {
                             Profile.getRef(user.getUid())
-                                   .addListenerForSingleValueEvent(new ValueEventListener() {
-                                       @Override
-                                       public void onDataChange(DataSnapshot dataSnapshot) {
-                                           if (dataSnapshot.getValue(Profile.class) != null) {
-                                               Bundle args = new Bundle();
-                                               openFragment(LISTING,
+                                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                            if (dataSnapshot.getValue(Profile.class) != null) {
+                                                Bundle args = new Bundle();
+                                                openFragment(LISTING,
+                                                        args);
+                                            } else {
+                                                Bundle args = new Bundle();
+                                                args.putString(PROFILE_KEY,
+                                                        user.getUid());
+                                                try {
+                                                    fragmentJuggler.setMainFragment(PROFILE,
                                                             args);
-                                           } else {
-                                               Bundle args = new Bundle();
-                                               args.putString(PROFILE_KEY,
-                                                              user.getUid());
-                                               try {
-                                                   fragmentJuggler.setMainFragment(PROFILE,
-                                                                                   args);
-                                                   showMessage("Please set up a profile in order to make a Drop");
-                                               } catch (FragmentArgsMismatch e) {
-                                                   showMessage(getString(R.string.unexpected_error));
-                                               }
-                                           }
-                                       }
+                                                    showMessage("Please set up a profile in order to make a Drop");
+                                                } catch (FragmentArgsMismatch e) {
+                                                    showMessage(getString(R.string.unexpected_error));
+                                                }
+                                            }
+                                        }
 
-                                       @Override
-                                       public void onCancelled(DatabaseError databaseError) {
+                                        @Override
+                                        public void onCancelled(DatabaseError databaseError) {
 
-                                       }
-                                   });
+                                        }
+                                    });
                         } else {
                             login();
                         }
@@ -184,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
                     case PROFILE:
                         Fragment profileFragment = fragmentJuggler.getCurrentFragment();
                         if (profileFragment.getClass()
-                                           .equals(ProfileFragment.class)) {
+                                .equals(ProfileFragment.class)) {
                             ((ProfileFragment) profileFragment).addToFriends();
                         }
                         break;
@@ -197,22 +217,22 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(
                 // Get an instance of AuthUI based on the default app
                 AuthUI.getInstance()
-                      .createSignInIntentBuilder()
-                      .setIsSmartLockEnabled(!BuildConfig.DEBUG)
-                      .setProviders(Arrays.asList(new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
-                                                  new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build()))
-                      .setTheme(R.style.AppTheme)
-                      .build(),
+                        .createSignInIntentBuilder()
+                        .setIsSmartLockEnabled(!BuildConfig.DEBUG)
+                        .setProviders(Arrays.asList(new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
+                                new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build()))
+                        .setTheme(R.style.AppTheme)
+                        .build(),
                 RC_SIGN_IN);
     }
 
     private void openFragment(int id, Bundle args) {
         try {
             fragmentJuggler.setMainFragment(id,
-                                            args);
+                    args);
         } catch (FragmentArgsMismatch fam) {
             Log.e("openFragment",
-                  FRAGMENT_NAMES[id] + " Fragment - " + fam.getMessage());
+                    FRAGMENT_NAMES[id] + " Fragment - " + fam.getMessage());
             showMessage(getString(R.string.unexpected_error));
         }
         if (findViewById(R.id.sub_fragment_container).getVisibility() == View.VISIBLE) {
@@ -222,23 +242,25 @@ public class MainActivity extends AppCompatActivity {
 
     public void showMessage(final String message) {
         Snackbar.make(findViewById(R.id.fab),
-                      message,
-                      Snackbar.LENGTH_LONG)
+                message,
+                Snackbar.LENGTH_LONG)
                 .show();
     }
 
     public void syncUI() {
         syncUpNav();
         fab.update(fragmentJuggler.getCurrentFragment()
-                                  .getArguments());
+                .getArguments());
     }
 
     public void dismissKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         View focused = getCurrentFocus();
         if (focused != null) {
-            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
-                                        0);
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(focused.getWindowToken(),
+                        0);
+            }
         }
     }
 
@@ -301,10 +323,10 @@ public class MainActivity extends AppCompatActivity {
     public void openListing(View listingView, String key) {
         try {
             fragmentJuggler.viewListing(listingView,
-                                        key);
+                    key);
         } catch (FragmentArgsMismatch fam) {
             Log.e("openListing",
-                  fam.getMessage());
+                    fam.getMessage());
         }
     }
 
@@ -312,10 +334,10 @@ public class MainActivity extends AppCompatActivity {
         try {
 
             fragmentJuggler.viewProfile(profile,
-                                        userID);
+                    userID);
         } catch (FragmentArgsMismatch fam) {
             Log.e("openProfile",
-                  fam.getMessage());
+                    fam.getMessage());
         }
     }
 
@@ -324,22 +346,22 @@ public class MainActivity extends AppCompatActivity {
         Drop drop = getDrop(key);
         if (drop != null) {
             args.putString(IMAGE_URL,
-                           drop.getImageURL());
+                    drop.getImageURL());
             openFragment(IMAGE,
-                         args);
+                    args);
         } else {
             Log.e("viewImage",
-                  "Drop is not cached/saved");
+                    "Drop is not cached/saved");
         }
     }
 
     public void editComment(String commentKey, Comment comment) {
         Fragment dropFragment = fragmentJuggler.getCurrentFragment();
         if (dropFragment.getClass()
-                        .equals(DropFragment.class)) {
+                .equals(DropFragment.class)) {
             dropFragment.getArguments()
-                        .putString(COMMENT_KEY,
-                                   commentKey);
+                    .putString(COMMENT_KEY,
+                            commentKey);
             ((DropFragment) dropFragment).editComment(comment.getText());
         }
     }
@@ -347,19 +369,21 @@ public class MainActivity extends AppCompatActivity {
     public void showKeyboard(EditText editText) {
         editText.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(editText,
-                          InputMethodManager.SHOW_IMPLICIT);
+        if (imm != null) {
+            imm.showSoftInput(editText,
+                    InputMethodManager.SHOW_IMPLICIT);
+        }
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode,
-                               resultCode,
-                               data);
+                resultCode,
+                data);
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
                 Bundle args = new Bundle();
                 openFragment(LOCAL,
-                             args);
+                        args);
             }
         }
         if (requestCode == REQUEST_CHECK_SETTINGS) {
@@ -394,13 +418,13 @@ public class MainActivity extends AppCompatActivity {
             switch (optionID) {
                 case R.id.open_profile:
                     FirebaseUser user = FirebaseAuth.getInstance()
-                                                    .getCurrentUser();
+                            .getCurrentUser();
                     if (user != null) {
                         Bundle args = new Bundle();
                         args.putString(PROFILE_KEY,
-                                       user.getUid());
+                                user.getUid());
                         openFragment(PROFILE,
-                                     args);
+                                args);
                     } else {
                         login();
                     }
@@ -410,8 +434,8 @@ public class MainActivity extends AppCompatActivity {
         if (fragmentClass.equals(DropFragment.class)) {
             DropFragment dropFragment = (DropFragment) fragment;
             String dropKey = getSupportFragmentManager().findFragmentById(R.id.main_fragment_container)
-                                                        .getArguments()
-                                                        .getString(KEY);
+                    .getArguments()
+                    .getString(KEY);
             switch (optionID) {
                 case R.id.delete_drop:
                     Drop drop = getDrop(dropKey);
@@ -437,15 +461,15 @@ public class MainActivity extends AppCompatActivity {
             switch (optionID) {
                 case R.id.log_out:
                     AuthUI.getInstance()
-                          .signOut(this)
-                          .addOnCompleteListener(new OnCompleteListener<Void>() {
-                              @Override
-                              public void onComplete(@NonNull Task<Void> task) {
-                                  while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
-                                      getSupportFragmentManager().popBackStackImmediate();
-                                  }
-                              }
-                          });
+                            .signOut(this)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    while (getSupportFragmentManager().getBackStackEntryCount() > 1) {
+                                        getSupportFragmentManager().popBackStackImmediate();
+                                    }
+                                }
+                            });
                     break;
                 case R.id.save_profile:
                     profileFragment.saveProfile();
@@ -455,7 +479,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.friends:
                     openFragment(FRIENDS,
-                                 profileFragment.getArguments());
+                            profileFragment.getArguments());
                     break;
             }
         }
@@ -466,99 +490,125 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void askForLocationPermission() {
-        ActivityCompat.requestPermissions(this,
-                                          new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                                          REQUEST_LOCATION);
+    public void updateLocation() {
+        // Do we have Location permissions?
+        if (locationPermissionsGranted()) {
+            checkLocationSettings(); // Yes
+        } else {
+            askForLocationPermission(); // No
+        }
+    }
+
+    private Boolean locationPermissionsGranted() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M || (
+                ActivityCompat.checkSelfPermission(
+                        MainActivity.getInstance(),
+                        android.Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+                        &&
+                        ActivityCompat.checkSelfPermission(
+                                MainActivity.getInstance(),
+                                android.Manifest.permission.ACCESS_COARSE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED);
+    }
+
+    private void checkLocationSettings() {
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest);
+        SettingsClient client = LocationServices.getSettingsClient(MainActivity.getInstance());
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+        // Do the system settings match what we want?
+        task.addOnSuccessListener(MainActivity.getInstance(),
+                new OnSuccessListener<LocationSettingsResponse>() {
+                    @Override
+                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                        // Yes! Let's ask for location
+                        checkForLastLocation();
+                    }
+                });
+
+        task.addOnFailureListener(MainActivity.getInstance(),
+                new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        int statusCode = ((ApiException) e).getStatusCode();
+                        switch (statusCode) {
+                            case CommonStatusCodes.RESOLUTION_REQUIRED:
+                                // Location settings are not satisfied, but this can be fixed
+                                // by showing the user a dialog.
+                                try {
+                                    // Show the dialog by calling startResolutionForResult(),
+                                    // and check the result in onActivityResult().
+                                    ResolvableApiException resolvable = (ResolvableApiException) e;
+                                    resolvable.startResolutionForResult(MainActivity.getInstance(),
+                                            MainActivity.REQUEST_CHECK_SETTINGS);
+                                } catch (IntentSender.SendIntentException sendEx) {
+                                    // Ignore the error.
+                                }
+                                break;
+                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                // Location settings are not satisfied. However, we have no way
+                                // to fix the settings so we won't show the dialog.
+                                break;
+                        }
+                    }
+                });
+    }
+
+    @SuppressLint("MissingPermission")
+    private void checkForLastLocation() {
+        if (locationPermissionsGranted()) {
+            Task<Location> lastLocationTask = mFusedLocationClient.getLastLocation();
+            lastLocationTask.addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if (location != null) {
+                        userLocation = location;
+                        applyLocation(userLocation);
+                    } else {
+                        startLocationUpdates();
+                    }
+                }
+            });
+            lastLocationTask.addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    startLocationUpdates();
+                }
+            });
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void startLocationUpdates() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!locationPermissionsGranted()) {
+                MainActivity.askForLocationPermission();
+            }
+        }
+        // Start asking for updates
+        mFusedLocationClient.requestLocationUpdates(mLocationRequest,
+                mLocationCallback,
+                null);
+    }
+
+    private void applyLocation(Location location) {
+        spinner.setVisibility(View.GONE);
+        dataManager.updateLocation(new GeoLocation(location.getLatitude(),
+                location.getLongitude()));
+        dataManager.onResume();
+        if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+            openFragment(LOCAL,
+                    null);
+        }
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_LOCATION) {
-            if (grantResults.length > 0) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 updateLocation();
             }
         }
-    }
-
-    private void updateLocation() {
-        // Do we have Location permissions?
-        if (ActivityCompat.checkSelfPermission(this,
-                                               android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            askForLocationPermission(); // No
-        } else {
-            checkLocationSettings(); // Yes
-        }
-    }
-
-    private void checkLocationSettings() {
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest);
-        SettingsClient client = LocationServices.getSettingsClient(MainActivity.this);
-        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
-        // Do the system settings match what we want?
-        task.addOnSuccessListener(this,
-                                  new OnSuccessListener<LocationSettingsResponse>() {
-                                      @Override
-                                      public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                                          // Yes! Let's ask for location
-                                          startLocationUpdates();
-                                      }
-                                  });
-
-        task.addOnFailureListener(this,
-                                  new OnFailureListener() {
-                                      @Override
-                                      public void onFailure(@NonNull Exception e) {
-                                          int statusCode = ((ApiException) e).getStatusCode();
-                                          switch (statusCode) {
-                                              case CommonStatusCodes.RESOLUTION_REQUIRED:
-                                                  // Location settings are not satisfied, but this can be fixed
-                                                  // by showing the user a dialog.
-                                                  try {
-                                                      // Show the dialog by calling startResolutionForResult(),
-                                                      // and check the result in onActivityResult().
-                                                      ResolvableApiException resolvable = (ResolvableApiException) e;
-                                                      resolvable.startResolutionForResult(MainActivity.this,
-                                                                                          REQUEST_CHECK_SETTINGS);
-                                                  } catch (IntentSender.SendIntentException sendEx) {
-                                                      // Ignore the error.
-                                                  }
-                                                  break;
-                                              case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                                  // Location settings are not satisfied. However, we have no way
-                                                  // to fix the settings so we won't show the dialog.
-                                                  break;
-                                          }
-                                      }
-                                  });
-    }
-
-    private void startLocationUpdates() {
-        // If we don't have location permissions...
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            askForLocationPermission();
-        } else {
-            // Start asking for updates
-            mFusedLocationClient.requestLocationUpdates(mLocationRequest,
-                    mLocationCallback,
-                    null);
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        updateLocation();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        dataManager.onPause();
-        // Let's stop listening for updates
-        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
 }
