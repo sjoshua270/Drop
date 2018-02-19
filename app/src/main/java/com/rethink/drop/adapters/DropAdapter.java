@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -16,6 +17,7 @@ import com.rethink.drop.models.Drop;
 import com.rethink.drop.models.Profile;
 import com.rethink.drop.viewholders.DropHolder;
 
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.rethink.drop.managers.DataManager.addDrop;
 import static com.rethink.drop.managers.DataManager.feedKeys;
 import static com.rethink.drop.managers.DataManager.getDrop;
@@ -26,6 +28,8 @@ import static com.rethink.drop.managers.DataManager.profiles;
  * Fills in the UI elements for our list of local Drops
  */
 public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
+    private static RequestOptions glideOptions = new RequestOptions()
+            .centerCrop();
     private Context context;
 
     /**
@@ -55,9 +59,8 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                     if (dropImageUrl != null) {
                         Glide.with(MainActivity.getInstance())
                              .load(dropImageUrl)
-                             .centerCrop()
-                             .placeholder(R.drawable.ic_photo_camera_black_24px)
-                             .crossFade()
+                             .apply(glideOptions)
+                             .transition(withCrossFade())
                              .into(dropHolder.imageView);
                     }
                     // Set the Drop text
@@ -70,9 +73,8 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                         if (profileImageUrl != null) {
                             Glide.with(MainActivity.getInstance())
                                  .load(profileImageUrl)
-                                 .centerCrop()
-                                 .placeholder(R.drawable.ic_face_white_24px)
-                                 .crossFade()
+                                 .apply(glideOptions)
+                                 .transition(withCrossFade())
                                  .into(dropHolder.profile);
                         }
                     }
@@ -109,9 +111,8 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                 holder.imageView.setVisibility(View.VISIBLE);
                 Glide.with(context)
                      .load(dropImageUrl)
-                     .centerCrop()
-                     .placeholder(R.drawable.ic_photo_camera_black_24px)
-                     .crossFade()
+                     .apply(glideOptions)
+                     .transition(withCrossFade())
                      .into(holder.imageView);
             } else {
                 holder.imageView.setVisibility(View.GONE);
@@ -126,9 +127,8 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                 if (profileImageUrl != null) {
                     Glide.with(context)
                          .load(profileImageUrl)
-                         .centerCrop()
-                         .placeholder(R.drawable.ic_face_white_24px)
-                         .crossFade()
+                         .apply(glideOptions)
+                         .transition(withCrossFade())
                          .into(holder.profile);
                 }
             }

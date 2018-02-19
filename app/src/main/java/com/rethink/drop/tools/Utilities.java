@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -24,6 +25,8 @@ import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 public class Utilities {
     public static boolean useMetric(Locale locale) {
@@ -244,11 +247,12 @@ public class Utilities {
                                 Profile profile = dataSnapshot.getValue(Profile.class);
                                 if (profile != null) {
                                     if (imageView != null) {
+                                        RequestOptions glideOptions = new RequestOptions()
+                                                .centerCrop();
                                         Glide.with(context)
                                              .load(profile.getImageURL())
-                                             .centerCrop()
-                                             .placeholder(R.drawable.ic_face_white_24px)
-                                             .crossFade()
+                                             .apply(glideOptions)
+                                             .transition(withCrossFade())
                                              .into(imageView);
                                     }
                                     if (textView != null) {

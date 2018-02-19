@@ -12,6 +12,8 @@ import com.bumptech.glide.Glide;
 import com.rethink.drop.R;
 import com.rethink.drop.exceptions.FragmentArgsMismatch;
 
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
+
 public class ImageFragment extends Fragment {
     public final static String IMAGE_URL = "image_url";
 
@@ -34,14 +36,12 @@ public class ImageFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_image,
                                   container,
                                   false);
-        ImageView imageView = (ImageView) v.findViewById(R.id.full_image);
+        ImageView imageView = v.findViewById(R.id.full_image);
         String imageUrl = getArguments().getString(IMAGE_URL);
         if (imageUrl != null && !imageUrl.equals("")) {
             Glide.with(ImageFragment.this)
                  .load(imageUrl)
-                 .crossFade()
-                 .placeholder(R.drawable.ic_photo_camera_white_24px)
-                 .crossFade()
+                 .transition(withCrossFade())
                  .into(imageView);
         }
         return v;

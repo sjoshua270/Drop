@@ -130,7 +130,8 @@ public class FragmentJuggler {
         }
         fragmentManager.beginTransaction()
                        .addSharedElement(profileView.findViewById(R.id.drop_profile_image),
-                                         "image_" + userID)
+                                         "prof_" + userID
+                       )
                        .replace(R.id.main_fragment_container,
                                 profileFragment)
                        .addToBackStack(null)

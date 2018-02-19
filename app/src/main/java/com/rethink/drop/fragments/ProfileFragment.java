@@ -4,6 +4,7 @@ package com.rethink.drop.fragments;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
@@ -23,10 +24,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
-import com.bumptech.glide.DrawableRequestBuilder;
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -46,6 +48,7 @@ import com.rethink.drop.tools.ImageManager;
 import com.rethink.drop.tools.Utilities;
 import com.rethink.drop.viewholders.DropHolder;
 
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.rethink.drop.MainActivity.EDITING;
 import static com.rethink.drop.managers.DataManager.getProfile;
 import static com.rethink.drop.models.Profile.PROFILE_KEY;
@@ -97,22 +100,23 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
         View v = inflater.inflate(R.layout.fragment_profile,
                                   container,
                                   false);
-        profileImageView = (ImageView) v.findViewById(R.id.prof_img);
+        profileImageView = v.findViewById(R.id.prof_img);
         profileImageView.setOnClickListener(new ImageClickHandler());
         String profKey = getArguments().getString(PROFILE_KEY);
         if (profKey != null) {
             ViewCompat.setTransitionName(profileImageView,
-                                         "image_" + profKey);
+                                         "prof_" + profKey
+            );
         } else {
             Log.e("ProfileFragment",
                   "Missing profKey");
         }
 
-        name = (TextView) v.findViewById(R.id.prof_name);
-        nameField = (TextView) v.findViewById(R.id.prof_name_edit);
-        nameFieldSwitcher = (ViewSwitcher) v.findViewById(R.id.username_switcher);
+        name = v.findViewById(R.id.prof_name);
+        nameField = v.findViewById(R.id.prof_name_edit);
+        nameFieldSwitcher = v.findViewById(R.id.username_switcher);
 
-        postsRecycler = (RecyclerView) v.findViewById(R.id.recycler_view);
+        postsRecycler = v.findViewById(R.id.recycler_view);
 
         if (profile != null) {
             notifyDataChanged(profile);
@@ -168,11 +172,11 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     @Override
     public void receiveImage(String path) {
         Glide.with(getContext())
-             .load(path)
              .asBitmap()
+             .load(path)
              .into(new SimpleTarget<Bitmap>() {
                  @Override
-                 public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                 public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
                      uploadImage(resource);
                  }
              });
@@ -229,14 +233,15 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     }
 
     private void notifyDataChanged(Profile profile) {
-        DrawableRequestBuilder<String> thumbnailRequest = Glide.with(ProfileFragment.this)
-                                                               .load(profile.getThumbnailURL());
+        RequestOptions glideOptions = new RequestOptions()
+                .centerCrop();
+        RequestBuilder<Drawable> thumbnailRequest = Glide.with(ProfileFragment.this)
+                                                         .load(profile.getThumbnailURL());
         Glide.with(ProfileFragment.this)
              .load(profile.getImageURL())
-             .centerCrop()
-             .placeholder(R.drawable.ic_face_white_24px)
-             .crossFade()
+             .apply(glideOptions)
              .thumbnail(thumbnailRequest)
+             .transition(withCrossFade())
              .into(profileImageView);
         name.setText(profile.getName());
         nameField.setText(profile.getName());

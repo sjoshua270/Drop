@@ -3,6 +3,7 @@ package com.rethink.drop.fragments;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
@@ -25,10 +26,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
-import com.bumptech.glide.DrawableRequestBuilder;
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
+import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.google.firebase.auth.FirebaseAuth;
@@ -52,6 +55,7 @@ import com.rethink.drop.viewholders.CommentHolder;
 
 import java.util.Calendar;
 
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.rethink.drop.MainActivity.EDITING;
 import static com.rethink.drop.MainActivity.userLocation;
 import static com.rethink.drop.managers.DataManager.feedKeys;
@@ -182,6 +186,10 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         if (dropKey != null) {
             ViewCompat.setTransitionName(dropImage,
                                          "image_" + dropKey);
+            ViewCompat.setTransitionName(
+                    profileImage,
+                    "prof_" + drop.getUserID()
+            );
             ViewCompat.setTransitionName(
                     details,
                     "detail_" + dropKey
@@ -329,14 +337,16 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         if (drop == null) {
             throw new NullDropException("Drop cannot be null here");
         }
-        DrawableRequestBuilder<String> thumbnailRequest = Glide.with(DropFragment.this)
-                                                               .load(drop.getThumbnailURL());
+        RequestOptions glideOptions = new RequestOptions()
+                .transforms(new CircleCrop())
+                .centerCrop();
+        RequestBuilder<Drawable> thumbnailRequest = Glide.with(DropFragment.this)
+                                                         .load(drop.getThumbnailURL());
         Glide.with(DropFragment.this)
              .load(drop.getImageURL())
-             .centerCrop()
-             .placeholder(R.drawable.ic_photo_camera_black_24px)
-             .crossFade()
+             .apply(glideOptions)
              .thumbnail(thumbnailRequest)
+             .transition(withCrossFade())
              .into(dropImage);
 
         description.setText(drop.getText());
@@ -344,14 +354,13 @@ public class DropFragment extends ImageManager implements ImageRecipient {
 
         Profile profile = profiles.get(drop.getUserID());
         if (profile != null) {
-            DrawableRequestBuilder<String> profThumbnailRequest = Glide.with(DropFragment.this)
-                                                                       .load(profile.getThumbnailURL());
+            RequestBuilder<Drawable> profThumbnailRequest = Glide.with(DropFragment.this)
+                                                                 .load(profile.getThumbnailURL());
             Glide.with(DropFragment.this)
                  .load(profile.getImageURL())
-                 .centerCrop()
-                 .placeholder(R.drawable.ic_face_white_24px)
-                 .crossFade()
+                 .apply(glideOptions)
                  .thumbnail(profThumbnailRequest)
+                 .transition(withCrossFade())
                  .into(profileImage);
         }
     }
@@ -413,11 +422,11 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     @Override
     public void receiveImage(final String path) {
         Glide.with(getContext())
-             .load(path)
              .asBitmap()
+             .load(path)
              .into(new SimpleTarget<Bitmap>() {
                  @Override
-                 public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                 public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
                      Utilities.uploadImage(getActivity(),
                                            resource,
                                            getArguments().getString(KEY),
