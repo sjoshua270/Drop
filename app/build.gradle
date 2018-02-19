@@ -23,10 +23,6 @@ android {
     }
 }
 
-static def getDate() {
-    new Date().format('yyyyMMdd_HHmm')
-}
-
 dependencies {
     repositories {
         mavenCentral()
