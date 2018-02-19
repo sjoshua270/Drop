@@ -10,6 +10,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.rethink.drop.MyLayoutManager;
@@ -67,6 +69,12 @@ public class LocalFragment
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         dropsRecycler.setLayoutManager(new MyLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+        int resId = R.anim.layout_anim_drop_to_back;
+        LayoutAnimationController animation = AnimationUtils.loadLayoutAnimation(
+                getContext(),
+                resId
+        );
+        dropsRecycler.setLayoutAnimation(animation);
         dropsRecycler.setAdapter(dropAdapter);
     }
 
