@@ -1,7 +1,6 @@
 package com.rethink.drop.adapters;
 
 import android.content.Context;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,6 +28,12 @@ import static com.rethink.drop.managers.DataManager.profiles;
 public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
     private Context context;
 
+    /**
+     * This is called for the profile pages and is not part of the LocalFragment flow
+     *
+     * @param profileKey
+     * @return FirebaseRecyclerAdapter which handles populating a RecyclerView with profile-specific drops
+     */
     public static FirebaseRecyclerAdapter<Drop, DropHolder> getProfilePosts(String profileKey) {
         DatabaseReference ref = FirebaseDatabase.getInstance()
                                                 .getReference()
@@ -41,6 +46,7 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
             @Override
             protected void populateViewHolder(final DropHolder dropHolder, Drop drop, int position) {
                 final String key = getRef(position).getKey();
+                dropHolder.setKey(key);
                 if (drop != null) {
                     addDrop(key,
                             drop);
@@ -71,12 +77,6 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                         }
                     }
                 }
-                ViewCompat.setTransitionName(dropHolder.imageView,
-                                             "image_" + key);
-                ViewCompat.setTransitionName(dropHolder.desc,
-                                             "desc_" + key);
-                ViewCompat.setTransitionName(dropHolder.profile,
-                                             "prof_" + key);
                 dropHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -101,6 +101,7 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
     public void onBindViewHolder(final DropHolder holder, final int position) {
         final String key = feedKeys.get(position);
         Drop drop = getDrop(key);
+        holder.setKey(key);
         if (drop != null) {
             // Set the Drop image
             String dropImageUrl = drop.getImageURL();
@@ -132,9 +133,6 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                 }
             }
         }
-        ViewCompat.setTransitionName(holder.imageView, "image_" + key);
-        ViewCompat.setTransitionName(holder.desc, "desc_" + key);
-        ViewCompat.setTransitionName(holder.profile, "prof_" + key);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
