@@ -22,7 +22,6 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:layout_margin="10dp"
             android:background="@color/primary_light"
             android:contentDescription="@string/prof_img_desc"
             android:src="@drawable/ic_face_white_24px" />
