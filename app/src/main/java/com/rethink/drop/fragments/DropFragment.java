@@ -71,6 +71,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
     private Menu menu; // The menu that shows in the toolbar
     private TextView description; // The text of the Drop. Read only
     private TextInputEditText descriptionField; // The Field to enter/edit text of the Drop
+    private RelativeLayout details; // The details view
     private ViewSwitcher descriptionFieldSwitcher; // Helps switch between the previous two views
     private FirebaseUser user; // The current user who will be attached to the post
     private Boolean editing; // To determine whether or not we are in edit mode
@@ -147,6 +148,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         descriptionFieldSwitcher = fragmentView.findViewById(R.id.description_switcher);
         description = fragmentView.findViewById(R.id.drop_description);
         descriptionField = fragmentView.findViewById(R.id.drop_description_field);
+        details = fragmentView.findViewById(R.id.drop_details);
 
         // Comments ============================
         commentRecycler = fragmentView.findViewById(R.id.recycler_view);
@@ -180,12 +182,10 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         if (dropKey != null) {
             ViewCompat.setTransitionName(dropImage,
                                          "image_" + dropKey);
-            ViewCompat.setTransitionName(description,
-                                         "desc_" + dropKey);
-            ViewCompat.setTransitionName(descriptionField,
-                                         "desc_" + dropKey);
-            ViewCompat.setTransitionName(profileImage,
-                                         "prof_" + dropKey);
+            ViewCompat.setTransitionName(
+                    details,
+                    "detail_" + dropKey
+            );
         }
 
         try {

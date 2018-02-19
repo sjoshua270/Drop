@@ -102,12 +102,14 @@ public class FragmentJuggler {
             listingFragment.setReturnTransition(new Fade());
         }
         fragmentManager.beginTransaction()
-                       .addSharedElement(listingView.findViewById(R.id.item_image),
-                                         "image_" + key)
-                       .addSharedElement(listingView.findViewById(R.id.item_desc),
-                                         "desc_" + key)
-                       .addSharedElement(listingView.findViewById(R.id.item_prof_img),
-                                         "prof_" + key)
+                       .addSharedElement(
+                               listingView.findViewById(R.id.item_image),
+                               "image_" + key
+                       )
+                       .addSharedElement(
+                               listingView.findViewById(R.id.item_details),
+                               "detail_" + key
+                       )
                        .replace(R.id.main_fragment_container,
                                 listingFragment)
                        .addToBackStack(null)
