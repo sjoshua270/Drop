@@ -177,6 +177,7 @@ public class DataManager {
     private class GeoQueryListener implements GeoQueryEventListener {
         @Override
         public void onKeyEntered(final String dropKey, GeoLocation location) {
+            MainActivity.onDropFound();
             // If we don't already have the dropKey...
             if (feedKeys.indexOf(dropKey) < 0) {
                 // ...put it in the list in chronological order

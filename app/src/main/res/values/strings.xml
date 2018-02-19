@@ -25,4 +25,5 @@
     <string name="send">Send</string>
     <string name="friends">Friends</string>
     <string name="name">Name</string>
+    <string name="no_drops">It doesn\'t seem like there are any Drops near you. Be the first to post one!</string>
 </resources>

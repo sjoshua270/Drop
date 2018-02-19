@@ -37,6 +37,14 @@
             app:cpv_animAutostart="true"
             app:cpv_indeterminate="true" />
 
+        <TextView
+            android:id="@+id/no_drops"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="70dp"
+            android:text="@string/no_drops" />
+
         <FrameLayout
             android:id="@+id/main_fragment_container"
             android:layout_width="match_parent"

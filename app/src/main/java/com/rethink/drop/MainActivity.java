@@ -22,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.firebase.geofire.GeoLocation;
 import com.firebase.ui.auth.AuthUI;
@@ -85,10 +86,11 @@ public class MainActivity extends AppCompatActivity {
     private static LocationRequest mLocationRequest;
     private static FragmentJuggler fragmentJuggler;
     private static LocationCallback mLocationCallback;
+    private static CircularProgressView spinner;
+    private static TextView noDropsFound;
     private FusedLocationProviderClient mFusedLocationClient;
     private FabManager fab;
     private DataManager dataManager;
-    private CircularProgressView spinner;
 
     public static MainActivity getInstance() {
         if (instance != null) {
@@ -115,6 +117,11 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
+    public static void onDropFound() {
+        spinner.setVisibility(View.GONE);
+        noDropsFound.setVisibility(View.GONE);
+    }
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,6 +135,8 @@ public class MainActivity extends AppCompatActivity {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         spinner = findViewById(R.id.progress_view);
         spinner.setVisibility(View.VISIBLE);
+        noDropsFound = findViewById(R.id.no_drops);
+        noDropsFound.setVisibility(View.GONE);
 
         dataManager = new DataManager();
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
@@ -648,7 +657,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void applyLocation(Location location) {
-        spinner.setVisibility(View.GONE);
+        noDropsFound.setVisibility(View.VISIBLE);
         dataManager.updateLocation(new GeoLocation(
                 location.getLatitude(),
                 location.getLongitude()
