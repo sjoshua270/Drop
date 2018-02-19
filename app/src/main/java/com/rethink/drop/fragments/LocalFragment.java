@@ -69,7 +69,7 @@ public class LocalFragment
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         dropsRecycler.setLayoutManager(new MyLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
-        int resId = R.anim.layout_anim_drop_to_back;
+        int resId = android.R.anim.fade_in;
         LayoutAnimationController animation = AnimationUtils.loadLayoutAnimation(
                 getContext(),
                 resId
