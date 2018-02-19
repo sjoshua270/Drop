@@ -49,6 +49,7 @@ import com.rethink.drop.tools.Utilities;
 import com.rethink.drop.viewholders.DropHolder;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
+import static com.bumptech.glide.request.RequestOptions.circleCropTransform;
 import static com.rethink.drop.MainActivity.EDITING;
 import static com.rethink.drop.managers.DataManager.getProfile;
 import static com.rethink.drop.models.Profile.PROFILE_KEY;
@@ -239,7 +240,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                                                          .load(profile.getThumbnailURL());
         Glide.with(ProfileFragment.this)
              .load(profile.getImageURL())
-             .apply(glideOptions)
+             .apply(circleCropTransform())
              .thumbnail(thumbnailRequest)
              .transition(withCrossFade())
              .into(profileImageView);

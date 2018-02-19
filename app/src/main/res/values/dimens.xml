@@ -1,9 +1,10 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="header_fragment_height">200dp</dimen>
-    <dimen name="profile_prof_dimen">64dp</dimen>
+    <dimen name="profile_prof_dimen">96dp</dimen>
 
     <!--Drop items-->
+    <dimen name="medium_margin">16dp</dimen>
     <dimen name="small_margin">8dp</dimen>
     <dimen name="smaller_margin">4dp</dimen>
     <dimen name="item_image_height">300dp</dimen>

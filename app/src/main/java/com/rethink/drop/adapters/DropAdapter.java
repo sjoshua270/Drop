@@ -18,6 +18,7 @@ import com.rethink.drop.models.Profile;
 import com.rethink.drop.viewholders.DropHolder;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
+import static com.bumptech.glide.request.RequestOptions.circleCropTransform;
 import static com.rethink.drop.managers.DataManager.addDrop;
 import static com.rethink.drop.managers.DataManager.feedKeys;
 import static com.rethink.drop.managers.DataManager.getDrop;
@@ -73,7 +74,7 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                         if (profileImageUrl != null) {
                             Glide.with(MainActivity.getInstance())
                                  .load(profileImageUrl)
-                                 .apply(glideOptions)
+                                 .apply(circleCropTransform())
                                  .transition(withCrossFade())
                                  .into(dropHolder.profile);
                         }
@@ -127,7 +128,7 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                 if (profileImageUrl != null) {
                     Glide.with(context)
                          .load(profileImageUrl)
-                         .apply(glideOptions)
+                         .apply(circleCropTransform())
                          .transition(withCrossFade())
                          .into(holder.profile);
                 }

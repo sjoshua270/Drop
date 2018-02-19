@@ -16,7 +16,7 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:background="@color/primary"
+            android:layout_margin="@dimen/small_margin"
             android:contentDescription="@string/prof_img_desc"
             android:src="@drawable/ic_photo_camera_white_24px" />
 
@@ -25,8 +25,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_marginLeft="@dimen/small_margin"
-            android:layout_marginStart="@dimen/small_margin"
+            android:layout_marginLeft="@dimen/medium_margin"
+            android:layout_marginStart="@dimen/medium_margin"
             android:layout_toEndOf="@id/prof_img"
             android:layout_toRightOf="@id/prof_img">
 

@@ -56,6 +56,7 @@ import com.rethink.drop.viewholders.CommentHolder;
 import java.util.Calendar;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
+import static com.bumptech.glide.request.RequestOptions.circleCropTransform;
 import static com.rethink.drop.MainActivity.EDITING;
 import static com.rethink.drop.MainActivity.userLocation;
 import static com.rethink.drop.managers.DataManager.feedKeys;
@@ -358,7 +359,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                                                  .load(profile.getThumbnailURL());
             Glide.with(DropFragment.this)
                  .load(profile.getImageURL())
-                 .apply(glideOptions)
+                 .apply(circleCropTransform())
                  .thumbnail(profThumbnailRequest)
                  .transition(withCrossFade())
                  .into(profileImage);
