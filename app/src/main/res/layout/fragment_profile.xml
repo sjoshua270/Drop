@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical">
 
     <RelativeLayout
@@ -10,10 +11,11 @@
 
         <ImageView
             android:id="@+id/prof_img"
-            android:layout_width="@dimen/item_image_height"
-            android:layout_height="@dimen/item_image_height"
+            android:layout_width="@dimen/profile_prof_dimen"
+            android:layout_height="@dimen/profile_prof_dimen"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
             android:background="@color/primary"
             android:contentDescription="@string/prof_img_desc"
             android:src="@drawable/ic_photo_camera_white_24px" />
@@ -22,16 +24,17 @@
             android:id="@+id/username_switcher"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_below="@id/prof_img"
-            android:layout_marginTop="@dimen/small_margin">
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="@dimen/small_margin"
+            android:layout_marginStart="@dimen/small_margin"
+            android:layout_toEndOf="@id/prof_img"
+            android:layout_toRightOf="@id/prof_img">
 
             <TextView
                 android:id="@+id/prof_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
+                android:layout_gravity="center_vertical"
                 android:textSize="@dimen/profile_name_size" />
 
             <android.support.design.widget.TextInputLayout
@@ -45,14 +48,8 @@
                     android:hint="@string/prof_name" />
             </android.support.design.widget.TextInputLayout>
         </ViewSwitcher>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/username_switcher">
-
-            <include layout="@layout/recycler_view" />
-        </LinearLayout>
     </RelativeLayout>
 
-</ScrollView>
+    <include layout="@layout/recycler_view" />
+</LinearLayout>
+
