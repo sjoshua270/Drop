@@ -28,8 +28,6 @@ import android.widget.ViewSwitcher;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestBuilder;
-import com.bumptech.glide.load.resource.bitmap.CircleCrop;
-import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.firebase.geofire.GeoFire;
@@ -41,6 +39,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.rethink.drop.GlideApp;
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.CommentAdapter;
@@ -56,6 +55,7 @@ import com.rethink.drop.viewholders.CommentHolder;
 import java.util.Calendar;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
+import static com.bumptech.glide.request.RequestOptions.centerCropTransform;
 import static com.bumptech.glide.request.RequestOptions.circleCropTransform;
 import static com.rethink.drop.MainActivity.EDITING;
 import static com.rethink.drop.MainActivity.userLocation;
@@ -338,17 +338,21 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         if (drop == null) {
             throw new NullDropException("Drop cannot be null here");
         }
-        RequestOptions glideOptions = new RequestOptions()
-                .transforms(new CircleCrop())
-                .centerCrop();
         RequestBuilder<Drawable> thumbnailRequest = Glide.with(DropFragment.this)
                                                          .load(drop.getThumbnailURL());
-        Glide.with(DropFragment.this)
-             .load(drop.getImageURL())
-             .apply(glideOptions)
-             .thumbnail(thumbnailRequest)
-             .transition(withCrossFade())
-             .into(dropImage);
+        int placeholder;
+        if (editing) {
+            placeholder = R.drawable.ic_add_a_photo_black_24px;
+        } else {
+            placeholder = R.drawable.ic_image_black_24dp;
+        }
+        GlideApp.with(DropFragment.this)
+                .load(drop.getImageURL())
+                .apply(centerCropTransform())
+                .placeholder(placeholder)
+                .thumbnail(thumbnailRequest)
+                .transition(withCrossFade())
+                .into(dropImage);
 
         description.setText(drop.getText());
         descriptionField.setText(drop.getText());
@@ -357,12 +361,12 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         if (profile != null) {
             RequestBuilder<Drawable> profThumbnailRequest = Glide.with(DropFragment.this)
                                                                  .load(profile.getThumbnailURL());
-            Glide.with(DropFragment.this)
-                 .load(profile.getImageURL())
-                 .apply(circleCropTransform())
-                 .thumbnail(profThumbnailRequest)
-                 .transition(withCrossFade())
-                 .into(profileImage);
+            GlideApp.with(DropFragment.this)
+                    .load(profile.getImageURL())
+                    .apply(circleCropTransform())
+                    .thumbnail(profThumbnailRequest)
+                    .transition(withCrossFade())
+                    .into(profileImage);
         }
     }
 

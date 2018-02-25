@@ -247,7 +247,10 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
         name.setText(profile.getName());
         nameField.setText(profile.getName());
         FirebaseRecyclerAdapter<Drop, DropHolder> dropAdapter = DropAdapter.getProfilePosts(getArguments().getString(PROFILE_KEY));
-        postsRecycler.setLayoutManager(new LinearLayoutManager(MainActivity.getInstance()));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(MainActivity.getInstance());
+        layoutManager.setReverseLayout(true);
+        layoutManager.setStackFromEnd(true);
+        postsRecycler.setLayoutManager(layoutManager);
         postsRecycler.setAdapter(dropAdapter);
     }
 
