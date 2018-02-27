@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
@@ -80,16 +81,20 @@ public class ImageManager extends Fragment {
                 photoFile = createImageFile();
             } catch (IOException ex) {
                 // Error occurred while creating the File
-                MainActivity.getInstance()
-                        .showMessage(getString(R.string.unexpected_error));
+                Toast.makeText(
+                        getContext(),
+                        getString(R.string.unexpected_error),
+                        Toast.LENGTH_LONG
+                )
+                     .show();
                 Log.e("ImageManager.takePic",
                         ex.getMessage());
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
-                Uri photoUri = FileProvider.getUriForFile(MainActivity.getInstance(),
-                        MainActivity.getInstance()
-                                .getApplicationContext()
+                Uri photoUri = FileProvider.getUriForFile(
+                        getContext(),
+                        getContext()
                                 .getPackageName() + ".provider",
                         photoFile);
                 cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);

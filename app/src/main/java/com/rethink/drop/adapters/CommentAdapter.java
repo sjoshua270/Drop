@@ -1,6 +1,7 @@
 package com.rethink.drop.adapters;
 
 
+import android.content.Context;
 import android.view.View;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -11,6 +12,7 @@ import com.rethink.drop.tools.Utilities;
 import com.rethink.drop.viewholders.CommentHolder;
 
 public class CommentAdapter extends FirebaseRecyclerAdapter<Comment, CommentHolder> {
+    private Context context;
 
     /**
      * @param modelClass      Firebase will marshall the data at a location into an instance of a class that you provide
@@ -20,11 +22,12 @@ public class CommentAdapter extends FirebaseRecyclerAdapter<Comment, CommentHold
      * @param ref             The Firebase location to watch for data changes. Can also be a slice of a location, using some
      *                        combination of {@code limit()}, {@code startAt()}, and {@code endAt()}.
      */
-    public CommentAdapter(Class<Comment> modelClass, int modelLayout, Class<CommentHolder> viewHolderClass, Query ref) {
+    public CommentAdapter(Context context, Class<Comment> modelClass, int modelLayout, Class<CommentHolder> viewHolderClass, Query ref) {
         super(modelClass,
               modelLayout,
               viewHolderClass,
               ref);
+        this.context = context;
     }
 
     @Override
@@ -33,16 +36,17 @@ public class CommentAdapter extends FirebaseRecyclerAdapter<Comment, CommentHold
         String edited = comment.isEdited() ? "edited" : "";
         viewHolder.timeStamp.setText(Utilities.getTimeStampString(comment.getTimeStamp()));
         viewHolder.edited.setText(edited);
-        Utilities.setProfileData(MainActivity.getInstance(),
-                                 comment.getCommenterID(),
-                                 viewHolder.profile,
-                                 viewHolder.username);
+        Utilities.setProfileData(
+                context,
+                comment.getCommenterID(),
+                viewHolder.profile,
+                viewHolder.username);
         viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                MainActivity.getInstance()
-                            .editComment(getKey(position),
-                                         comment);
+                MainActivity.editComment(
+                        getKey(position),
+                        comment);
                 return true;
             }
         });

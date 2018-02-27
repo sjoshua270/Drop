@@ -9,9 +9,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.firebase.database.DatabaseReference;
-import com.rethink.drop.MainActivity;
 import com.rethink.drop.R;
 import com.rethink.drop.adapters.FriendAdapter;
 import com.rethink.drop.exceptions.FragmentArgsMismatch;
@@ -40,13 +40,20 @@ public class FriendsFragment extends Fragment {
         String profileKey = args.getString(PROFILE_KEY);
         if (profileKey != null) {
             DatabaseReference friendsRef = Profile.getFriendsRef(profileKey);
-            friendAdapter = new FriendAdapter(Profile.class,
-                                              R.layout.item_friend,
-                                              FriendHolder.class,
-                                              friendsRef);
+            friendAdapter = new FriendAdapter(
+                    getContext(),
+                    Profile.class,
+                    R.layout.item_friend,
+                    FriendHolder.class,
+                    friendsRef
+            );
         } else {
-            MainActivity.getInstance()
-                        .showMessage(getString(R.string.unexpected_error));
+            Toast.makeText(
+                    getContext(),
+                    getString(R.string.unexpected_error),
+                    Toast.LENGTH_LONG
+            )
+                 .show();
             Log.e("FriendsFragment",
                   "Missing profileKey in onCreate");
         }
@@ -58,8 +65,8 @@ public class FriendsFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_friends,
                                   container,
                                   false);
-        RecyclerView friendRecycler = (RecyclerView) v.findViewById(R.id.recycler_view);
-        friendRecycler.setLayoutManager(new LinearLayoutManager(MainActivity.getInstance()));
+        RecyclerView friendRecycler = v.findViewById(R.id.recycler_view);
+        friendRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
         friendRecycler.setAdapter(friendAdapter);
         return v;
     }

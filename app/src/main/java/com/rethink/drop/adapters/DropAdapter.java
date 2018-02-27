@@ -39,7 +39,7 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
      * @param profileKey
      * @return FirebaseRecyclerAdapter which handles populating a RecyclerView with profile-specific drops
      */
-    public static FirebaseRecyclerAdapter<Drop, DropHolder> getProfilePosts(String profileKey) {
+    public static FirebaseRecyclerAdapter<Drop, DropHolder> getProfilePosts(final Context context, String profileKey) {
         DatabaseReference ref = FirebaseDatabase.getInstance()
                                                 .getReference()
                                                 .child("drops_by_profile")
@@ -58,7 +58,7 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                     // Set the Drop image
                     String dropImageUrl = drop.getImageURL();
                     if (dropImageUrl != null) {
-                        Glide.with(MainActivity.getInstance())
+                        Glide.with(context)
                              .load(dropImageUrl)
                              .apply(glideOptions)
                              .transition(withCrossFade())
@@ -72,7 +72,7 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                     if (profile != null) {
                         String profileImageUrl = profile.getImageURL();
                         if (profileImageUrl != null) {
-                            Glide.with(MainActivity.getInstance())
+                            Glide.with(context)
                                  .load(profileImageUrl)
                                  .apply(circleCropTransform())
                                  .transition(withCrossFade())
@@ -83,9 +83,10 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
                 dropHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        MainActivity.getInstance()
-                                    .openListing(dropHolder.itemView,
-                                                 key);
+                        MainActivity.openListing(
+                                dropHolder.itemView,
+                                key
+                        );
                     }
                 });
             }
@@ -137,9 +138,9 @@ public class DropAdapter extends RecyclerView.Adapter<DropHolder> {
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MainActivity.getInstance()
-                            .openListing(holder.itemView,
-                                         key);
+                MainActivity.openListing(
+                        holder.itemView,
+                        key);
             }
         });
     }

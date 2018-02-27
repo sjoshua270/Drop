@@ -1,5 +1,7 @@
 package com.rethink.drop.managers;
 
+import android.support.v7.app.AppCompatActivity;
+
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
@@ -27,12 +29,14 @@ public class DataManager {
     private static HashMap<String, Drop> drops; // These are our drops
     private static Double scanRadius; // The width of our radius for scanning for drops
     private static GeoQueryListener geoQueryListener; // This is the listener that tells us when a drop enters or leaves our radius
+    private MainActivity mainActivity;
     private DatabaseReference geoFireRef; // This is where our GeoQuery can find its data
     private GeoQuery geoQuery; // This is how we access the data in a radius
     private DatabaseReference postsReference;
     private HashMap<String, ValueEventListener> dropListeners;
 
-    public DataManager() {
+    public DataManager(AppCompatActivity activity) {
+        this.mainActivity = (MainActivity) activity;
         scanRadius = 10.0;
         feedKeys = new ArrayList<>();
         drops = new HashMap<>();
@@ -100,8 +104,7 @@ public class DataManager {
         final FirebaseUser user = FirebaseAuth.getInstance()
                                               .getCurrentUser();
         if (user == null) {
-            MainActivity.getInstance()
-                        .login();
+            mainActivity.login();
         } else {
             Profile.getRef(user.getUid())
                    .addValueEventListener(new ValueEventListener() {
@@ -201,8 +204,7 @@ public class DataManager {
                 dropListeners.put(dropKey,
                                   getListener(dropKey));
                 // Inform MainActivity that we have a new Drop
-                MainActivity.getInstance()
-                            .notifyDropInserted(dropKey);
+                MainActivity.notifyDropInserted(dropKey);
             }
         }
 
@@ -211,8 +213,7 @@ public class DataManager {
             drops.remove(key);
             dropLocations.remove(key);
             dropListeners.remove(key);
-            MainActivity.getInstance()
-                        .notifyDropRemoved(key);
+            MainActivity.notifyDropRemoved(key);
             feedKeys.remove(key);
         }
 
@@ -250,8 +251,7 @@ public class DataManager {
             if (drop != null) {
                 drops.put(dropKey,
                           drop);
-                MainActivity.getInstance()
-                            .notifyDropChanged(dropKey);
+                MainActivity.notifyDropChanged(dropKey);
                 // If we haven't already stored the Profile which created this Drop...
                 if (!profiles.containsKey(drop.getUserID())) {
                     // ...then let's add it!
@@ -289,8 +289,7 @@ public class DataManager {
             Profile profile = dataSnapshot.getValue(Profile.class);
             profiles.put(key,
                          profile);
-            MainActivity.getInstance()
-                        .notifyDropChanged(dropKey);
+            MainActivity.notifyDropChanged(dropKey);
         }
 
         @Override

@@ -1,7 +1,9 @@
 package com.rethink.drop.models;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -9,20 +11,21 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
-import com.rethink.drop.MainActivity;
 import com.rethink.drop.managers.DataManager;
 
 import static com.rethink.drop.tools.StringUtilities.parseHashTags;
 
 public class Drop {
     public static final String KEY = "KEY";
+    private Context context;
     private String userID;
     private long timestamp;
     private String imageURL;
     private String thumbnailURL;
     private String text;
 
-    public Drop(String userID, long timestamp, String imageURL, String thumbnailURL, String text) {
+    public Drop(Context context, String userID, long timestamp, String imageURL, String thumbnailURL, String text) {
+        this.context = context;
         this.userID = userID;
         this.timestamp = timestamp;
         this.imageURL = imageURL;
@@ -116,8 +119,12 @@ public class Drop {
                                                       .addOnFailureListener(new OnFailureListener() {
                                                           @Override
                                                           public void onFailure(@NonNull Exception e) {
-                                                              MainActivity.getInstance()
-                                                                          .showMessage("Failed to delete Drop. Please try again later");
+                                                              Toast.makeText(
+                                                                      context,
+                                                                      "Failed to delete Drop. Please try again later",
+                                                                      Toast.LENGTH_LONG
+                                                              )
+                                                                   .show();
                                                               Log.e("Drop.delete_thumbnail",
                                                                     e.getMessage());
                                                           }
@@ -128,8 +135,12 @@ public class Drop {
                            .addOnFailureListener(new OnFailureListener() {
                                @Override
                                public void onFailure(@NonNull Exception e) {
-                                   MainActivity.getInstance()
-                                               .showMessage("Failed to delete Drop. Please try again later");
+                                   Toast.makeText(
+                                           context,
+                                           "Failed to delete Drop. Please try again later",
+                                           Toast.LENGTH_LONG
+                                   )
+                                        .show();
                                    Log.e("Drop.delete",
                                          e.getMessage());
                                }

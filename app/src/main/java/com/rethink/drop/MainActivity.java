@@ -1,7 +1,6 @@
 package com.rethink.drop;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -13,15 +12,15 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import com.firebase.geofire.GeoLocation;
@@ -81,24 +80,17 @@ public class MainActivity extends AppCompatActivity {
     public static final int STORAGE_REQUEST = 3;
     private static final int REQUEST_LOCATION = 2;
     private static final int REQUEST_CHECK_SETTINGS = 3830;
-    public static MainActivity instance;
     public static Location userLocation;
     private static LocationRequest mLocationRequest;
     private static FragmentJuggler fragmentJuggler;
     private static LocationCallback mLocationCallback;
     private static CircularProgressView spinner;
-    private static TextView noDropsFound;
+    private static ActionBar actionBar;
+    private static FragmentManager fragmentManager;
+    private TextView noDropsFound;
     private FusedLocationProviderClient mFusedLocationClient;
     private FabManager fab;
     private DataManager dataManager;
-
-    public static MainActivity getInstance() {
-        if (instance != null) {
-            return instance;
-        } else {
-            return new MainActivity();
-        }
-    }
 
     public static ImageRecipient getImageRecipient(Class recipient) {
         Fragment imageRecipient = fragmentJuggler.getCurrentFragment();
@@ -109,24 +101,94 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    public static void askForLocationPermission() {
+    public static void onDropFound() {
+        spinner.setVisibility(View.GONE);
+    }
+
+    public static void notifyDropInserted(String key) {
+        Fragment fragment = fragmentJuggler.getCurrentFragment();
+        Class fragmentClass = fragment.getClass();
+        if (fragmentClass.equals(LocalFragment.class)) {
+            ((LocalFragment) fragment).notifyDropInserted(key);
+        }
+    }
+
+    public static void notifyDropChanged(String key) {
+        Fragment fragment = fragmentJuggler.getCurrentFragment();
+        Class fragmentClass = fragment.getClass();
+        if (fragmentClass.equals(LocalFragment.class)) {
+            ((LocalFragment) fragment).notifyDropChanged(key);
+        }
+    }
+
+    public static void notifyDropRemoved(String key) {
+        Fragment fragment = fragmentJuggler.getCurrentFragment();
+        Class fragmentClass = fragment.getClass();
+        if (fragmentClass.equals(LocalFragment.class)) {
+            ((LocalFragment) fragment).notifyDropRemoved(key);
+        }
+    }
+
+    private static void syncUpNav() {
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(fragmentManager.getBackStackEntryCount() > 1);
+        }
+    }
+
+    public static void openListing(View listingView, String key) {
+        try {
+            fragmentJuggler.viewListing(
+                    listingView,
+                    key
+            );
+        } catch (FragmentArgsMismatch fam) {
+            Log.e(
+                    "openListing",
+                    fam.getMessage()
+            );
+        }
+    }
+
+    public static void openProfile(View profile, String userID) {
+        try {
+
+            fragmentJuggler.viewProfile(
+                    profile,
+                    userID
+            );
+        } catch (FragmentArgsMismatch fam) {
+            Log.e(
+                    "openProfile",
+                    fam.getMessage()
+            );
+        }
+    }
+
+    public static void editComment(String commentKey, Comment comment) {
+        Fragment dropFragment = fragmentJuggler.getCurrentFragment();
+        if (dropFragment.getClass()
+                        .equals(DropFragment.class)) {
+            dropFragment.getArguments()
+                        .putString(
+                                COMMENT_KEY,
+                                commentKey
+                        );
+            ((DropFragment) dropFragment).editComment(comment.getText());
+        }
+    }
+
+    public void askForLocationPermission() {
         ActivityCompat.requestPermissions(
-                getInstance(),
+                this,
                 new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                 REQUEST_LOCATION
         );
-    }
-
-    public static void onDropFound() {
-        spinner.setVisibility(View.GONE);
-        noDropsFound.setVisibility(View.GONE);
     }
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        instance = this;
 
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
@@ -137,8 +199,10 @@ public class MainActivity extends AppCompatActivity {
         spinner.setVisibility(View.VISIBLE);
         noDropsFound = findViewById(R.id.no_drops);
         noDropsFound.setVisibility(View.GONE);
+        actionBar = getSupportActionBar();
+        fragmentManager = getSupportFragmentManager();
 
-        dataManager = new DataManager();
+        dataManager = new DataManager(this);
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
         // Let's handle what happens when we do get our location
         mLocationCallback = new LocationCallback() {
@@ -281,19 +345,6 @@ public class MainActivity extends AppCompatActivity {
                                   .getArguments());
     }
 
-    public void dismissKeyboard() {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        View focused = getCurrentFocus();
-        if (focused != null) {
-            if (imm != null) {
-                imm.hideSoftInputFromWindow(
-                        focused.getWindowToken(),
-                        0
-                );
-            }
-        }
-    }
-
     private void setBackStackListener() {
         getSupportFragmentManager().addOnBackStackChangedListener(new OnBackStackChangedListener() {
             @Override
@@ -320,65 +371,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void notifyDropInserted(String key) {
-        Fragment fragment = fragmentJuggler.getCurrentFragment();
-        Class fragmentClass = fragment.getClass();
-        if (fragmentClass.equals(LocalFragment.class)) {
-            ((LocalFragment) fragment).notifyDropInserted(key);
-        }
-    }
-
-    public void notifyDropChanged(String key) {
-        Fragment fragment = fragmentJuggler.getCurrentFragment();
-        Class fragmentClass = fragment.getClass();
-        if (fragmentClass.equals(LocalFragment.class)) {
-            ((LocalFragment) fragment).notifyDropChanged(key);
-        }
-    }
-
-    public void notifyDropRemoved(String key) {
-        Fragment fragment = fragmentJuggler.getCurrentFragment();
-        Class fragmentClass = fragment.getClass();
-        if (fragmentClass.equals(LocalFragment.class)) {
-            ((LocalFragment) fragment).notifyDropRemoved(key);
-        }
-    }
-
-    private void syncUpNav() {
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager().getBackStackEntryCount() > 1);
-        }
-    }
-
-    public void openListing(View listingView, String key) {
-        try {
-            fragmentJuggler.viewListing(
-                    listingView,
-                    key
-            );
-        } catch (FragmentArgsMismatch fam) {
-            Log.e(
-                    "openListing",
-                    fam.getMessage()
-            );
-        }
-    }
-
-    public void openProfile(View profile, String userID) {
-        try {
-
-            fragmentJuggler.viewProfile(
-                    profile,
-                    userID
-            );
-        } catch (FragmentArgsMismatch fam) {
-            Log.e(
-                    "openProfile",
-                    fam.getMessage()
-            );
-        }
-    }
-
     public void viewImage(String key) {
         Bundle args = new Bundle();
         Drop drop = getDrop(key);
@@ -395,30 +387,6 @@ public class MainActivity extends AppCompatActivity {
             Log.e(
                     "viewImage",
                     "Drop is not cached/saved"
-            );
-        }
-    }
-
-    public void editComment(String commentKey, Comment comment) {
-        Fragment dropFragment = fragmentJuggler.getCurrentFragment();
-        if (dropFragment.getClass()
-                        .equals(DropFragment.class)) {
-            dropFragment.getArguments()
-                        .putString(
-                                COMMENT_KEY,
-                                commentKey
-                        );
-            ((DropFragment) dropFragment).editComment(comment.getText());
-        }
-    }
-
-    public void showKeyboard(EditText editText) {
-        editText.requestFocus();
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null) {
-            imm.showSoftInput(
-                    editText,
-                    InputMethodManager.SHOW_IMPLICIT
             );
         }
     }
@@ -560,23 +528,23 @@ public class MainActivity extends AppCompatActivity {
     private Boolean locationPermissionsGranted() {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.M || (
                 ActivityCompat.checkSelfPermission(
-                        MainActivity.getInstance(),
+                        this,
                         android.Manifest.permission.ACCESS_FINE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED
                         &&
                         ActivityCompat.checkSelfPermission(
-                                MainActivity.getInstance(),
+                                this,
                                 android.Manifest.permission.ACCESS_COARSE_LOCATION
                         ) == PackageManager.PERMISSION_GRANTED);
     }
 
     private void checkLocationSettings() {
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest);
-        SettingsClient client = LocationServices.getSettingsClient(MainActivity.getInstance());
+        SettingsClient client = LocationServices.getSettingsClient(this);
         Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
         // Do the system settings match what we want?
         task.addOnSuccessListener(
-                MainActivity.getInstance(),
+                this,
                 new OnSuccessListener<LocationSettingsResponse>() {
                     @Override
                     public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
@@ -587,7 +555,7 @@ public class MainActivity extends AppCompatActivity {
         );
 
         task.addOnFailureListener(
-                MainActivity.getInstance(),
+                this,
                 new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
@@ -601,7 +569,7 @@ public class MainActivity extends AppCompatActivity {
                                     // and check the result in onActivityResult().
                                     ResolvableApiException resolvable = (ResolvableApiException) e;
                                     resolvable.startResolutionForResult(
-                                            MainActivity.getInstance(),
+                                            MainActivity.this,
                                             MainActivity.REQUEST_CHECK_SETTINGS
                                     );
                                 } catch (IntentSender.SendIntentException sendEx) {
@@ -657,7 +625,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void applyLocation(Location location) {
-        noDropsFound.setVisibility(View.VISIBLE);
+//        noDropsFound.setVisibility(View.VISIBLE);
         dataManager.updateLocation(new GeoLocation(
                 location.getLatitude(),
                 location.getLongitude()

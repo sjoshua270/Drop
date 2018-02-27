@@ -2,6 +2,8 @@ package com.rethink.drop.fragments;
 
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -20,8 +22,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
 import com.bumptech.glide.Glide;
@@ -156,8 +160,12 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                                          "",
                                          ""));
             } else {
-                MainActivity.getInstance()
-                            .showMessage("Please log in");
+                Toast.makeText(
+                        getContext(),
+                        "Please log in",
+                        Toast.LENGTH_LONG
+                )
+                     .show();
                 getFragmentManager().popBackStackImmediate();
             }
         }
@@ -228,8 +236,19 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                               thumbnailURL,
                               name);
         profile.save(getArguments().getString(PROFILE_KEY));
-        MainActivity.getInstance()
-                    .dismissKeyboard();
+        Activity activity = getActivity();
+        if (activity != null) {
+            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            View focused = activity.getCurrentFocus();
+            if (focused != null) {
+                if (imm != null) {
+                    imm.hideSoftInputFromWindow(
+                            focused.getWindowToken(),
+                            0
+                    );
+                }
+            }
+        }
         toggleState();
     }
 
@@ -246,8 +265,11 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
              .into(profileImageView);
         name.setText(profile.getName());
         nameField.setText(profile.getName());
-        FirebaseRecyclerAdapter<Drop, DropHolder> dropAdapter = DropAdapter.getProfilePosts(getArguments().getString(PROFILE_KEY));
-        LinearLayoutManager layoutManager = new LinearLayoutManager(MainActivity.getInstance());
+        FirebaseRecyclerAdapter<Drop, DropHolder> dropAdapter = DropAdapter.getProfilePosts(
+                getContext(),
+                getArguments().getString(PROFILE_KEY)
+        );
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         layoutManager.setReverseLayout(true);
         layoutManager.setStackFromEnd(true);
         postsRecycler.setLayoutManager(layoutManager);
@@ -281,8 +303,10 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
         save.setVisible(userOwnsProfile && editing);
         logOut.setVisible(userOwnsProfile);
         edit.setVisible(userOwnsProfile && !editing);
-        MainActivity.getInstance()
-                    .syncUI();
+        MainActivity activity = (MainActivity) getActivity();
+        if (activity != null) {
+            activity.syncUI();
+        }
     }
 
     @Override

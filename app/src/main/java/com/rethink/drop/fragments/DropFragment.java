@@ -1,6 +1,8 @@
 package com.rethink.drop.fragments;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -20,6 +22,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -109,12 +112,15 @@ public class DropFragment extends ImageManager implements ImageRecipient {
             if (key != null) {
                 drop = getDrop(key);
             } else {
-                drop = new Drop(user.getUid(),
-                                Calendar.getInstance()
+                drop = new Drop(
+                        getContext(),
+                        user.getUid(),
+                        Calendar.getInstance()
                                         .getTimeInMillis(),
-                                "",
-                                "",
-                                "");
+                        "",
+                        "",
+                        ""
+                );
                 key = drop.save(null);
                 getArguments().putString(KEY,
                                          key);
@@ -145,9 +151,10 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         profileImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MainActivity.getInstance()
-                            .openProfile(profileImage,
-                                         drop.getUserID());
+                MainActivity.openProfile(
+                        profileImage,
+                        drop.getUserID()
+                );
             }
         });
         descriptionFieldSwitcher = fragmentView.findViewById(R.id.description_switcher);
@@ -179,8 +186,19 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                             commentField.setText("");
                             getArguments().putString(COMMENT_KEY,
                                                      null);
-                            MainActivity.getInstance()
-                                        .dismissKeyboard();
+                            Activity activity = getActivity();
+                            if (activity != null) {
+                                InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                                View focused = activity.getCurrentFocus();
+                                if (focused != null) {
+                                    if (imm != null) {
+                                        imm.hideSoftInputFromWindow(
+                                                focused.getWindowToken(),
+                                                0
+                                        );
+                                    }
+                                }
+                            }
                         }
                     });
         String dropKey = getArguments().getString(KEY);
@@ -269,10 +287,13 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                                         .getReference()
                                                         .child("comments")
                                                         .child(dropKey);
-                CommentAdapter commentAdapter = new CommentAdapter(Comment.class,
-                                                                   R.layout.item_comment,
-                                                                   CommentHolder.class,
-                                                                   ref);
+                CommentAdapter commentAdapter = new CommentAdapter(
+                        getContext(),
+                        Comment.class,
+                        R.layout.item_comment,
+                        CommentHolder.class,
+                        ref
+                );
                 commentRecycler.setLayoutManager(new LinearLayoutManager(getContext(),
                                                                          LinearLayoutManager.VERTICAL,
                                                                          false));
@@ -288,8 +309,17 @@ public class DropFragment extends ImageManager implements ImageRecipient {
 
     public void editComment(String commentText) {
         commentField.setText(commentText);
-        MainActivity.getInstance()
-                    .showKeyboard(commentField);
+        commentField.requestFocus();
+        Activity activity = getActivity();
+        if (activity != null) {
+            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.showSoftInput(
+                        commentField,
+                        InputMethodManager.SHOW_IMPLICIT
+                );
+            }
+        }
     }
 
     /**
@@ -304,11 +334,13 @@ public class DropFragment extends ImageManager implements ImageRecipient {
      * Saves the descriptionField text and puts the current key into GeoFire for location tracking
      */
     public void publishDrop() {
-        drop = new Drop(user.getUid(),
-                        drop.getTimestamp(),
-                        drop.getImageURL(),
-                        drop.getThumbnailURL(),
-                        descriptionField.getText()
+        drop = new Drop(
+                getContext(),
+                user.getUid(),
+                drop.getTimestamp(),
+                drop.getImageURL(),
+                drop.getThumbnailURL(),
+                descriptionField.getText()
                                         .toString());
 
         String key = getArguments().getString(KEY);
@@ -324,8 +356,19 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                         .child("geoFire")).setLocation(key,
                                                                        location);
         }
-        MainActivity.getInstance()
-                    .dismissKeyboard();
+        Activity activity = getActivity();
+        if (activity != null) {
+            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            View focused = activity.getCurrentFocus();
+            if (focused != null) {
+                if (imm != null) {
+                    imm.hideSoftInputFromWindow(
+                            focused.getWindowToken(),
+                            0
+                    );
+                }
+            }
+        }
         toggleState();
     }
 
@@ -414,8 +457,10 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         save.setVisible(userOwnsDrop && key != null && editing);
         delete.setVisible(userOwnsDrop && key != null);
         edit.setVisible(userOwnsDrop && !editing && ALLOW_EDIT);
-        MainActivity.getInstance()
-                    .syncUI();
+        MainActivity activity = (MainActivity) getActivity();
+        if (activity != null) {
+            activity.syncUI();
+        }
     }
 
     /**
@@ -448,11 +493,13 @@ public class DropFragment extends ImageManager implements ImageRecipient {
         public void onClick(View v) {
             if (editing) {
                 String dropKey = getArguments().getString(KEY);
-                drop = new Drop(user.getUid(),
-                                drop.getTimestamp(),
-                                drop.getImageURL(),
-                                drop.getThumbnailURL(),
-                                descriptionField.getText()
+                drop = new Drop(
+                        getContext(),
+                        user.getUid(),
+                        drop.getTimestamp(),
+                        drop.getImageURL(),
+                        drop.getThumbnailURL(),
+                        descriptionField.getText()
                                                 .toString());
                 drop.save(dropKey);
 

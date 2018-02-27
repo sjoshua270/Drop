@@ -2,6 +2,7 @@ package com.rethink.drop.tools;
 
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -24,8 +25,10 @@ public class Notifications {
     private ArrayList<String> texts;
     private long startTime;
     private NotificationManagerCompat notificationManager;
+    private Context context;
 
-    public Notifications(NotificationManagerCompat notificationManager, String userID) {
+    public Notifications(Context context, NotificationManagerCompat notificationManager, String userID) {
+        this.context = context;
         this.notificationManager = notificationManager;
         refs = new ArrayList<>();
         listeners = new ArrayList<>();
@@ -90,17 +93,19 @@ public class Notifications {
                 for (String text : texts) {
                     inboxStyle.addLine(text);
                 }
-                Intent resultIntent = new Intent(MainActivity.getInstance(),
-                                                 MainActivity.class);
-                PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.getInstance(),
-                                                                        0,
-                                                                        resultIntent,
-                                                                        PendingIntent.FLAG_UPDATE_CURRENT);
-                Notification notification = new NotificationCompat.Builder(MainActivity.getInstance()).setSmallIcon(R.drawable.ic_drop)
-                                                                                                      .setContentTitle("Your friend made a Drop!")
-                                                                                                      .setStyle(inboxStyle)
-                                                                                                      .setContentIntent(pendingIntent)
-                                                                                                      .build();
+                Intent resultIntent = new Intent(
+                        context,
+                        MainActivity.class);
+                PendingIntent pendingIntent = PendingIntent.getActivity(
+                        context,
+                        0,
+                        resultIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT);
+                Notification notification = new NotificationCompat.Builder(context).setSmallIcon(R.drawable.ic_drop)
+                                                                                   .setContentTitle("Your friend made a Drop!")
+                                                                                   .setStyle(inboxStyle)
+                                                                                   .setContentIntent(pendingIntent)
+                                                                                   .build();
                 // Builds the notification and issues it.
                 notificationManager.notify(1,
                                            notification);
