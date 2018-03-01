@@ -9,11 +9,16 @@ public class Profile {
     private String imageURL;
     private String thumbnailURL;
     private String name;
+    private String username;
 
-    public Profile(String imageURL, String thumbnailURL, String name) {
+    public Profile(String imageURL,
+                   String thumbnailURL,
+                   String name,
+                   String username) {
         this.imageURL = imageURL;
         this.thumbnailURL = thumbnailURL;
         this.name = name;
+        this.username = username;
     }
 
     public Profile() {
@@ -61,5 +66,9 @@ public class Profile {
 
     public String getName() {
         return name;
+    }
+
+    public String getUsername() {
+        return username;
     }
 }

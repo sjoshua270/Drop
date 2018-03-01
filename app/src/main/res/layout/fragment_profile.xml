@@ -21,9 +21,10 @@
             android:src="@drawable/ic_photo_camera_white_24px" />
 
         <ViewSwitcher
-            android:id="@+id/username_switcher"
+            android:id="@+id/name_switcher"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
             android:layout_centerVertical="true"
             android:layout_marginLeft="@dimen/medium_margin"
             android:layout_marginStart="@dimen/medium_margin"
@@ -46,6 +47,36 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/prof_name" />
+            </android.support.design.widget.TextInputLayout>
+        </ViewSwitcher>
+
+        <ViewSwitcher
+            android:id="@+id/username_switcher"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/name_switcher"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="@dimen/medium_margin"
+            android:layout_marginStart="@dimen/medium_margin"
+            android:layout_toEndOf="@id/prof_img"
+            android:layout_toRightOf="@id/prof_img">
+
+            <TextView
+                android:id="@+id/username"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:textSize="@dimen/profile_name_size" />
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/username_edit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/username" />
             </android.support.design.widget.TextInputLayout>
         </ViewSwitcher>
     </RelativeLayout>

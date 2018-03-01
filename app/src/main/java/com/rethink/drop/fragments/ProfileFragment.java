@@ -3,6 +3,8 @@ package com.rethink.drop.fragments;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -12,6 +14,8 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.ViewCompat;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -64,6 +68,8 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
     private TextView name;
     private TextView nameField;
     private ViewSwitcher nameFieldSwitcher;
+    private TextView userField;
+    private ViewSwitcher userFieldSwitcher;
     private Boolean editing;
     private ImageView profileImageView;
     private Profile profile;
@@ -119,7 +125,9 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
 
         name = v.findViewById(R.id.prof_name);
         nameField = v.findViewById(R.id.prof_name_edit);
-        nameFieldSwitcher = v.findViewById(R.id.username_switcher);
+        nameFieldSwitcher = v.findViewById(R.id.name_switcher);
+        userField = v.findViewById(R.id.username_edit);
+        userFieldSwitcher = v.findViewById(R.id.username_switcher);
 
         postsRecycler = v.findViewById(R.id.recycler_view);
 
@@ -157,6 +165,7 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                                       .child("profiles")
                                       .child(userID);
                 ref.setValue(new Profile("",
+                                         "",
                                          "",
                                          ""));
             } else {
@@ -226,15 +235,68 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                               getArguments().getString(PROFILE_KEY));
     }
 
+    public void checkUsername() {
+        String username = userField.getText()
+                                   .toString();
+        if (!username.equals(profile.getUsername())) {
+            final ProgressDialog progressDialog = new ProgressDialog(getContext());
+            progressDialog.setCancelable(false);
+            progressDialog.setTitle("Checking username...");
+            progressDialog.show();
+            DatabaseReference ref = FirebaseDatabase.getInstance()
+                                                    .getReference()
+                                                    .child("profiles")
+                                                    .child("usernames")
+                                                    .child(username);
+            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    progressDialog.dismiss();
+                    if (dataSnapshot.exists()) {
+                        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getContext())
+                                .setMessage("Username in use. Please choose another")
+                                .setPositiveButton("OK",
+                                                   null);
+                        dialogBuilder.create()
+                                     .show();
+                    } else {
+                        saveProfile();
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        } else {
+            saveProfile();
+        }
+    }
+
     public void saveProfile() {
         String imageURL = profile != null ? profile.getImageURL() : "";
         String thumbnailURL = profile != null ? profile.getThumbnailURL() : "";
         String name = nameField.getText()
                                .toString();
+        String username = userField.getText()
+                                   .toString();
 
+
+        DatabaseReference ref = FirebaseDatabase.getInstance()
+                                                .getReference()
+                                                .child("profiles")
+                                                .child("usernames");
+        // Remove the old username
+        ref.child(profile.getUsername())
+           .removeValue();
+        // Insert the new one
+        ref.child(username)
+           .setValue(username);
         profile = new Profile(imageURL,
                               thumbnailURL,
-                              name);
+                              name,
+                              username);
         profile.save(getArguments().getString(PROFILE_KEY));
         Activity activity = getActivity();
         if (activity != null) {
@@ -265,6 +327,14 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
              .into(profileImageView);
         name.setText(profile.getName());
         nameField.setText(profile.getName());
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        if (activity != null) {
+            ActionBar actionBar = activity.getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.setTitle(profile.getUsername());
+            }
+        }
+        userField.setText(profile.getUsername());
         FirebaseRecyclerAdapter<Drop, DropHolder> dropAdapter = DropAdapter.getProfilePosts(
                 getContext(),
                 getArguments().getString(PROFILE_KEY)
@@ -290,11 +360,21 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                                  .equals(TextInputLayout.class)) {
                 nameFieldSwitcher.showNext();
             }
+            if (userFieldSwitcher.getNextView()
+                                 .getClass()
+                                 .equals(TextInputLayout.class)) {
+                userFieldSwitcher.showNext();
+            }
         } else {
             if (nameFieldSwitcher.getNextView()
                                  .getClass()
                                  .equals(AppCompatTextView.class)) {
                 nameFieldSwitcher.showNext();
+            }
+            if (userFieldSwitcher.getNextView()
+                                 .getClass()
+                                 .equals(AppCompatTextView.class)) {
+                userFieldSwitcher.showNext();
             }
         }
         MenuItem save = menu.findItem(R.id.save_profile);

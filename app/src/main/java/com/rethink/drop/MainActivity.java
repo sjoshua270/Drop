@@ -340,9 +340,13 @@ public class MainActivity extends AppCompatActivity {
 
     public void syncUI() {
         syncUpNav();
-        fab.update(fragmentJuggler.getCurrentFragment()
-                                  .getArguments());
-        actionBar.setTitle(FRAGMENT_NAMES[CURRENT]);
+        Fragment curr = fragmentJuggler.getCurrentFragment();
+        Bundle currArgs = curr.getArguments();
+        fab.update(currArgs);
+        if (!curr.getClass()
+                 .equals(ProfileFragment.class)) {
+            actionBar.setTitle(FRAGMENT_NAMES[CURRENT]);
+        }
     }
 
     private void setBackStackListener() {
@@ -496,7 +500,7 @@ public class MainActivity extends AppCompatActivity {
                           });
                     break;
                 case R.id.save_profile:
-                    profileFragment.saveProfile();
+                    profileFragment.checkUsername();
                     break;
                 case R.id.edit_profile:
                     profileFragment.editProfile();
