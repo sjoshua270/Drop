@@ -67,11 +67,11 @@ import static com.rethink.drop.models.Comment.COMMENT_KEY;
 import static com.rethink.drop.models.Drop.KEY;
 import static com.rethink.drop.models.Profile.PROFILE_KEY;
 import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
+import static com.rethink.drop.tools.FragmentJuggler.DROP;
+import static com.rethink.drop.tools.FragmentJuggler.FEED;
 import static com.rethink.drop.tools.FragmentJuggler.FRAGMENT_NAMES;
 import static com.rethink.drop.tools.FragmentJuggler.FRIENDS;
 import static com.rethink.drop.tools.FragmentJuggler.IMAGE;
-import static com.rethink.drop.tools.FragmentJuggler.LISTING;
-import static com.rethink.drop.tools.FragmentJuggler.LOCAL;
 import static com.rethink.drop.tools.FragmentJuggler.PROFILE;
 
 public class MainActivity extends AppCompatActivity {
@@ -242,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 switch (CURRENT) {
-                    case LOCAL:
+                    case FEED:
                         final FirebaseUser user = FirebaseAuth.getInstance()
                                                               .getCurrentUser();
                         if (user != null) {
@@ -253,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
                                            if (dataSnapshot.getValue(Profile.class) != null) {
                                                Bundle args = new Bundle();
                                                openFragment(
-                                                       LISTING,
+                                                       DROP,
                                                        args
                                                );
                                            } else {
@@ -354,10 +354,10 @@ public class MainActivity extends AppCompatActivity {
                     if (frag != null) {
                         Class currClass = frag.getClass();
                         if (currClass.equals(LocalFragment.class)) {
-                            CURRENT = LOCAL;
+                            CURRENT = FEED;
                         }
                         if (currClass.equals(DropFragment.class)) {
-                            CURRENT = LISTING;
+                            CURRENT = DROP;
                         }
                         if (currClass.equals(ProfileFragment.class)) {
                             CURRENT = PROFILE;
@@ -401,7 +401,7 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 Bundle args = new Bundle();
                 openFragment(
-                        LOCAL,
+                        FEED,
                         args
                 );
             }
@@ -633,7 +633,7 @@ public class MainActivity extends AppCompatActivity {
         dataManager.onResume();
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
             openFragment(
-                    LOCAL,
+                    FEED,
                     null
             );
         }

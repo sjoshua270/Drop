@@ -25,14 +25,14 @@ import static com.rethink.drop.models.Profile.PROFILE_KEY;
 
 public class FragmentJuggler {
 
-    public static final int LOCAL = 0;
-    public static final int LISTING = 1;
+    public static final int FEED = 0;
+    public static final int DROP = 1;
     public static final int PROFILE = 2;
     public static final int IMAGE = 3;
     public static final int FRIENDS = 4;
     public static final String[] FRAGMENT_NAMES = {
-            "Local",
-            "Listing",
+            "Feed",
+            "Drop",
             "Profile",
             "Image",
             "Friends"
@@ -56,12 +56,12 @@ public class FragmentJuggler {
 
     public void setMainFragment(int fragmentID, Bundle args) throws FragmentArgsMismatch {
         switch (fragmentID) {
-            case LOCAL:
+            case FEED:
                 switchFragments(LocalFragment.newInstance(),
                                 R.id.main_fragment_container,
                                 true);
                 break;
-            case LISTING:
+            case DROP:
                 switchFragments(DropFragment.newInstance(args),
                                 R.id.main_fragment_container,
                                 true);
@@ -90,7 +90,7 @@ public class FragmentJuggler {
     }
 
     public void viewListing(View listingView, String key) throws FragmentArgsMismatch {
-        CURRENT = LISTING;
+        CURRENT = DROP;
         Bundle args = new Bundle();
         args.putString(KEY,
                        key);

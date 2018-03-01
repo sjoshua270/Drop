@@ -14,7 +14,7 @@ import com.rethink.drop.R;
 
 import static com.rethink.drop.models.Profile.PROFILE_KEY;
 import static com.rethink.drop.tools.FragmentJuggler.CURRENT;
-import static com.rethink.drop.tools.FragmentJuggler.LOCAL;
+import static com.rethink.drop.tools.FragmentJuggler.FEED;
 import static com.rethink.drop.tools.FragmentJuggler.PROFILE;
 
 public class FabManager {
@@ -32,7 +32,7 @@ public class FabManager {
             hide();
         }
         switch (CURRENT) {
-            case LOCAL:
+            case FEED:
                 setDrawable(R.drawable.ic_add_white_24px);
                 break;
             case PROFILE:
