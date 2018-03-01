@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.rethink.drop">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -52,6 +53,10 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="9971011a1ccb20983be74fedb5e648b49e555c67"
+            tools:replace="android:value" />
     </application>
 
 </manifest>

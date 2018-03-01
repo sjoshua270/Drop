@@ -23,6 +23,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.ui.auth.AuthUI;
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
@@ -60,6 +61,8 @@ import com.rethink.drop.tools.FabManager;
 import com.rethink.drop.tools.FragmentJuggler;
 
 import java.util.Arrays;
+
+import io.fabric.sdk.android.Fabric;
 
 import static com.rethink.drop.fragments.ImageFragment.IMAGE_URL;
 import static com.rethink.drop.managers.DataManager.getDrop;
@@ -202,6 +205,8 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         actionBar = getSupportActionBar();
         fragmentManager = getSupportFragmentManager();
+        Fabric.with(this,
+                    new Crashlytics());
 
         dataManager = new DataManager(this);
         fragmentJuggler = new FragmentJuggler(getSupportFragmentManager());
