@@ -29,7 +29,7 @@ public class FragmentJuggler {
     public static final int LISTING = 1;
     public static final int PROFILE = 2;
     public static final int IMAGE = 3;
-    public static final int FRIENDS = 6;
+    public static final int FRIENDS = 4;
     public static final String[] FRAGMENT_NAMES = {
             "Local",
             "Listing",

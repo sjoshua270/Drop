@@ -199,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
         spinner.setVisibility(View.VISIBLE);
         noDropsFound = findViewById(R.id.no_drops);
         noDropsFound.setVisibility(View.GONE);
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         actionBar = getSupportActionBar();
         fragmentManager = getSupportFragmentManager();
 
@@ -218,8 +219,6 @@ public class MainActivity extends AppCompatActivity {
                 this,
                 (FloatingActionButton) findViewById(R.id.fab)
         );
-
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         setFabListener((FloatingActionButton) findViewById(R.id.fab));
         setBackStackListener();
     }
@@ -343,6 +342,7 @@ public class MainActivity extends AppCompatActivity {
         syncUpNav();
         fab.update(fragmentJuggler.getCurrentFragment()
                                   .getArguments());
+        actionBar.setTitle(FRAGMENT_NAMES[CURRENT]);
     }
 
     private void setBackStackListener() {
