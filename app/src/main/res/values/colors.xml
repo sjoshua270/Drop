@@ -7,4 +7,5 @@
     <color name="divider">#BDBDBD</color>
 
     <color name="listing_item_details_background">#c8ffffff</color>
+    <color name="drop_text_color">#212121</color>
 </resources>

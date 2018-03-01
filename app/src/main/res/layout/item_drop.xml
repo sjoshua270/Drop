@@ -35,6 +35,7 @@
             android:layout_toRightOf="@+id/item_prof_img"
             android:padding="@dimen/small_margin"
             android:text="@string/hint_description"
+            android:textColor="@color/drop_text_color"
             android:textSize="@dimen/listing_desc_size" />
     </RelativeLayout>
 
