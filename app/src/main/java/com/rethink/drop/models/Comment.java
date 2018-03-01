@@ -68,4 +68,9 @@ public class Comment {
                .setValue(hashTag);
         }
     }
+
+    @Exclude
+    public boolean isOwnedByUser(String userID) {
+        return userID.equals(commenterID);
+    }
 }

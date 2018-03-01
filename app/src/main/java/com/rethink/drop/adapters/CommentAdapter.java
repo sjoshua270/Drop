@@ -13,6 +13,7 @@ import com.rethink.drop.viewholders.CommentHolder;
 
 public class CommentAdapter extends FirebaseRecyclerAdapter<Comment, CommentHolder> {
     private Context context;
+    private String userID;
 
     /**
      * @param modelClass      Firebase will marshall the data at a location into an instance of a class that you provide
@@ -22,12 +23,13 @@ public class CommentAdapter extends FirebaseRecyclerAdapter<Comment, CommentHold
      * @param ref             The Firebase location to watch for data changes. Can also be a slice of a location, using some
      *                        combination of {@code limit()}, {@code startAt()}, and {@code endAt()}.
      */
-    public CommentAdapter(Context context, Class<Comment> modelClass, int modelLayout, Class<CommentHolder> viewHolderClass, Query ref) {
+    public CommentAdapter(Context context, String uID, Class<Comment> modelClass, int modelLayout, Class<CommentHolder> viewHolderClass, Query ref) {
         super(modelClass,
               modelLayout,
               viewHolderClass,
               ref);
         this.context = context;
+        userID = uID;
     }
 
     @Override
@@ -41,15 +43,16 @@ public class CommentAdapter extends FirebaseRecyclerAdapter<Comment, CommentHold
                 comment.getCommenterID(),
                 viewHolder.profile,
                 viewHolder.username);
-        viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                MainActivity.editComment(
-                        getKey(position),
-                        comment);
-                return true;
-            }
-        });
+        if (comment.isOwnedByUser(userID))
+            viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    MainActivity.editComment(
+                            getKey(position),
+                            comment);
+                    return true;
+                }
+            });
     }
 
     private String getKey(int position) {

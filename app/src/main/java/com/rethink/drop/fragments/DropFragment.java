@@ -289,6 +289,7 @@ public class DropFragment extends ImageManager implements ImageRecipient {
                                                         .child(dropKey);
                 CommentAdapter commentAdapter = new CommentAdapter(
                         getContext(),
+                        user.getUid(),
                         Comment.class,
                         R.layout.item_comment,
                         CommentHolder.class,
