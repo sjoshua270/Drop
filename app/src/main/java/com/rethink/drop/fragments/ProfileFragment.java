@@ -254,8 +254,8 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
                     progressDialog.dismiss();
                     if (dataSnapshot.exists()) {
                         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getContext())
-                                .setMessage("Username in use. Please choose another")
-                                .setPositiveButton("OK",
+                                .setMessage(R.string.username_used)
+                                .setPositiveButton(R.string.ok,
                                                    null);
                         dialogBuilder.create()
                                      .show();

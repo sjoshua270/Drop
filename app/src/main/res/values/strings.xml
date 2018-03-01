@@ -27,4 +27,6 @@
     <string name="friends">Friends</string>
     <string name="name">Name</string>
     <string name="no_drops">It doesn\'t seem like there are any Drops near you. Be the first to post one!</string>
+    <string name="username_used">Username in use. Please choose another.</string>
+    <string name="ok">OK</string>
 </resources>
