@@ -290,14 +290,15 @@ public class ProfileFragment extends ImageManager implements ImageRecipient {
         // Remove the old username
         ref.child(profile.getUsername())
            .removeValue();
+        String profKey = getArguments().getString(PROFILE_KEY);
         // Insert the new one
         ref.child(username)
-           .setValue(username);
+           .setValue(profKey);
         profile = new Profile(imageURL,
                               thumbnailURL,
                               name,
                               username);
-        profile.save(getArguments().getString(PROFILE_KEY));
+        profile.save(profKey);
         Activity activity = getActivity();
         if (activity != null) {
             InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
