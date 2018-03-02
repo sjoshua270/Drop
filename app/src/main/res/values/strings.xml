@@ -29,4 +29,7 @@
     <string name="no_drops">It doesn\'t seem like there are any Drops near you. Be the first to post one!</string>
     <string name="username_used">Username in use. Please choose another.</string>
     <string name="ok">OK</string>
+
+    <string name="search_hint">Search for people</string>
+    <string name="username_not_found">Username not found</string>
 </resources>
