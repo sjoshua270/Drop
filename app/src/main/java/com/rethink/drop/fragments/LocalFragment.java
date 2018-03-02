@@ -1,10 +1,14 @@
 package com.rethink.drop.fragments;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -82,7 +86,19 @@ public class LocalFragment
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             inflater.inflate(R.menu.menu_local, menu);
-            super.onCreateOptionsMenu(menu, inflater);
+
+            AppCompatActivity activity = (AppCompatActivity) getActivity();
+            if (activity != null) {
+                SearchManager searchManager = (SearchManager) getActivity().getSystemService(Context.SEARCH_SERVICE);
+                SearchView searchView = (SearchView) menu.findItem(R.id.search)
+                                                         .getActionView();
+                if (searchManager != null) {
+                    searchView.setSearchableInfo(searchManager.getSearchableInfo(activity.getComponentName()));
+                    searchView.setIconifiedByDefault(true);
+                }
+            }
+            super.onCreateOptionsMenu(menu,
+                                      inflater);
         }
     }
 

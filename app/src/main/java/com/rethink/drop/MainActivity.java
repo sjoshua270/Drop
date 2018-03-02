@@ -167,6 +167,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public static void openProfile(String userID) {
+        Bundle args = new Bundle();
+        args.putString(PROFILE_KEY,
+                       userID);
+        try {
+
+            fragmentJuggler.setMainFragment(PROFILE,
+                                            args);
+        } catch (FragmentArgsMismatch fam) {
+            Log.e("openProfile",
+                  fam.getMessage());
+        }
+    }
+
     public static void editComment(String commentKey, Comment comment) {
         Fragment dropFragment = fragmentJuggler.getCurrentFragment();
         if (dropFragment.getClass()
@@ -443,6 +457,11 @@ public class MainActivity extends AppCompatActivity {
         //                         args);
         //        }
 
+        switch (optionID) {
+            case R.id.search:
+                onSearchRequested();
+                break;
+        }
         if (fragmentClass.equals(LocalFragment.class)) {
             switch (optionID) {
                 case R.id.open_profile:
