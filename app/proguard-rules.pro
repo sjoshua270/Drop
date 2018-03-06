@@ -30,3 +30,10 @@
 
 -dontwarn okio.**
 -dontwarn retrofit2.**
+
+# Fabric Crashlytics
+-keepattributes *Annotation*
+-keepattributes SourceFile,LineNumberTable
+-keep public class * extends java.lang.Exception
+-printmapping mapping.txt
+-dontwarn io.fabric.sdk.android.services.common.IdManager
