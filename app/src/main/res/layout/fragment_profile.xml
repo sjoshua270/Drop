@@ -46,7 +46,8 @@
                     android:id="@+id/prof_name_edit"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/prof_name" />
+                    android:hint="@string/prof_name"
+                    android:inputType="textCapWords" />
             </android.support.design.widget.TextInputLayout>
         </ViewSwitcher>
 

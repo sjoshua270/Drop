@@ -69,7 +69,8 @@
                                 android:id="@+id/drop_description_field"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:hint="@string/hint_description" />
+                                android:hint="@string/hint_description"
+                                android:inputType="textCapSentences" />
                         </android.support.design.widget.TextInputLayout>
                     </ViewSwitcher>
                 </RelativeLayout>
@@ -105,7 +106,8 @@
                 android:id="@+id/comment_edit_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/comment" />
+                android:hint="@string/comment"
+                android:inputType="textCapSentences" />
         </android.support.design.widget.TextInputLayout>
 
         <Button
